@@ -1,4 +1,6 @@
 = T2 - Test & Troubleshooting Platform
 
+image:https://github.com/stackabletech/t2/workflows/Build%20and%20Test/badge.svg[link="https://github.com/stackabletech/t2/actions"]
+
 This platform helps us by offering tools for (integration) tests and troubleshooting (support).
 
