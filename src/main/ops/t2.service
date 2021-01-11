@@ -1,0 +1,11 @@
+[Unit]
+Description=Stackable T2
+After=syslog.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/java -jar /var/t2/t2-server.jar 
+SuccessExitStatus=143 
+
+[Install] 
+WantedBy=multi-user.target
