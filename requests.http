@@ -1,0 +1,28 @@
+# List all clusters
+http://localhost:8080/api/clusters
+
+###
+
+# broken UUID
+http://localhost:8080/api/clusters/this-is-no-uuid
+
+###
+
+# UUID (syntax OK)
+http://localhost:8080/api/clusters/b1015183-1835-4850-908c-796ac9ddf722
+
+###
+
+# UUID exists (please paste existing UUID)
+http://localhost:8080/api/clusters/534d85b1-32e8-411b-98f9-08d5d5e3a6e2
+
+###
+
+# create new cluster
+POST http://localhost:8080/api/clusters
+
+###
+
+# delete cluster
+DELETE http://localhost:8080/api/clusters/534d85b1-32e8-411b-98f9-08d5d5e3a6e2
+
