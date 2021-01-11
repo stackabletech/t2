@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class T2ServerApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(T2ServerApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(T2ServerApplication.class, args);
+  }
 
 }
