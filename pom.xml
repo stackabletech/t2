@@ -73,9 +73,6 @@
             <resource>
                 <filtering>true</filtering>
                 <directory>src/main/resources</directory>
-                <includes>
-                    <include>application.yaml</include>
-                </includes>
             </resource>
         </resources>
         <plugins>
