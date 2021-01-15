@@ -32,11 +32,12 @@ public class SpringFoxConfig {
         .apiInfo(apiInfo());
   }
   
+  // TODO Could we use Annotations for this as well? see https://github.com/swagger-api/swagger-core/wiki/Swagger-2.X---Annotations
   private ApiInfo apiInfo() {
     return new ApiInfo(
       "Stackable T2 REST API", 
       "REST API of Stackable's T2 service (integration test and troubleshooting)",
-      "0.1", // TODO Version aus Maven
+      "0.1", // TODO Version from Maven
       null, 
       new Contact("Stackable", "http://www.stackable.de", "info@stackable.de"), 
       "Apache License 2.0", "http://www.apache.org/licenses/LICENSE-2.0", Collections.emptyList());

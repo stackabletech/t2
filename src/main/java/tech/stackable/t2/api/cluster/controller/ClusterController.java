@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.api.cluster.service.ClusterService;
 
@@ -32,6 +34,7 @@ public class ClusterController {
    */
   @GetMapping()
   @ResponseBody
+  @Operation(summary = "Get all clusters", description = "Get list of all active clusters")
   public Collection<Cluster> getClusters() {
     return clusterService.getAllClusters();
   }
@@ -44,7 +47,8 @@ public class ClusterController {
    */
   @GetMapping("{id}")
   @ResponseBody
-  public Cluster getCluster(@PathVariable(name = "id", required = true) UUID id) {
+  @Operation(summary = "Get cluster", description = "Gets the specified cluster")
+  public Cluster getCluster(@Parameter(name = "id", description = "ID (UUID) des Clusters") @PathVariable(name = "id", required = true) UUID id) {
     Cluster cluster = clusterService.getCluster(id);
     if (cluster == null) {
       throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
@@ -59,6 +63,7 @@ public class ClusterController {
    */
   @PostMapping()
   @ResponseBody
+  @Operation(summary = "Creates a new cluster", description = "Creates a new cluster and starts it")
   public Cluster createCluster() {
     return clusterService.createCluster();
   }
@@ -70,7 +75,8 @@ public class ClusterController {
    */
   @DeleteMapping("{id}")
   @ResponseBody
-  public void deleteCluster(@PathVariable(name = "id", required = true) UUID id) {
+  @Operation(summary = "Deletes a cluster", description = "Deletes the specified cluster")
+  public void deleteCluster(@Parameter(name = "id", description = "ID (UUID) des Clusters") @PathVariable(name = "id", required = true) UUID id) {
     clusterService.deleteCluster(id);
   }
 

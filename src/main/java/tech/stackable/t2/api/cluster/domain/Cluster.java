@@ -3,13 +3,21 @@ package tech.stackable.t2.api.cluster.domain;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Stackable cluster metadata.
  */
+@Schema(description = "Cluster")
 public class Cluster {
 
+  @Schema(description = "ID", required = true)
   private UUID id;
+
+  @Schema(description = "Status", required = true)
   private Status status;
+
+  @Schema(description = "Timestamp of cluster creation", required = true)
   private LocalDateTime dateTimeCreated;
 
   public Cluster() {
