@@ -17,6 +17,7 @@
 
     <properties>
         <java.version>11</java.version>
+        <springfox.version>3.0.0</springfox.version>
     </properties>
 
     <dependencies>
@@ -39,6 +40,27 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+
+        <!-- Swagger (API docs UI) -->        
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-boot-starter</artifactId>
+            <version>${springfox.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${springfox.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.11</version>
+        </dependency>
+        
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

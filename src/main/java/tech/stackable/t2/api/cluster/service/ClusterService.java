@@ -21,6 +21,8 @@ public class ClusterService {
   /**
    * Creates a new cluster
    * 
+   * As of now, this is just a dummy cluster which is starting for 30 secs and then up and running...
+   * 
    * @return new cluster
    */
   public Cluster createCluster() {
