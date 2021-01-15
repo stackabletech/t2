@@ -1,0 +1,18 @@
+- name: create directory for t2
+  file:
+    path: /var/t2/
+    state: directory
+
+- name: copy JAR
+  copy:
+    src: ../../../../target/t2-server.jar
+    dest: /var/t2/
+  notify:
+    - stop firewalld
+    - restart t2
+
+- name: copy service definition
+  copy:
+    src: t2.service
+    dest: /etc/systemd/system/
+

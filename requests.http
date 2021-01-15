@@ -4,7 +4,7 @@
 
 @host = localhost
 # redefine if necessary
-#@host = 135.181.196.190
+#@host = t2.stackable.tech
 
 ###
 

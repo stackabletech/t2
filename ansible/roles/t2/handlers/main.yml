@@ -1,0 +1,9 @@
+---
+- name: restart t2
+  service:
+    name: t2
+    state: restarted
+- name: stop firewalld
+  service:
+    name: firewalld
+    state: stopped    
