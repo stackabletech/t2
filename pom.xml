@@ -18,6 +18,8 @@
     <properties>
         <java.version>11</java.version>
         <springfox.version>3.0.0</springfox.version>
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+        <build-timestamp>${maven.build.timestamp}</build-timestamp>
     </properties>
 
     <dependencies>
@@ -41,7 +43,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Swagger (API docs UI) -->        
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-boot-starter</artifactId>
@@ -59,7 +60,6 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
         
-        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -68,10 +68,24 @@
     </dependencies>
 
     <build>
+        <finalName>${project.name}</finalName>
+        <resources>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>application.yaml</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

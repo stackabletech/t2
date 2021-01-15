@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,12 +16,18 @@ import springfox.documentation.spring.web.plugins.Docket;
 
 @Configuration
 public class SpringFoxConfig {
-
+  
   private final static String[] PATHS = { "/api/", "/actuator/" };
   
   private final static Predicate<String> PATH_SELECTOR = path -> {
     return StringUtils.startsWithAny(path, PATHS);
   };
+  
+  @Value("${t2.build.version}")
+  private String version;
+  
+  @Value("${t2.build.git-commit}")
+  private String gitCommit;
   
   @Bean
   public Docket apiDocs() {
@@ -37,7 +44,7 @@ public class SpringFoxConfig {
     return new ApiInfo(
       "Stackable T2 REST API", 
       "REST API of Stackable's T2 service (integration test and troubleshooting)",
-      "0.1", // TODO Version from Maven
+      String.format("%s (%s)", version, gitCommit),
       null, 
       new Contact("Stackable", "http://www.stackable.de", "info@stackable.de"), 
       "Apache License 2.0", "http://www.apache.org/licenses/LICENSE-2.0", Collections.emptyList());

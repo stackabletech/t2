@@ -1,0 +1,11 @@
+spring:
+  main:
+    banner-mode: "off"
+server:
+  error:
+    include-stacktrace: never
+t2:
+  build:
+    version: "@project.version@"
+    timestamp: "@build-timestamp@"
+    git-commit: "@git.commit.id.describe-short@"
