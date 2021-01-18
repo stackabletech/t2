@@ -3,38 +3,40 @@
 # Define Host
 
 @host = localhost
+@port = :8080
 # redefine if necessary
 #@host = t2.stackable.tech
+#@port =
 
 ###
 
 # List all clusters
-http://{{host}}:8080/api/clusters
+http://{{host}}{{port}}/api/clusters
 
 ###
 
 # broken UUID
-http://{{host}}:8080/api/clusters/this-is-no-uuid
+http://{{host}}{{port}}/api/clusters/this-is-no-uuid
 
 ###
 
 # UUID (syntax OK)
-http://{{host}}:8080/api/clusters/b1015183-1835-4850-908c-796ac9ddf722
+http://{{host}}{{port}}/api/clusters/b1015183-1835-4850-908c-796ac9ddf722
 
 ###
 
 # UUID exists (please paste existing UUID)
-http://{{host}}:8080/api/clusters/534d85b1-32e8-411b-98f9-08d5d5e3a6e2
+http://{{host}}{{port}}/api/clusters/534d85b1-32e8-411b-98f9-08d5d5e3a6e2
 
 ###
 
 # create new cluster
-POST http://{{host}}:8080/api/clusters
+POST http://{{host}}{{port}}/api/clusters
 
 ###
 
 # delete cluster
-DELETE http://{{host}}:8080/api/clusters/288eae17-b5ef-43ca-a9fc-8d2bd0ccae25
+DELETE http://{{host}}{{port}}/api/clusters/169ebe55-ee7a-42e0-826f-c4594ade9ecd
 
 
 
