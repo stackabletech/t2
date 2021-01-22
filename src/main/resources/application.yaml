@@ -12,4 +12,9 @@ t2:
   feature:
     provision-real-clusters: true
     provision-cluster-limit: 5
+  security:
+    token:
+      source: static  # options: file | static
+      file: null
+      static: t2-secret-token
     
