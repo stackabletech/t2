@@ -3,6 +3,14 @@
     path: /var/t2/
     state: directory
 
+- name: create security token
+  copy:
+    dest: /var/t2/security-token
+    content: "{{ lookup('password', '/dev/null length=40 chars=hexdigits') }}"
+    force: no
+  notify:
+    - restart t2  
+
 - name: copy JAR
   copy:
     src: ../../../../target/t2-server.jar
@@ -15,4 +23,3 @@
   copy:
     src: t2.service
     dest: /etc/systemd/system/
-
