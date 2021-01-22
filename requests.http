@@ -35,6 +35,7 @@
 
 # create new cluster
 POST {{protocol}}://{{host}}{{port}}/api/clusters
+t2-token: t2-secret-token
 
 ###
 

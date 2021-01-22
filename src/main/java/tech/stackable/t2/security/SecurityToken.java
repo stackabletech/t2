@@ -27,6 +27,10 @@ public class SecurityToken {
     return new SecurityToken(token);
   }
 
+  public boolean isOk(String token) {
+    return this.token.equals(token);
+  }
+  
   @Override
   public String toString() {
     return "SecurityToken (abbreviated): '" + StringUtils.abbreviate(this.token, 8) + "'";

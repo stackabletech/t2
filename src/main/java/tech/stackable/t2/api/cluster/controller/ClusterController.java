@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.api.cluster.service.ClusterService;
+import tech.stackable.t2.security.SecurityToken;
+import tech.stackable.t2.security.TokenIncorrectException;
+import tech.stackable.t2.security.TokenRequiredException;
 
 /**
  * REST Controller to manage clusters.
@@ -26,6 +30,9 @@ public class ClusterController {
 
   @Autowired
   private ClusterService clusterService;
+
+  @Autowired
+  private SecurityToken requiredToken;
 
   /**
    * Get list of all clusters
@@ -64,7 +71,16 @@ public class ClusterController {
   @PostMapping()
   @ResponseBody
   @Operation(summary = "Creates a new cluster", description = "Creates a new cluster and starts it")
-  public Cluster createCluster() {
+  public Cluster createCluster(@RequestHeader(name = "t2-token", required = false) String token) {
+    
+    if(token==null) {
+      throw new TokenRequiredException();
+    }
+    
+    if(!this.requiredToken.isOk(token)) {
+      throw new TokenIncorrectException();
+    }
+    
     return clusterService.createCluster();
   }
 
