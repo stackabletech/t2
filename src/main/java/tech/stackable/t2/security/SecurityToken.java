@@ -16,7 +16,7 @@ public class SecurityToken {
     if(StringUtils.isBlank(token)) {
       throw new IllegalArgumentException("SecurityToken must not be empty.");
     }
-    this.token = token;
+    this.token = StringUtils.trim(token);
   }
   
   static SecurityToken fromFile(String file) throws IOException {
