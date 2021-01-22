@@ -40,7 +40,7 @@ t2-token: t2-secret-token
 ###
 
 # delete cluster
-DELETE {{protocol}}://{{host}}{{port}}/api/clusters/169ebe55-ee7a-42e0-826f-c4594ade9ecd
+DELETE {{protocol}}://{{host}}{{port}}/api/clusters/1d1e0888-0514-41aa-8abc-d319a41ceb08
 
 
 

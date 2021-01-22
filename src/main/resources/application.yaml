@@ -10,7 +10,7 @@ t2:
     timestamp: "@build-timestamp@"
     git-commit: "@git.commit.id.describe-short@"
   feature:
-    provision-real-clusters: true
+    provision-real-clusters: false
     provision-cluster-limit: 5
   security:
     token:
