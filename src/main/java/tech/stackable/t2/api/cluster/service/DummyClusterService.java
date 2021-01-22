@@ -34,17 +34,22 @@ public class DummyClusterService implements ClusterService {
 
   @Override
   public Cluster createCluster() {
-    Cluster cluster = new Cluster();
-    clusters.put(cluster.getId(), cluster);
-    new Thread(() -> {
-      try {
-        Thread.sleep(30000);
-        cluster.setStatus(Status.RUNNING);
-      } catch (InterruptedException e) {
-        // we can live with that as of now
+    synchronized(this.clusters) {
+      if(clusters.size()>=this.provisionClusterLimit) {
+        throw new ClusterLimitReachedException();
       }
-    }).start();
-    return cluster;
+      Cluster cluster = new Cluster();
+      clusters.put(cluster.getId(), cluster);
+      new Thread(() -> {
+        try {
+          Thread.sleep(30000);
+          cluster.setStatus(Status.RUNNING);
+        } catch (InterruptedException e) {
+          // we can live with that as of now
+        }
+      }).start();
+      return cluster;
+    }
   }
 
   @Override
@@ -59,7 +64,9 @@ public class DummyClusterService implements ClusterService {
 
   @Override
   public void deleteCluster(UUID id) {
-    clusters.remove(id);
+    synchronized(this.clusters) {
+      clusters.remove(id);
+    }
   }
 
 }
