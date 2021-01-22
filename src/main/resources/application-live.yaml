@@ -3,7 +3,7 @@ server:
 t2:
   feature:
     provision-real-clusters: false
-    provision-cluster-limit: 10
+    provision-cluster-limit: 5
   security:
     token:
       source: file  # options: file | static
