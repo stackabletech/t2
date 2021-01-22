@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import tech.stackable.t2.api.cluster.domain.Cluster;
@@ -15,8 +18,23 @@ import tech.stackable.t2.api.cluster.domain.Status;
  */
 @Repository
 public class ClusterService {
+  
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterService.class);  
 
   private Map<UUID, Cluster> clusters = new HashMap<>();
+
+  private boolean provisionRealClusters = false;  
+  
+  private int provisionClusterLimit = 2;  
+  
+  public ClusterService(
+      @Value("${t2.feature.provision-real-clusters}") boolean provisionRealClusters,
+      @Value("${t2.feature.provision-cluster-limit}") int provisionClusterLimit) {
+    this.provisionRealClusters = provisionRealClusters;
+    this.provisionClusterLimit = provisionClusterLimit;
+    LOGGER.info("ClusterService provisions real clusters: {}", this.provisionRealClusters);
+    LOGGER.info("ClusterService cluster number limit: {}", this.provisionClusterLimit);
+  }
 
   /**
    * Creates a new cluster

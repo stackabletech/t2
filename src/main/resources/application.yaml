@@ -9,3 +9,7 @@ t2:
     version: "@project.version@"
     timestamp: "@build-timestamp@"
     git-commit: "@git.commit.id.describe-short@"
+  feature:
+    provision-real-clusters: true
+    provision-cluster-limit: 5
+    
