@@ -12,7 +12,7 @@ t2:
   workspace:
     directory: /tmp/t2-workspace/  
   feature:
-    provision-real-clusters: false
+    provision-real-clusters: true
     provision-cluster-limit: 5
   security:
     token:
