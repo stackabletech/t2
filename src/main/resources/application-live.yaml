@@ -4,6 +4,8 @@ t2:
   feature:
     provision-real-clusters: false
     provision-cluster-limit: 5
+  workspace:
+    directory: /var/t2/workspace/  
   security:
     token:
       source: file  # options: file | static

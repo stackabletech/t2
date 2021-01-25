@@ -9,6 +9,8 @@ t2:
     version: "@project.version@"
     timestamp: "@build-timestamp@"
     git-commit: "@git.commit.id.describe-short@"
+  workspace:
+    directory: /tmp/t2-workspace/  
   feature:
     provision-real-clusters: false
     provision-cluster-limit: 5
