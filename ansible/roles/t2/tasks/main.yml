@@ -1,13 +1,33 @@
+- name: Create t2 group
+  group:
+    name: t2
+    state: present
+    system: yes
+    
+- name: Create t2 user
+  user:
+    name: t2
+    groups: 
+      - t2
+    state: present
+    system: yes
+      
 - name: create directory for t2
   file:
     path: /var/t2/
     state: directory
+    owner: t2
+    group: t2
+    mode: "770"
 
 - name: create security token
   copy:
     dest: /var/t2/security-token
     content: "{{ lookup('password', '/dev/null length=40 chars=hexdigits') }}"
     force: no
+    owner: t2
+    group: t2
+    mode: "0440"
   notify:
     - restart t2  
 
@@ -15,6 +35,9 @@
   copy:
     src: ../../../../target/t2-server.jar
     dest: /var/t2/
+    owner: t2
+    group: t2
+    mode: "0440"
   notify:
     - restart t2
 
