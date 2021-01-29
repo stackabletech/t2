@@ -4,7 +4,3 @@
     name: t2
     daemon_reload: yes    
     state: restarted
-- name: stop firewalld
-  service:
-    name: firewalld
-    state: stopped    

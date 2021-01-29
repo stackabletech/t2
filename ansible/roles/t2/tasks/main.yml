@@ -16,10 +16,15 @@
     src: ../../../../target/t2-server.jar
     dest: /var/t2/
   notify:
-    - stop firewalld
     - restart t2
 
 - name: copy service definition
   copy:
     src: t2.service
     dest: /etc/systemd/system/
+
+- name: enable t2
+  service:
+    name: t2
+    daemon_reload: yes    
+    enabled: yes
