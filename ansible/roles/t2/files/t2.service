@@ -3,7 +3,7 @@ Description=Stackable T2
 After=syslog.target
 
 [Service]
-User=root
+User=t2
 ExecStart=/usr/bin/java -Dspring.profiles.active=live -jar /var/t2/t2-server.jar 
 SuccessExitStatus=143 
 
