@@ -11,3 +11,8 @@
     dest: /etc/caddy/caddy.conf
   notify:
     - restart caddy
+- name: enable caddy
+  service:
+    name: caddy
+    daemon_reload: yes    
+    enabled: yes

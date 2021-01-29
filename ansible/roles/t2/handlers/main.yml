@@ -1,10 +1,7 @@
 ---
-- name: restart t2
+- name: enable and restart t2
   service:
     name: t2
     daemon_reload: yes    
     state: restarted
-- name: stop firewalld
-  service:
-    name: firewalld
-    state: stopped    
+    enabled: yes
