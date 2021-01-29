@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -17,14 +18,16 @@ public class TerraformRunner {
   
   private Path terraformFile;
   private String datacenterName;
+  private Properties credentials;
 
-  private TerraformRunner(Path terraformFile, String datacenterName) {
+  private TerraformRunner(Path terraformFile, String datacenterName, Properties credentials) {
     super();
     this.terraformFile = terraformFile;
     this.datacenterName = datacenterName;
+    this.credentials = credentials;
   }
 
-  public static TerraformRunner create(Path terraformFile, String datacenterName) {
+  public static TerraformRunner create(Path terraformFile, String datacenterName, Properties credentials) {
     Objects.requireNonNull(terraformFile);
     Objects.requireNonNull(datacenterName);
     if(StringUtils.isBlank(datacenterName)) {
@@ -34,7 +37,7 @@ public class TerraformRunner {
       LOGGER.error("The Terraform file {} does not exist.");
       throw new IllegalArgumentException(String.format("The Terraform file %s does not exist.", terraformFile));
     }
-    return new TerraformRunner(terraformFile, datacenterName);
+    return new TerraformRunner(terraformFile, datacenterName, credentials);
   }
   
   public TerraformResult init() {
@@ -74,6 +77,9 @@ public class TerraformRunner {
             .command("sh", "-c", String.format("terraform %s %s -no-color", command, params))
             .directory(this.terraformFile.getParent().toFile());
         processBuilder.environment().put("TF_VAR_ionos_datacenter", datacenterName);
+        this.credentials.forEach((key, value) -> {
+          processBuilder.environment().put(String.format("TF_VAR_%s", key), value.toString());
+        });
         Process process = processBuilder.start();
         ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), this.terraformFile.getParent().resolve(String.format("terraform_%s.out.log", command)));
         ProcessLogger errLogger = ProcessLogger.start(process.getErrorStream(), this.terraformFile.getParent().resolve(String.format("terraform_%s.err.log", command)));

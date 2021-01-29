@@ -1,12 +1,17 @@
 package tech.stackable.t2.api.cluster.service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 
@@ -32,6 +38,10 @@ public class TerraformAnsibleClusterService implements ClusterService {
   @Autowired
   @Qualifier("workspaceDirectory")
   private Path workspaceDirectory;
+  
+  @Autowired
+  @Qualifier("credentials")
+  private Properties credentials;
   
   @Autowired
   ResourceLoader resourceLoader;  
@@ -64,14 +74,19 @@ public class TerraformAnsibleClusterService implements ClusterService {
 
       try {
         Files.createDirectory(workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform"));
-        Files.copy(this.resourceLoader.getResource("classpath:templates/terraform/cluster.tf").getFile().toPath(), workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform").resolve("cluster.tf"));
+        
+        Resource resource = this.resourceLoader.getResource("classpath:templates/terraform/cluster.tf");
+        InputStream inputStream = resource.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        String contents = reader.lines().collect(Collectors.joining(System.lineSeparator()));
+        Files.writeString(workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform").resolve("cluster.tf"), contents);
       } catch (IOException ioe) {
         LOGGER.error("Terraform directory for cluster {} could not be created.", cluster.getId(), ioe);
         throw new RuntimeException(String.format("Terraform directory for cluster %s could not be created.", cluster.getId()));
       }
       
       new Thread(() -> {
-        TerraformRunner runner = TerraformRunner.create(workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform").resolve("cluster.tf"), String.format("t2-%s", cluster.getId()));
+        TerraformRunner runner = TerraformRunner.create(workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform").resolve("cluster.tf"), String.format("t2-%s", cluster.getId()), credentials);
         runner.init();
         runner.plan();
         runner.apply();
@@ -103,7 +118,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
       // TODO check if dir exists etc.
       
       new Thread(() -> {
-        TerraformRunner runner = TerraformRunner.create(workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform").resolve("cluster.tf"), String.format("t2-%s", cluster.getId()));
+        TerraformRunner runner = TerraformRunner.create(workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform").resolve("cluster.tf"), String.format("t2-%s", cluster.getId()), credentials);
         runner.destroy();
       }).start();
       
