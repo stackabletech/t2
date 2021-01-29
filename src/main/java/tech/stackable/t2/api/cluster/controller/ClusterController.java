@@ -42,7 +42,8 @@ public class ClusterController {
   @GetMapping()
   @ResponseBody
   @Operation(summary = "Get all clusters", description = "Get list of all active clusters")
-  public Collection<Cluster> getClusters() {
+  public Collection<Cluster> getClusters(@RequestHeader(name = "t2-token", required = false) String token) {
+    checkToken(token);
     return clusterService.getAllClusters();
   }
 
@@ -55,7 +56,10 @@ public class ClusterController {
   @GetMapping("{id}")
   @ResponseBody
   @Operation(summary = "Get cluster", description = "Gets the specified cluster")
-  public Cluster getCluster(@Parameter(name = "id", description = "ID (UUID) des Clusters") @PathVariable(name = "id", required = true) UUID id) {
+  public Cluster getCluster(
+      @Parameter(name = "id", description = "ID (UUID) des Clusters") @PathVariable(name = "id", required = true) UUID id,
+      @RequestHeader(name = "t2-token", required = false) String token) {
+    checkToken(token);
     Cluster cluster = clusterService.getCluster(id);
     if (cluster == null) {
       throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
@@ -72,15 +76,7 @@ public class ClusterController {
   @ResponseBody
   @Operation(summary = "Creates a new cluster", description = "Creates a new cluster and starts it")
   public Cluster createCluster(@RequestHeader(name = "t2-token", required = false) String token) {
-    
-    if(token==null) {
-      throw new TokenRequiredException();
-    }
-    
-    if(!this.requiredToken.isOk(token)) {
-      throw new TokenIncorrectException();
-    }
-    
+    checkToken(token);
     return clusterService.createCluster();
   }
 
@@ -92,8 +88,24 @@ public class ClusterController {
   @DeleteMapping("{id}")
   @ResponseBody
   @Operation(summary = "Deletes a cluster", description = "Deletes the specified cluster")
-  public void deleteCluster(@Parameter(name = "id", description = "ID (UUID) des Clusters") @PathVariable(name = "id", required = true) UUID id) {
-    clusterService.deleteCluster(id);
+  public Cluster deleteCluster(
+      @Parameter(name = "id", description = "ID (UUID) des Clusters") @PathVariable(name = "id", required = true) UUID id,
+      @RequestHeader(name = "t2-token", required = false) String token) {
+    checkToken(token);
+    Cluster cluster = clusterService.deleteCluster(id);
+    if (cluster == null) {
+      throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
+    }
+    return cluster;
+  }
+  
+  private void checkToken(String token) {
+    if(token==null) {
+      throw new TokenRequiredException();
+    }
+    if(!this.requiredToken.isOk(token)) {
+      throw new TokenIncorrectException();
+    }
   }
 
 }

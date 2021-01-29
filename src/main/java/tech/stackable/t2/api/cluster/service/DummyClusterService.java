@@ -63,9 +63,9 @@ public class DummyClusterService implements ClusterService {
   }
 
   @Override
-  public void deleteCluster(UUID id) {
+  public Cluster deleteCluster(UUID id) {
     synchronized(this.clusters) {
-      clusters.remove(id);
+      return clusters.remove(id);
     }
   }
 

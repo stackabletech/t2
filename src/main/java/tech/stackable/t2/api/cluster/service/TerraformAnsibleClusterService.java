@@ -24,6 +24,8 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 
 import tech.stackable.t2.api.cluster.domain.Cluster;
+import tech.stackable.t2.api.cluster.domain.Status;
+import tech.stackable.t2.terraform.TerraformResult;
 import tech.stackable.t2.terraform.TerraformRunner;
 
 /**
@@ -57,13 +59,14 @@ public class TerraformAnsibleClusterService implements ClusterService {
 
   @Override
   public Cluster createCluster() {
-    // TODO set state
     synchronized(this.clusters) {
       if(clusters.size()>=this.provisionClusterLimit) {
         throw new ClusterLimitReachedException();
       }
       Cluster cluster = new Cluster();
       clusters.put(cluster.getId(), cluster);
+      
+      cluster.setStatus(Status.CREATION_STARTED);
       
       try {
         Files.createDirectory(workspaceDirectory.resolve(cluster.getId().toString()));
@@ -86,10 +89,27 @@ public class TerraformAnsibleClusterService implements ClusterService {
       }
       
       new Thread(() -> {
+        TerraformResult result;
         TerraformRunner runner = TerraformRunner.create(workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform").resolve("cluster.tf"), String.format("t2-%s", cluster.getId()), credentials);
-        runner.init();
-        runner.plan();
+        cluster.setStatus(Status.TERRAFORM_INIT);
+        result = runner.init();
+        if(result==TerraformResult.ERROR) {
+          cluster.setStatus(Status.TERRAFORM_INIT_FAILED);
+          return;
+        }
+        cluster.setStatus(Status.TERRAFORM_PLAN);
+        result = runner.plan();
+        if(result==TerraformResult.ERROR) {
+          cluster.setStatus(Status.TERRAFORM_PLAN_FAILED);
+          return;
+        }
+        cluster.setStatus(Status.TERRAFORM_APPLY);
         runner.apply();
+        if(result==TerraformResult.ERROR) {
+          cluster.setStatus(Status.TERRAFORM_APPLY_FAILED);
+          return;
+        }
+        cluster.setStatus(Status.RUNNING);
       }).start();
       
       return cluster;
@@ -107,22 +127,30 @@ public class TerraformAnsibleClusterService implements ClusterService {
   }
 
   @Override
-  public void deleteCluster(UUID id) {
-    // TODO set state
+  public Cluster deleteCluster(UUID id) {
     synchronized(this.clusters) {
       Cluster cluster = this.clusters.get(id);
       if(cluster==null) {
-        return;
+        return null;
       }
+      
+      cluster.setStatus(Status.DELETION_STARTED);
       
       // TODO check if dir exists etc.
       
       new Thread(() -> {
         TerraformRunner runner = TerraformRunner.create(workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform").resolve("cluster.tf"), String.format("t2-%s", cluster.getId()), credentials);
-        runner.destroy();
+        cluster.setStatus(Status.TERRAFORM_DESTROY);
+        TerraformResult result = runner.destroy();
+        if(result==TerraformResult.ERROR) {
+          cluster.setStatus(Status.TERRAFORM_DESTROY_FAILED);
+          return;
+        }
+        cluster.setStatus(Status.TERMINATED);
+        this.clusters.remove(id);
       }).start();
       
-      this.clusters.remove(id);
+      return cluster;
     }
   }
 

@@ -34,6 +34,6 @@ public interface ClusterService {
    * 
    * @param id ID of cluster to remove
    */
-  void deleteCluster(UUID id);
+  Cluster deleteCluster(UUID id);
 
 }
