@@ -20,6 +20,14 @@
     group: t2
     mode: "770"
 
+- name: create workspace directory for t2
+  file:
+    path: /var/t2/workspace
+    state: directory
+    owner: t2
+    group: t2
+    mode: "770"
+
 - name: create security token
   copy:
     dest: /var/t2/security-token
