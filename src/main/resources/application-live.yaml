@@ -3,7 +3,7 @@ server:
 t2:
   feature:
     provision-real-clusters: true
-    provision-cluster-limit: 5
+    provision-cluster-limit: 20
   workspace:
     directory: /var/t2/workspace/  
   security:
