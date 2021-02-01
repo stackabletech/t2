@@ -98,6 +98,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
           cluster.setStatus(Status.TERRAFORM_APPLY_FAILED);
           return;
         }
+
         cluster.setStatus(Status.RUNNING);
         
       }).start();

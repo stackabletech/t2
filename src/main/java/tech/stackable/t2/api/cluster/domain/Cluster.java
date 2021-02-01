@@ -1,6 +1,9 @@
 package tech.stackable.t2.api.cluster.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,6 +23,9 @@ public class Cluster {
   @Schema(description = "Timestamp of cluster creation", required = true)
   private LocalDateTime dateTimeCreated;
 
+  @Schema(description = "History of events in the cluster's lifecycle", required = false)
+  private List<ClusterHistoryEvent> history;
+  
   public Cluster() {
     this(UUID.randomUUID());
   }
@@ -28,6 +34,8 @@ public class Cluster {
     this.id = id;
     this.status = Status.NEW;
     this.dateTimeCreated = LocalDateTime.now();
+    this.history = new ArrayList<>();
+    this.history.add(new ClusterHistoryEvent(Status.NEW, null, this.dateTimeCreated));
   }
 
   public UUID getId() {
@@ -40,14 +48,24 @@ public class Cluster {
 
   public void setStatus(Status status) {
     this.status = status;
+    this.history.add(new ClusterHistoryEvent(this.status, null, this.dateTimeCreated));
+  }
+
+  public void setStatus(Status status, String description) {
+    this.status = status;
+    synchronized (this.history) {
+      this.history.add(new ClusterHistoryEvent(this.status, description, this.dateTimeCreated));
+    }
   }
 
   public LocalDateTime getDateTimeCreated() {
     return dateTimeCreated;
   }
 
-  public void setDateTimeCreated(LocalDateTime dateTimeCreated) {
-    this.dateTimeCreated = dateTimeCreated;
+  public List<ClusterHistoryEvent> getHistory() {
+    synchronized (this.history) {
+      return Collections.unmodifiableList(this.history);
+    }
   }
 
   @Override
