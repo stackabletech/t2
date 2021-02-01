@@ -23,9 +23,7 @@ public enum Status {
   TERRAFORM_DESTROY_FAILED(true),
   RUNNING,
   DELETION_STARTED,
-  TERMINATED,
-  BROKEN, 
-  UNKNOWN;
+  TERMINATED;
   
   private boolean failed = false;
 

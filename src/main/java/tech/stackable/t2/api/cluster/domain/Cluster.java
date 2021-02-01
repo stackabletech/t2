@@ -47,8 +47,7 @@ public class Cluster {
   }
 
   public void setStatus(Status status) {
-    this.status = status;
-    this.history.add(new ClusterHistoryEvent(this.status, null, this.dateTimeCreated));
+    this.setStatus(status, null);
   }
 
   public void setStatus(Status status, String description) {
@@ -68,6 +67,15 @@ public class Cluster {
     }
   }
 
+  public LocalDateTime getLastChangedAt() {
+    if(this.history.isEmpty()) {
+      return null;
+    }
+    synchronized(this.history) {
+      return this.history.get(this.history.size()-1).getTimestamp();
+    }
+  }
+  
   @Override
   public int hashCode() {
     final int prime = 31;

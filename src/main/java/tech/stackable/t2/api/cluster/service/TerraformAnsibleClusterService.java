@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -20,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
 import tech.stackable.t2.api.cluster.domain.Cluster;
@@ -33,6 +37,8 @@ import tech.stackable.t2.terraform.TerraformRunner;
 @Repository
 @ConditionalOnProperty(name = "t2.feature.provision-real-clusters", havingValue = "true")
 public class TerraformAnsibleClusterService implements ClusterService {
+  
+  private static final Duration CLEANUP_INACTIVITY_THRESHOLD = Duration.ofDays(1);
   
   private static final Logger LOGGER = LoggerFactory.getLogger(TerraformAnsibleClusterService.class);  
 
@@ -135,13 +141,47 @@ public class TerraformAnsibleClusterService implements ClusterService {
           return;
         }
         cluster.setStatus(Status.TERMINATED);
-        this.clusters.remove(id);
       }).start();
       
       return cluster;
     }
   }
 
+  /**
+   * Cleans up list of clusters regularly.
+   */
+  @Scheduled(cron="0 0 * * * *") // on the hour
+  private void cleanup() {
+    LOGGER.info("cleaning up clusters ...");
+    List<UUID> clustersToDelete = this.clusters.values()
+      .stream()
+      .filter(TerraformAnsibleClusterService::readyForCleanup)
+      .map(Cluster::getId)
+      .collect(Collectors.toList());
+
+    synchronized (clusters) {
+      clustersToDelete.forEach(id -> {
+        LOGGER.info("Cluster {} will be cleaned up.", id);
+        this.clusters.remove(id);
+      });
+    }
+    
+    LOGGER.info("cleaned up {} clusters.", clustersToDelete.size());
+  }
+
+  /**
+   * Decides if a given Cluster is ready to be cleaned up.
+   * 
+   * We assume that clusters that are not in state {@link Status#RUNNING} and haven't changed their state for a day are ready to be removed.
+   * 
+   * @param cluster cluster to check
+   * @return Is the given cluster ready to be cleaned up?
+   */
+  private static boolean readyForCleanup(Cluster cluster) {
+    return !(cluster.getStatus()==Status.RUNNING)
+        && Duration.between(cluster.getLastChangedAt(), LocalDateTime.now()).compareTo(CLEANUP_INACTIVITY_THRESHOLD) > 0;
+  }
+  
   /**
    * Gets the Terraform file for the given cluster, creates it if necessary
    * @param clusterId Cluster ID
