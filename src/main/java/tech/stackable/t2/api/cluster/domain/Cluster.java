@@ -26,6 +26,9 @@ public class Cluster {
   @Schema(description = "History of events in the cluster's lifecycle", required = false)
   private List<ClusterHistoryEvent> history;
   
+  @Schema(description = "IP V4 address", required = false)
+  private String ipV4Address;
+  
   public Cluster() {
     this(UUID.randomUUID());
   }
@@ -76,13 +79,19 @@ public class Cluster {
     }
   }
   
+  public String getIpV4Address() {
+    return ipV4Address;
+  }
+
+  public void setIpV4Address(String ipV4Address) {
+    this.ipV4Address = ipV4Address;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((dateTimeCreated == null) ? 0 : dateTimeCreated.hashCode());
     result = prime * result + ((id == null) ? 0 : id.hashCode());
-    result = prime * result + ((status == null) ? 0 : status.hashCode());
     return result;
   }
 
@@ -95,23 +104,16 @@ public class Cluster {
     if (getClass() != obj.getClass())
       return false;
     Cluster other = (Cluster) obj;
-    if (dateTimeCreated == null) {
-      if (other.dateTimeCreated != null)
-        return false;
-    } else if (!dateTimeCreated.equals(other.dateTimeCreated))
-      return false;
     if (id == null) {
       if (other.id != null)
         return false;
     } else if (!id.equals(other.id))
-      return false;
-    if (status != other.status)
       return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "Cluster [id=" + id + ", status=" + status + ", dateTimeCreated=" + dateTimeCreated + "]";
+    return "Cluster [id=" + id + ", status=" + status + ", dateTimeCreated=" + dateTimeCreated + ", history=" + history + ", ipV4Address=" + ipV4Address + "]";
   }
 }

@@ -71,6 +71,16 @@ public class TerraformAnsibleClusterService implements ClusterService {
   }
 
   @Override
+  public Collection<Cluster> getAllClusters() {
+    return this.clusters.values();
+  }
+
+  @Override
+  public Cluster getCluster(UUID id) {
+    return this.clusters.get(id);
+  }
+
+  @Override
   public Cluster createCluster() {
     synchronized(this.clusters) {
       if(clusters.size()>=this.provisionClusterLimit) {
@@ -104,23 +114,14 @@ public class TerraformAnsibleClusterService implements ClusterService {
           cluster.setStatus(Status.TERRAFORM_APPLY_FAILED);
           return;
         }
-
+        
+        cluster.setIpV4Address(runner.getIpV4());
         cluster.setStatus(Status.RUNNING);
         
       }).start();
       
       return cluster;
     }
-  }
-
-  @Override
-  public Collection<Cluster> getAllClusters() {
-    return this.clusters.values();
-  }
-
-  @Override
-  public Cluster getCluster(UUID id) {
-    return this.clusters.get(id);
   }
 
   @Override
@@ -140,6 +141,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
           cluster.setStatus(Status.TERRAFORM_DESTROY_FAILED);
           return;
         }
+        cluster.setIpV4Address(null);
         cluster.setStatus(Status.TERMINATED);
       }).start();
       

@@ -43,7 +43,7 @@ data "profitbricks_image" "centos7" {
   location = "de/fra"
 }
 
-// Internet facing lan
+# Internet facing lan
 resource "profitbricks_lan" "external" {
   name = "External Network"
   datacenter_id = profitbricks_datacenter.datacenter.id
@@ -75,3 +75,8 @@ resource "profitbricks_server" "nat" {
   }
 }
 
+resource "local_file" "ipv4_file" {
+    file_permission = "0440"
+    content     = profitbricks_server.nat.primary_ip
+    filename = "ip4v"
+}

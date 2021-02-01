@@ -71,6 +71,15 @@ public class TerraformRunner {
     return result==0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
   }
   
+  public String getIpV4() {
+    try {
+      return Files.readString(this.terraformFile.getParent().resolve("ip4v"));
+    } catch (IOException e) {
+      LOGGER.error("IPv4 Address for Cluster with TF file {} could not be read.", this.terraformFile, e);
+      return null;
+    }
+  }
+  
   private int callTerraform(String command, String params) {
     try {
         ProcessBuilder processBuilder = new ProcessBuilder()
