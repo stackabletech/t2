@@ -33,7 +33,7 @@ public class DummyClusterService implements ClusterService {
   }
 
   @Override
-  public Cluster createCluster() {
+  public Cluster createCluster(String sshPublicKey) {
     synchronized(this.clusters) {
       if(clusters.size()>=this.provisionClusterLimit) {
         throw new ClusterLimitReachedException();

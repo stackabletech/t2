@@ -81,7 +81,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
   }
 
   @Override
-  public Cluster createCluster() {
+  public Cluster createCluster(String sshPublicKey) {
     synchronized(this.clusters) {
       if(clusters.size()>=this.provisionClusterLimit) {
         throw new ClusterLimitReachedException();
@@ -91,7 +91,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
       cluster.setStatus(Status.CREATION_STARTED);
       
       new Thread(() -> {
-        TerraformRunner runner = TerraformRunner.create(terraformFile(cluster.getId()), datacenterName(cluster.getId()), credentials);
+        TerraformRunner runner = TerraformRunner.create(terraformFolder(cluster.getId(), sshPublicKey), datacenterName(cluster.getId()), credentials);
         TerraformResult result;
         
         cluster.setStatus(Status.TERRAFORM_INIT);
@@ -134,7 +134,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
       cluster.setStatus(Status.DELETION_STARTED);
       
       new Thread(() -> {
-        TerraformRunner runner = TerraformRunner.create(terraformFile(cluster.getId()), datacenterName(cluster.getId()), credentials);
+        TerraformRunner runner = TerraformRunner.create(terraformFolder(cluster.getId(), null), datacenterName(cluster.getId()), credentials);
         cluster.setStatus(Status.TERRAFORM_DESTROY);
         TerraformResult result = runner.destroy();
         if(result==TerraformResult.ERROR) {
@@ -189,10 +189,10 @@ public class TerraformAnsibleClusterService implements ClusterService {
    * @param clusterId Cluster ID
    * @return Terraform file for the given cluster
    */
-  private Path terraformFile(UUID clusterId) {
+  private Path terraformFolder(UUID clusterId, String sshPublicKey) {
     Path terraformFile = terraformFiles.get(clusterId);
     if(terraformFile==null) {
-      terraformFile = createTerraformFile(clusterId);
+      terraformFile = createTerraformFolder(clusterId, sshPublicKey);
       terraformFiles.put(clusterId, terraformFile);
     }
     return terraformFile;
@@ -203,7 +203,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
    * @param clusterId Cluster ID
    * @return Path of the Terraform file for the given cluster
    */
-  private Path createTerraformFile(UUID clusterId) {
+  private Path createTerraformFolder(UUID clusterId, String sshPublicKey) {
     Path terraformFile = workspaceDirectory.resolve(clusterId.toString()).resolve("terraform").resolve("cluster.tf");
     try {
       Files.createDirectories(terraformFile.getParent());
@@ -211,6 +211,11 @@ public class TerraformAnsibleClusterService implements ClusterService {
       BufferedReader templateReader = new BufferedReader(new InputStreamReader(terraformFileTemplate.getInputStream()));
       String contents = templateReader.lines().collect(Collectors.joining(System.lineSeparator()));
       Files.writeString(terraformFile, contents);
+      
+      if(sshPublicKey!=null) {
+        Files.writeString(terraformFile.getParent().resolve("ssh-key.pub"), sshPublicKey);
+      }
+      
     } catch (IOException ioe) {
       LOGGER.error("Terraform directory for cluster {} could not be created.", clusterId, ioe);
       throw new RuntimeException(String.format("Terraform directory for cluster %s could not be created.", clusterId));

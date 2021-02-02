@@ -1,5 +1,6 @@
 package tech.stackable.t2.api.cluster.controller;
 
+import java.util.Base64;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -75,9 +76,11 @@ public class ClusterController {
   @PostMapping()
   @ResponseBody
   @Operation(summary = "Creates a new cluster", description = "Creates a new cluster and starts it")
-  public Cluster createCluster(@RequestHeader(name = "t2-token", required = false) String token) {
+  public Cluster createCluster(
+      @RequestHeader(name = "t2-token", required = false) String token,
+      @RequestHeader(name = "t2-ssh-key", required = true) String sshKey) {
     checkToken(token);
-    return clusterService.createCluster();
+    return clusterService.createCluster(new String(Base64.getDecoder().decode(sshKey)));
   }
 
   /**

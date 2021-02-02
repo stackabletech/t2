@@ -12,7 +12,7 @@ public interface ClusterService {
    * 
    * @return new cluster
    */
-  Cluster createCluster();
+  Cluster createCluster(String sshPublicKey);
 
   /**
    * Gets all clusters
