@@ -1,6 +1,10 @@
 package tech.stackable.t2.security;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Properties;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,5 +55,21 @@ public class SecurityConfiguration {
       throw new BeanCreationException("Security token could not be created.");
     }
   }
+  
+  @Bean(name = "credentials")
+  public Properties credentials(@Value("file:${t2.security.credential-file:}") Path path) {
+    Properties credentials = new Properties();
+    if(!Files.exists(path) || !Files.isRegularFile(path) || !Files.isReadable(path)) {
+      LOGGER.info("No credentials read, as the path {} does not exist.", path);
+      return credentials;
+    }
+    try {
+      credentials.load(new StringReader(Files.readString(path)));
+    } catch (IOException e) {
+      LOGGER.error("No credentials read from path {} due to an error.", path, e);
+    }
+    return credentials;
+  }  
+  
   
 }
