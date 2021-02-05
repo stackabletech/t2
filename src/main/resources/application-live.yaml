@@ -2,11 +2,14 @@ server:
   port: 8080
 t2:
   feature:
-    provision-real-clusters: false
-    provision-cluster-limit: 5
+    provision-real-clusters: true
+    provision-cluster-limit: 20
+  workspace:
+    directory: /var/t2/workspace/  
   security:
     token:
       source: file  # options: file | static
       file: /var/t2/security-token
       static: null
+    credential-file: /var/t2/credentials.properties
   

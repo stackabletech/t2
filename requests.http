@@ -6,30 +6,36 @@
 @protocol = http
 @host = localhost
 @port = :8080
+@token = t2-secret-token
 # redefine if necessary
 #@host = t2.stackable.tech
 #@port =
 #@protocol = https
+#@token = ???
 
 ###
 
 # List all clusters
 {{protocol}}://{{host}}{{port}}/api/clusters
+t2-token: {{token}}
 
 ###
 
 # broken UUID
 {{protocol}}://{{host}}{{port}}/api/clusters/this-is-no-uuid
+t2-token: {{token}}
 
 ###
 
 # UUID (syntax OK)
 {{protocol}}://{{host}}{{port}}/api/clusters/b1015183-1835-4850-908c-796ac9ddf722
+t2-token: {{token}}
 
 ###
 
 # UUID exists (please paste existing UUID)
 {{protocol}}://{{host}}{{port}}/api/clusters/534d85b1-32e8-411b-98f9-08d5d5e3a6e2
+t2-token: {{token}}
 
 ###
 
@@ -40,7 +46,8 @@ t2-token: t2-secret-token
 ###
 
 # delete cluster
-DELETE {{protocol}}://{{host}}{{port}}/api/clusters/1d1e0888-0514-41aa-8abc-d319a41ceb08
+DELETE {{protocol}}://{{host}}{{port}}/api/clusters/50c6c5b7-cc0f-4b59-a609-78bb0ec7b5ab
+t2-token: t2-secret-token
 
 
 

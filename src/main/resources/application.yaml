@@ -9,12 +9,13 @@ t2:
     version: "@project.version@"
     timestamp: "@build-timestamp@"
     git-commit: "@git.commit.id.describe-short@"
+  workspace:
+    directory: /tmp/t2-workspace/  
   feature:
-    provision-real-clusters: false
+    provision-real-clusters: true
     provision-cluster-limit: 5
   security:
     token:
       source: static  # options: file | static
       file: null
       static: t2-secret-token
-    

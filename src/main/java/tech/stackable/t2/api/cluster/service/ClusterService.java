@@ -12,7 +12,7 @@ public interface ClusterService {
    * 
    * @return new cluster
    */
-  Cluster createCluster();
+  Cluster createCluster(String sshPublicKey);
 
   /**
    * Gets all clusters
@@ -34,6 +34,6 @@ public interface ClusterService {
    * 
    * @param id ID of cluster to remove
    */
-  void deleteCluster(UUID id);
+  Cluster deleteCluster(UUID id);
 
 }
