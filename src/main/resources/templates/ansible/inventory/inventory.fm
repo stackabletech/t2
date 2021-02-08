@@ -1,0 +1,4 @@
+[all]
+${cluster_ip}
+
+[all:vars]

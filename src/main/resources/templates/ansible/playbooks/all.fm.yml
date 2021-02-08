@@ -1,0 +1,8 @@
+---
+- hosts: all
+  roles:
+  - enterprise_linux
+  - firewalld
+  - nginx
+
+  

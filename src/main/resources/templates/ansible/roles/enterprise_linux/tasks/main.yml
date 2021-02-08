@@ -1,0 +1,5 @@
+---
+- name: ensure EPEL (Extra Packages for Enterprise Linux) are installed at the latest version
+  yum:
+    name: epel-release
+    state: latest

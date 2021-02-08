@@ -1,0 +1,3 @@
+---
+# User to run ansible on remote host(s)
+ansible_user: root
