@@ -11,7 +11,11 @@
       - t2
     state: present
     system: yes
-      
+    generate_ssh_key: yes
+    ssh_key_type: rsa
+    ssh_key_bits: 4096
+    ssh_key_file: .ssh/t2
+
 - name: create directory for t2
   file:
     path: /var/t2/

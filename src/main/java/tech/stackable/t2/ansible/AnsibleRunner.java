@@ -36,10 +36,11 @@ public class AnsibleRunner {
     return result==0 ? AnsibleResult.SUCCESS : AnsibleResult.ERROR;
   }
   
+  // TODO configure key, not hard coded!!!
   private int callAnsible() {
     try {
         ProcessBuilder processBuilder = new ProcessBuilder()
-            .command("sh", "-c", "ansible-playbook playbooks/all.yml")
+            .command("sh", "-c", "ansible-playbook --private-key=/home/t2/.ssh/t2 playbooks/all.yml")
             .directory(this.ansibleFolder.toFile());
         Process process = processBuilder.start();
         ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), this.ansibleFolder.resolve("ansible.out.log"));
