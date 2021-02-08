@@ -86,6 +86,7 @@ public class TerraformRunner {
             .command("sh", "-c", String.format("terraform %s %s -no-color", command, params))
             .directory(this.terraformFolder.toFile());
         processBuilder.environment().put("TF_VAR_ionos_datacenter", datacenterName);
+        // TODO only use selected values
         this.credentials.forEach((key, value) -> {
           processBuilder.environment().put(String.format("TF_VAR_%s", key), value.toString());
         });

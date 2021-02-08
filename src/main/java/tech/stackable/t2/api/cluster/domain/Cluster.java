@@ -29,6 +29,9 @@ public class Cluster {
   @Schema(description = "IP V4 address", required = false)
   private String ipV4Address;
   
+  @Schema(description = "hostname", required = false)
+  private String hostname;
+  
   public Cluster() {
     this(UUID.randomUUID());
   }
@@ -85,6 +88,14 @@ public class Cluster {
 
   public void setIpV4Address(String ipV4Address) {
     this.ipV4Address = ipV4Address;
+  }
+
+  public String getHostname() {
+    return hostname;
+  }
+
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
   }
 
   @Override

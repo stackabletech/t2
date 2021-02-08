@@ -19,4 +19,5 @@ t2:
       source: static  # options: file | static
       file: null
       static: t2-secret-token
+    credential-file: ~/t2-credentials.properties
     ssh-key-file: ~/.ssh/id_ionos_rsa

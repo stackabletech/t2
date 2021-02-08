@@ -1,4 +1,4 @@
 [all]
-${cluster_ip}
+${cluster_hostname}
 
 [all:vars]

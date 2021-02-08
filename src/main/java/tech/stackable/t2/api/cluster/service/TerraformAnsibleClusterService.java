@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import tech.stackable.t2.ansible.AnsibleResult;
 import tech.stackable.t2.ansible.AnsibleRunner;
 import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.api.cluster.domain.Status;
+import tech.stackable.t2.dns.DnsService;
 import tech.stackable.t2.security.SshKey;
 import tech.stackable.t2.terraform.TerraformResult;
 import tech.stackable.t2.terraform.TerraformRunner;
@@ -63,7 +65,10 @@ public class TerraformAnsibleClusterService implements ClusterService {
   private SshKey sshKey;
   
   @Autowired
-  ResourceLoader resourceLoader;  
+  ResourceLoader resourceLoader;
+  
+  @Autowired
+  DnsService dnsService; 
   
   private int provisionClusterLimit = -1;  
   
@@ -106,16 +111,10 @@ public class TerraformAnsibleClusterService implements ClusterService {
       Cluster cluster = new Cluster();
       clusters.put(cluster.getId(), cluster);
       cluster.setStatus(Status.CREATION_STARTED);
-
+      
       new Thread(() -> {
         TerraformRunner terraformRunner = TerraformRunner.create(terraformFolder(cluster), datacenterName(cluster.getId()), credentials);
         TerraformResult terraformResult = null;
-        
-//        // -------------------------------------------------------------------------------------------------------
-//        cluster.setIpV4Address("100.100.100.20");
-//        ansibleFolder(cluster);
-//        if(cluster.getIpV4Address()!=null) return;
-//        // -------------------------------------------------------------------------------------------------------
         
         cluster.setStatus(Status.TERRAFORM_INIT);
         terraformResult = terraformRunner.init();
@@ -139,6 +138,18 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
         
         cluster.setIpV4Address(terraformRunner.getIpV4());
+        
+        // write DNS record
+        cluster.setStatus(Status.DNS_WRITE_RECORD);
+        boolean addSubdomainSucceeded = this.dnsService.addSubdomain(cluster.getId().toString(), cluster.getIpV4Address());
+        if(!addSubdomainSucceeded) {
+          cluster.setStatus(Status.DNS_WRITE_RECORD_FAILED);
+          return;
+        }
+
+        cluster.setHostname(MessageFormat.format("{0}.stackable.tech", cluster.getId()));
+        
+        cluster.setStatus(Status.ANSIBLE_PROVISIONING);
 
         // wait for Cluster to be REALLY raedy
         try {
@@ -148,7 +159,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
           e.printStackTrace();
         }
         
-        cluster.setStatus(Status.ANSIBLE_PROVISIONING);
         AnsibleRunner ansibleRunner = AnsibleRunner.create(ansibleFolder(cluster), this.sshKey);
         AnsibleResult ansibleResult = null;
         ansibleRunner.run();
@@ -175,6 +185,15 @@ public class TerraformAnsibleClusterService implements ClusterService {
       cluster.setStatus(Status.DELETION_STARTED);
       
       new Thread(() -> {
+        
+        // remove DNS record
+        cluster.setStatus(Status.DNS_DELETE_RECORD);
+        boolean dnsRemovalSucceded = this.dnsService.removeSubdomain(cluster.getId().toString());
+        if(!dnsRemovalSucceded) {
+          cluster.setStatus(Status.DNS_DELETE_RECORD_FAILED);
+          return;
+        }
+
         TerraformRunner runner = TerraformRunner.create(terraformFolder(cluster), datacenterName(cluster.getId()), credentials);
         cluster.setStatus(Status.TERRAFORM_DESTROY);
         TerraformResult result = runner.destroy();
@@ -253,6 +272,9 @@ public class TerraformAnsibleClusterService implements ClusterService {
         props.put("cluster_ip", cluster.getIpV4Address());
       }
       props.put("cluster_uuid", cluster.getId());
+      if(cluster.getHostname()!=null) {
+        props.put("cluster_hostname", cluster.getHostname());
+      }
       props.put("ssh_key_public", sshKey.getPublicKeyPath().toString());
       props.put("ssh_key_private", sshKey.getPrivateKeyPath().toString());
       copyFromResources("terraform/cluster.fm.tf", terraformFolder.getParent());
@@ -312,6 +334,9 @@ public class TerraformAnsibleClusterService implements ClusterService {
       if(cluster.getIpV4Address()!=null) {
         props.put("cluster_ip", cluster.getIpV4Address());
       }
+      if(cluster.getHostname()!=null) {
+        props.put("cluster_hostname", cluster.getHostname());
+      }
       props.put("cluster_uuid", cluster.getId());
       props.put("ssh_key_public", sshKey.getPublicKeyPath().toString());
       props.put("ssh_key_private", sshKey.getPrivateKeyPath().toString());
@@ -319,8 +344,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
       copyFromResources("ansible/roles/nginx/handlers/main.yml", ansibleFolder.getParent());
       copyFromResources("ansible/roles/nginx/templates/index.fm.html", ansibleFolder.getParent());
       copyFromResources("ansible/roles/nginx/tasks/main.yml", ansibleFolder.getParent());
-      copyFromResources("ansible/roles/nginx/files/favicon.png", ansibleFolder.getParent());
-      copyFromResources("ansible/roles/nginx/files/logo-stackable.png", ansibleFolder.getParent());
       copyFromResources("ansible/roles/tasks/main.yml", ansibleFolder.getParent());
       copyFromResources("ansible/roles/firewalld/tasks/main.yml", ansibleFolder.getParent());
       copyFromResources("ansible/roles/enterprise_linux/tasks/main.yml", ansibleFolder.getParent());
