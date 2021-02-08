@@ -102,7 +102,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
       Cluster cluster = new Cluster();
       clusters.put(cluster.getId(), cluster);
       cluster.setStatus(Status.CREATION_STARTED);
-      
+
       new Thread(() -> {
         TerraformRunner terraformRunner = TerraformRunner.create(terraformFolder(cluster.getId(), sshPublicKey), datacenterName(cluster.getId()), credentials);
         TerraformResult terraformResult = null;
@@ -284,8 +284,21 @@ public class TerraformAnsibleClusterService implements ClusterService {
       Properties props = new Properties();
       props.put("cluster_ip", cluster.getIpV4Address());
       props.put("cluster_uuid", cluster.getId());
-      Files.createDirectories(ansibleFolder.getParent());
-      FileUtils.copyDirectory(this.resourceLoader.getResource("classpath:templates/ansible/").getFile(), ansibleFolder.toFile());
+      copyFromResources("ansible/ansible.cfg", ansibleFolder.getParent());
+      
+      copyFromResources("ansible/roles/nginx/handlers/main.yml", ansibleFolder.getParent());
+      copyFromResources("ansible/roles/nginx/templates/index.fm.html", ansibleFolder.getParent());
+      copyFromResources("ansible/roles/nginx/tasks/main.yml", ansibleFolder.getParent());
+      copyFromResources("ansible/roles/nginx/files/favicon.png", ansibleFolder.getParent());
+      copyFromResources("ansible/roles/nginx/files/logo-stackable.png", ansibleFolder.getParent());
+      copyFromResources("ansible/roles/tasks/main.yml", ansibleFolder.getParent());
+      copyFromResources("ansible/roles/firewalld/tasks/main.yml", ansibleFolder.getParent());
+      copyFromResources("ansible/roles/enterprise_linux/tasks/main.yml", ansibleFolder.getParent());
+      copyFromResources("ansible/playbooks/all.fm.yml", ansibleFolder.getParent());
+      copyFromResources("ansible/inventory/group_vars/all/all.yml", ansibleFolder.getParent());
+      copyFromResources("ansible/inventory/inventory.fm", ansibleFolder.getParent());
+      copyFromResources("ansible/ansible.cfg", ansibleFolder.getParent());
+      
       Files.walk(ansibleFolder)
         .filter(Files::isRegularFile)
         .filter(path -> StringUtils.contains(path.getFileName().toString(), ".fm"))
@@ -308,6 +321,14 @@ public class TerraformAnsibleClusterService implements ClusterService {
       throw new RuntimeException(String.format("Ansible directory for cluster %s could not be created.", cluster.getId()));
     }
     return ansibleFolder;
+  }
+  
+  private void copyFromResources(String file, Path target) throws IOException {
+    Resource resource = this.resourceLoader.getResource(String.format("classpath:templates/%s", file));
+    String contents = new BufferedReader(new InputStreamReader(resource.getInputStream())).lines().collect(Collectors.joining(System.lineSeparator()));
+    Path targetFile = target.resolve(file);
+    Files.createDirectories(targetFile.getParent());
+    Files.writeString(targetFile, contents);
   }
   
 }
