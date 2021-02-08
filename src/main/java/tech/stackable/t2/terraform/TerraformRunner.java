@@ -16,38 +16,38 @@ public class TerraformRunner {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TerraformRunner.class);  
   
-  private Path terraformFile;
+  private Path terraformFolder;
   private String datacenterName;
   private Properties credentials;
 
-  private TerraformRunner(Path terraformFile, String datacenterName, Properties credentials) {
+  private TerraformRunner(Path terraformFolder, String datacenterName, Properties credentials) {
     super();
-    this.terraformFile = terraformFile;
+    this.terraformFolder = terraformFolder;
     this.datacenterName = datacenterName;
     this.credentials = credentials;
   }
 
-  public static TerraformRunner create(Path terraformFile, String datacenterName, Properties credentials) {
-    Objects.requireNonNull(terraformFile);
+  public static TerraformRunner create(Path terraformFolder, String datacenterName, Properties credentials) {
+    Objects.requireNonNull(terraformFolder);
     Objects.requireNonNull(datacenterName);
     if(StringUtils.isBlank(datacenterName)) {
       throw new IllegalArgumentException("The datacenterName must not be empty.");
     }
-    if(!Files.exists(terraformFile) || !Files.isRegularFile(terraformFile)) {
-      LOGGER.error("The Terraform file {} does not exist.");
-      throw new IllegalArgumentException(String.format("The Terraform file %s does not exist.", terraformFile));
+    if(!Files.exists(terraformFolder) || !Files.isDirectory(terraformFolder)) {
+      LOGGER.error("The Terraform folder {} does not exist.");
+      throw new IllegalArgumentException(String.format("The Terraform folder %s does not exist.", terraformFolder));
     }
-    return new TerraformRunner(terraformFile, datacenterName, credentials);
+    return new TerraformRunner(terraformFolder, datacenterName, credentials);
   }
   
   public TerraformResult init() {
-    LOGGER.info("Running Terraform init on {}", this.terraformFile);
+    LOGGER.info("Running Terraform init on {}", this.terraformFolder);
     int result = this.callTerraform("init", "-input=false");
     return result==0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
   }
 
   public TerraformResult plan() {
-    LOGGER.info("Running Terraform plan on {}", this.terraformFile);
+    LOGGER.info("Running Terraform plan on {}", this.terraformFolder);
     int result = this.callTerraform("plan", "-detailed-exitcode -input=false");
     switch (result) {
     case 0:
@@ -60,22 +60,22 @@ public class TerraformRunner {
   }
   
   public TerraformResult apply() {
-    LOGGER.info("Running Terraform apply on {}", this.terraformFile);
+    LOGGER.info("Running Terraform apply on {}", this.terraformFolder);
     int result = this.callTerraform("apply", "-auto-approve -input=false");
     return result==0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
   }
   
   public TerraformResult destroy() {
-    LOGGER.info("Running Terraform destroy on {}", this.terraformFile);
+    LOGGER.info("Running Terraform destroy on {}", this.terraformFolder);
     int result = this.callTerraform("destroy", "-auto-approve");
     return result==0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
   }
   
   public String getIpV4() {
     try {
-      return Files.readString(this.terraformFile.getParent().resolve("ip4v"));
+      return Files.readString(this.terraformFolder.resolve("ip4v"));
     } catch (IOException e) {
-      LOGGER.error("IPv4 Address for Cluster with TF file {} could not be read.", this.terraformFile, e);
+      LOGGER.error("IPv4 Address for Cluster with TF file {} could not be read.", this.terraformFolder, e);
       return null;
     }
   }
@@ -84,14 +84,14 @@ public class TerraformRunner {
     try {
         ProcessBuilder processBuilder = new ProcessBuilder()
             .command("sh", "-c", String.format("terraform %s %s -no-color", command, params))
-            .directory(this.terraformFile.getParent().toFile());
+            .directory(this.terraformFolder.toFile());
         processBuilder.environment().put("TF_VAR_ionos_datacenter", datacenterName);
         this.credentials.forEach((key, value) -> {
           processBuilder.environment().put(String.format("TF_VAR_%s", key), value.toString());
         });
         Process process = processBuilder.start();
-        ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), this.terraformFile.getParent().resolve(String.format("terraform_%s.out.log", command)));
-        ProcessLogger errLogger = ProcessLogger.start(process.getErrorStream(), this.terraformFile.getParent().resolve(String.format("terraform_%s.err.log", command)));
+        ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), this.terraformFolder.resolve(String.format("terraform_%s.out.log", command)));
+        ProcessLogger errLogger = ProcessLogger.start(process.getErrorStream(), this.terraformFolder.resolve(String.format("terraform_%s.err.log", command)));
         int exitCode = process.waitFor();
         outLogger.stop();
         errLogger.stop();

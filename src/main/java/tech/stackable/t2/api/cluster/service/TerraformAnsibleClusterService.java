@@ -36,6 +36,7 @@ import tech.stackable.t2.ansible.AnsibleResult;
 import tech.stackable.t2.ansible.AnsibleRunner;
 import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.api.cluster.domain.Status;
+import tech.stackable.t2.security.SshKey;
 import tech.stackable.t2.terraform.TerraformResult;
 import tech.stackable.t2.terraform.TerraformRunner;
 
@@ -59,6 +60,9 @@ public class TerraformAnsibleClusterService implements ClusterService {
   private Properties credentials;
   
   @Autowired
+  private SshKey sshKey;
+  
+  @Autowired
   ResourceLoader resourceLoader;  
   
   private int provisionClusterLimit = -1;  
@@ -71,7 +75,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
   /**
    * Terraform file per cluster (UUID)
    */
-  private Map<UUID, Path> terraformFiles = new HashMap<>();
+  private Map<UUID, Path> terraformFolders = new HashMap<>();
 
   /**
    * Ansible folders per cluster (UUID)
@@ -104,8 +108,14 @@ public class TerraformAnsibleClusterService implements ClusterService {
       cluster.setStatus(Status.CREATION_STARTED);
 
       new Thread(() -> {
-        TerraformRunner terraformRunner = TerraformRunner.create(terraformFolder(cluster.getId(), sshPublicKey), datacenterName(cluster.getId()), credentials);
+        TerraformRunner terraformRunner = TerraformRunner.create(terraformFolder(cluster), datacenterName(cluster.getId()), credentials);
         TerraformResult terraformResult = null;
+        
+//        // -------------------------------------------------------------------------------------------------------
+//        cluster.setIpV4Address("100.100.100.20");
+//        ansibleFolder(cluster);
+//        if(cluster.getIpV4Address()!=null) return;
+//        // -------------------------------------------------------------------------------------------------------
         
         cluster.setStatus(Status.TERRAFORM_INIT);
         terraformResult = terraformRunner.init();
@@ -139,7 +149,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
         
         cluster.setStatus(Status.ANSIBLE_PROVISIONING);
-        AnsibleRunner ansibleRunner = AnsibleRunner.create(ansibleFolder(cluster));
+        AnsibleRunner ansibleRunner = AnsibleRunner.create(ansibleFolder(cluster), this.sshKey);
         AnsibleResult ansibleResult = null;
         ansibleRunner.run();
         if(ansibleResult==AnsibleResult.ERROR) {
@@ -165,7 +175,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
       cluster.setStatus(Status.DELETION_STARTED);
       
       new Thread(() -> {
-        TerraformRunner runner = TerraformRunner.create(terraformFolder(cluster.getId(), null), datacenterName(cluster.getId()), credentials);
+        TerraformRunner runner = TerraformRunner.create(terraformFolder(cluster), datacenterName(cluster.getId()), credentials);
         cluster.setStatus(Status.TERRAFORM_DESTROY);
         TerraformResult result = runner.destroy();
         if(result==TerraformResult.ERROR) {
@@ -217,14 +227,14 @@ public class TerraformAnsibleClusterService implements ClusterService {
   
   /**
    * Gets the Terraform file for the given cluster, creates it if necessary
-   * @param clusterId Cluster ID
+   * @param cluster Cluster ID
    * @return Terraform file for the given cluster
    */
-  private Path terraformFolder(UUID clusterId, String sshPublicKey) {
-    Path terraformFile = terraformFiles.get(clusterId);
+  private Path terraformFolder(Cluster cluster) {
+    Path terraformFile = terraformFolders.get(cluster.getId());
     if(terraformFile==null) {
-      terraformFile = createTerraformFolder(clusterId, sshPublicKey);
-      terraformFiles.put(clusterId, terraformFile);
+      terraformFile = createTerraformFolder(cluster);
+      terraformFolders.put(cluster.getId(), terraformFile);
     }
     return terraformFile;
   }
@@ -234,24 +244,40 @@ public class TerraformAnsibleClusterService implements ClusterService {
    * @param clusterId Cluster ID
    * @return Path of the Terraform file for the given cluster
    */
-  private Path createTerraformFolder(UUID clusterId, String sshPublicKey) {
-    Path terraformFile = workspaceDirectory.resolve(clusterId.toString()).resolve("terraform").resolve("cluster.tf");
+  private Path createTerraformFolder(Cluster cluster) {
+    Path terraformFolder = workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform");
     try {
-      Files.createDirectories(terraformFile.getParent());
-      Resource terraformFileTemplate = this.resourceLoader.getResource("classpath:templates/terraform/cluster.tf");
-      BufferedReader templateReader = new BufferedReader(new InputStreamReader(terraformFileTemplate.getInputStream()));
-      String contents = templateReader.lines().collect(Collectors.joining(System.lineSeparator()));
-      Files.writeString(terraformFile, contents);
-      
-      if(sshPublicKey!=null) {
-        Files.writeString(terraformFile.getParent().resolve("ssh-key.pub"), sshPublicKey);
+      // TODO define unified set of properties that can be used while templating
+      Properties props = new Properties();
+      if(cluster.getIpV4Address()!=null) {
+        props.put("cluster_ip", cluster.getIpV4Address());
       }
-      
+      props.put("cluster_uuid", cluster.getId());
+      props.put("ssh_key_public", sshKey.getPublicKeyPath().toString());
+      props.put("ssh_key_private", sshKey.getPrivateKeyPath().toString());
+      copyFromResources("terraform/cluster.fm.tf", terraformFolder.getParent());
+      Files.walk(terraformFolder)
+      .filter(Files::isRegularFile)
+      .filter(path -> StringUtils.contains(path.getFileName().toString(), ".fm"))
+      .forEach(path -> {
+        String newFileName = StringUtils.replace(path.getFileName().toString(), ".fm", "");
+        Path processedFile = path.getParent().resolve(newFileName);
+        try {
+          InputStreamReader reader = new InputStreamReader(FileUtils.openInputStream(path.toFile()));
+          Template template = new Template(newFileName, reader, new Configuration(Configuration.VERSION_2_3_30));
+          String processedTemplateContent = FreeMarkerTemplateUtils.processTemplateIntoString(template, props);
+          Files.writeString(processedFile, processedTemplateContent);
+          Files.delete(path);
+        } catch (IOException | TemplateException e) {
+          LOGGER.error("Ansible directory for cluster {} could not be created.", cluster.getId(), e);
+          throw new RuntimeException(String.format("Ansible directory for cluster %s could not be created.", cluster.getId()));
+        }
+      });
     } catch (IOException ioe) {
-      LOGGER.error("Terraform directory for cluster {} could not be created.", clusterId, ioe);
-      throw new RuntimeException(String.format("Terraform directory for cluster %s could not be created.", clusterId));
+      LOGGER.error("Terraform directory for cluster {} could not be created.", cluster.getId(), ioe);
+      throw new RuntimeException(String.format("Terraform directory for cluster %s could not be created.", cluster.getId()));
     }
-    return terraformFile;
+    return terraformFolder;
   }
   
   /**
@@ -281,11 +307,15 @@ public class TerraformAnsibleClusterService implements ClusterService {
   private Path createAnsibleFolder(Cluster cluster) {
     Path ansibleFolder = workspaceDirectory.resolve(cluster.getId().toString()).resolve("ansible");
     try {
+      // TODO define unified set of properties that can be used while templating
       Properties props = new Properties();
-      props.put("cluster_ip", cluster.getIpV4Address());
+      if(cluster.getIpV4Address()!=null) {
+        props.put("cluster_ip", cluster.getIpV4Address());
+      }
       props.put("cluster_uuid", cluster.getId());
+      props.put("ssh_key_public", sshKey.getPublicKeyPath().toString());
+      props.put("ssh_key_private", sshKey.getPrivateKeyPath().toString());
       copyFromResources("ansible/ansible.cfg", ansibleFolder.getParent());
-      
       copyFromResources("ansible/roles/nginx/handlers/main.yml", ansibleFolder.getParent());
       copyFromResources("ansible/roles/nginx/templates/index.fm.html", ansibleFolder.getParent());
       copyFromResources("ansible/roles/nginx/tasks/main.yml", ansibleFolder.getParent());
@@ -298,7 +328,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
       copyFromResources("ansible/inventory/group_vars/all/all.yml", ansibleFolder.getParent());
       copyFromResources("ansible/inventory/inventory.fm", ansibleFolder.getParent());
       copyFromResources("ansible/ansible.cfg", ansibleFolder.getParent());
-      
       Files.walk(ansibleFolder)
         .filter(Files::isRegularFile)
         .filter(path -> StringUtils.contains(path.getFileName().toString(), ".fm"))

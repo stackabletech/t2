@@ -5,26 +5,12 @@
     state: latest
   notify:
     - restart nginx
-- name: place logo in docroot
-  copy:
-    src: logo-stackable.png
-    dest: /usr/share/nginx/html/
-- name: place favicon in docroot
-  copy:
-    src: favicon.png
-    dest: /usr/share/nginx/html/
 - name: place index.html in docroot
   template:
     src: index.html
     dest: /usr/share/nginx/html/index.html
   notify:
     - restart nginx
-# - name: copy config file
-#   copy:
-#     src: nginx.conf
-#     dest: /etc/nginx/nginx.conf
-#   notify:
-#     - restart nginx
 - name: restart nginx
   service:
     name: nginx

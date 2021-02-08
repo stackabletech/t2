@@ -59,7 +59,7 @@ resource "profitbricks_server" "nat" {
   availability_zone = "ZONE_1"
 
   image_name = data.profitbricks_image.centos7.name
-  ssh_key_path = [ "/home/t2/.ssh/t2.pub" ]
+  ssh_key_path = [ "${ssh_key_public}" ]
 
   volume {
     name = "nat-storage"
