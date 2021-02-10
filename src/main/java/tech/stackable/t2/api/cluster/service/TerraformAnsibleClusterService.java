@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -49,10 +48,10 @@ import tech.stackable.t2.terraform.TerraformRunner;
 @ConditionalOnProperty(name = "t2.feature.provision-real-clusters", havingValue = "true")
 public class TerraformAnsibleClusterService implements ClusterService {
   
+  private static final Logger LOGGER = LoggerFactory.getLogger(TerraformAnsibleClusterService.class);  
+  
   private static final Duration CLEANUP_INACTIVITY_THRESHOLD = Duration.ofDays(1);
   
-  private static final Logger LOGGER = LoggerFactory.getLogger(TerraformAnsibleClusterService.class);  
-
   @Autowired
   @Qualifier("workspaceDirectory")
   private Path workspaceDirectory;
@@ -65,10 +64,10 @@ public class TerraformAnsibleClusterService implements ClusterService {
   private SshKey sshKey;
   
   @Autowired
-  ResourceLoader resourceLoader;
+  private ResourceLoader resourceLoader;
   
   @Autowired
-  DnsService dnsService; 
+  private DnsService dnsService; 
   
   private int provisionClusterLimit = -1;  
   
@@ -89,7 +88,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
 
   public TerraformAnsibleClusterService(@Value("${t2.feature.provision-cluster-limit}") int provisionClusterLimit) {
     this.provisionClusterLimit = provisionClusterLimit;
-    LOGGER.info("ClusterService cluster number limit: {}", this.provisionClusterLimit);
+    LOGGER.info("Created TerraformAnsibleClusterService, cluster count limit: {}", this.provisionClusterLimit);
   }
 
   @Override
@@ -102,9 +101,12 @@ public class TerraformAnsibleClusterService implements ClusterService {
     return this.clusters.get(id);
   }
 
+  // TODO The SSH key is ignored, we're working on a sophisticated mechanism: https://github.com/stackabletech/t2/issues/9
   @Override
   public Cluster createCluster(String sshPublicKey) {
     synchronized(this.clusters) {
+      
+      // TODO count only active clusters for limit
       if(clusters.size()>=this.provisionClusterLimit) {
         throw new ClusterLimitReachedException();
       }
@@ -113,6 +115,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
       cluster.setStatus(Status.CREATION_STARTED);
       
       new Thread(() -> {
+        
         TerraformRunner terraformRunner = TerraformRunner.create(terraformFolder(cluster), datacenterName(cluster.getId()), credentials);
         TerraformResult terraformResult = null;
         
@@ -138,17 +141,17 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
         
         cluster.setIpV4Address(terraformRunner.getIpV4());
-        
+
         // write DNS record
         cluster.setStatus(Status.DNS_WRITE_RECORD);
-        boolean addSubdomainSucceeded = this.dnsService.addSubdomain(cluster.getId().toString(), cluster.getIpV4Address());
-        if(!addSubdomainSucceeded) {
+        String hostname = this.dnsService.addSubdomain(cluster.getShortId(), cluster.getIpV4Address());
+        if(hostname==null) {
           cluster.setStatus(Status.DNS_WRITE_RECORD_FAILED);
           return;
         }
-
-        cluster.setHostname(MessageFormat.format("{0}.stackable.tech", cluster.getId()));
         
+        cluster.setHostname(hostname);
+
         cluster.setStatus(Status.ANSIBLE_PROVISIONING);
 
         // wait for Cluster to be REALLY raedy
@@ -258,15 +261,10 @@ public class TerraformAnsibleClusterService implements ClusterService {
     return terraformFile;
   }
   
-  /**
-   * Creates a Terraform file for the given cluster and returns the corresponding Path object.
-   * @param clusterId Cluster ID
-   * @return Path of the Terraform file for the given cluster
-   */
+  // TODO externalize template stuff: https://github.com/stackabletech/t2/issues/8
   private Path createTerraformFolder(Cluster cluster) {
     Path terraformFolder = workspaceDirectory.resolve(cluster.getId().toString()).resolve("terraform");
     try {
-      // TODO define unified set of properties that can be used while templating
       Properties props = new Properties();
       if(cluster.getIpV4Address()!=null) {
         props.put("cluster_ip", cluster.getIpV4Address());
@@ -325,11 +323,10 @@ public class TerraformAnsibleClusterService implements ClusterService {
     return ansibleFolder;
   }
 
-  // TODO Move Folder generation (including Terraform) to different class!
+  // TODO externalize template stuff: https://github.com/stackabletech/t2/issues/8
   private Path createAnsibleFolder(Cluster cluster) {
     Path ansibleFolder = workspaceDirectory.resolve(cluster.getId().toString()).resolve("ansible");
     try {
-      // TODO define unified set of properties that can be used while templating
       Properties props = new Properties();
       if(cluster.getIpV4Address()!=null) {
         props.put("cluster_ip", cluster.getIpV4Address());

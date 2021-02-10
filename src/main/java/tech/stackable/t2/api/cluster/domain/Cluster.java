@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -46,6 +48,10 @@ public class Cluster {
 
   public UUID getId() {
     return id;
+  }
+  
+  public String getShortId() {
+    return StringUtils.substring(this.id.toString(), 0, 8);
   }
 
   public Status getStatus() {

@@ -20,13 +20,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class DnsService {
 
+  // TODO make domain configurable
+  
   private static final Logger LOGGER = LoggerFactory.getLogger(DnsService.class);  
 
   @Autowired
   @Qualifier("credentials")
   private Properties credentials;
 
-  public boolean addSubdomain(String subdomain, String ipV4) {
+  public String addSubdomain(String subdomain, String ipV4) {
     HttpClient client = HttpClientBuilder.create().build();
     HttpPost httpPost = new HttpPost("https://api.gandi.net/v5/livedns/domains/stackable.tech/records");
     httpPost.addHeader("Authorization", MessageFormat.format("Apikey {0}", credentials.getProperty("gandi_api_token")));
@@ -37,17 +39,20 @@ public class DnsService {
     } catch (UnsupportedEncodingException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
-      return false;
+      return null;
     }
     httpPost.setEntity(entity);
     httpPost.setHeader("Content-type", "application/json");
     try {
       HttpResponse response = client.execute(httpPost);
-      return response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<300;
+      if(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<300) {
+        return MessageFormat.format("{0}.stackable.tech", subdomain);
+      }
+      return null;
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      return false;
+      return null;
     }
   }
 
