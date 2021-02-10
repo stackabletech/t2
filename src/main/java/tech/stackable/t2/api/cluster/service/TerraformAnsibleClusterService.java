@@ -191,7 +191,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
         
         // remove DNS record
         cluster.setStatus(Status.DNS_DELETE_RECORD);
-        boolean dnsRemovalSucceded = this.dnsService.removeSubdomain(cluster.getId().toString());
+        boolean dnsRemovalSucceded = this.dnsService.removeSubdomain(cluster.getShortId());
         if(!dnsRemovalSucceded) {
           cluster.setStatus(Status.DNS_DELETE_RECORD_FAILED);
           return;
