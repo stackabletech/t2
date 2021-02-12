@@ -41,9 +41,8 @@ public class DnsService {
     StringEntity entity;
     try {
       entity = new StringEntity(json);
-    } catch (UnsupportedEncodingException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
+    } catch (UnsupportedEncodingException e) {
+      LOGGER.error("DNS entry for {}.{} could not be created.", subdomain, this.domain, e);
       return null;
     }
     httpPost.setEntity(entity);
