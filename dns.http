@@ -1,0 +1,34 @@
+# This file can be used with VS Code's REST Client Plugin (humao.rest-client)
+
+# User the "environments" feature to set variables: 
+# https://github.com/Huachao/vscode-restclient#environments
+
+
+# List all DNS records for stackable.tech
+https://api.gandi.net/v5/livedns/domains/stackable.tech/records
+Authorization: Apikey {{gandi-token}}
+
+###
+
+# Get DNS record for repo.stackable.tech (Nexus)
+https://api.gandi.net/v5/livedns/domains/stackable.tech/records/repo/A
+Authorization: Apikey {{gandi-token}}
+
+###
+
+# !!! Delete record for 4c5e17a1.stackable.tech (cluster created by T2)
+DELETE https://api.gandi.net/v5/livedns/domains/stackable.tech/records/4c5e17a1/A
+Authorization: Apikey {{gandi-token}}
+
+###
+
+# Create a new record
+POST https://api.gandi.net/v5/livedns/domains/stackable.tech/records
+Authorization: Apikey {{gandi-token}}
+content-type: application/json
+
+{
+    "rrset_values": [ "85.215.232.225" ],
+    "rrset_name": "testtesttest",
+    "rrset_type": "A"
+}
