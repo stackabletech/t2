@@ -50,6 +50,13 @@ resource "profitbricks_lan" "external" {
   public = true
 }
 
+// Private lan
+resource "profitbricks_lan" "internal" {
+  name = "Internal Network"
+  datacenter_id = profitbricks_datacenter.datacenter.id
+  public = false
+}
+
 # NAT Server on the Edge to forward requests and serve as VPN endpoint
 resource "profitbricks_server" "nat" {
   name = "nat"
@@ -75,6 +82,88 @@ resource "profitbricks_server" "nat" {
   }
 }
 
+resource "profitbricks_nic" "nat_internal" {
+  datacenter_id = profitbricks_datacenter.datacenter.id
+  lan = profitbricks_lan.internal.id
+  server_id = profitbricks_server.nat.id
+
+  dhcp = true
+  firewall_active = false
+}
+
+resource "profitbricks_server" "master" {
+  name = "master"
+  datacenter_id = profitbricks_datacenter.datacenter.id
+  cores = 2
+  ram = 1024
+  availability_zone = "ZONE_1"
+
+  image_name = data.profitbricks_image.centos7.name
+  ssh_key_path = [ "${ssh_key_public}" ]
+
+  volume {
+    name = "master-storage"
+    size = 15
+    disk_type = "HDD"
+
+  }
+
+  nic {
+    name = "internal-nic-master"
+    lan = profitbricks_lan.internal.id
+    dhcp = true
+    firewall_active = false
+  }
+}
+
+resource "profitbricks_server" "worker" {
+  name = "worker"
+  datacenter_id = profitbricks_datacenter.datacenter.id
+  cores = 2
+  ram = 1024
+  availability_zone = "ZONE_1"
+
+  image_name = data.profitbricks_image.centos7.name
+  ssh_key_path = [ "${ssh_key_public}" ]
+
+  volume {
+    name = "worker-storage"
+    size = 50
+    disk_type = "HDD"
+
+  }
+
+  nic {
+    name = "internal-nic-worker"
+    lan = profitbricks_lan.internal.id
+    dhcp = true
+    firewall_active = false
+  }
+}
+
+resource "profitbricks_server" "monitoring" {
+  name = "monitoring"
+  datacenter_id = profitbricks_datacenter.datacenter.id
+  cores = 3
+  ram = 10240
+  availability_zone = "ZONE_1"
+
+  image_name = data.profitbricks_image.centos7.name
+  ssh_key_path = [ "${ssh_key_public}" ]
+
+  volume {
+    name = "nat-storage"
+    size = 300
+    disk_type = "SSD"
+
+  }
+
+  nic {
+    lan = profitbricks_lan.internal.id
+    dhcp = true
+    firewall_active = false
+  }
+}
 resource "local_file" "ipv4_file" {
     file_permission = "0440"
     content     = profitbricks_server.nat.primary_ip
