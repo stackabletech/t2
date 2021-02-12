@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -56,8 +57,20 @@ public class SecurityConfiguration {
     }
   }
   
+  @Bean
+  @ConditionalOnProperty("t2.security.ssh-key-file")
+  public SshKey sshKey(@Value("${t2.security.ssh-key-file}") String sshKeyFile) {
+
+    LOGGER.info("Creating SSH key object...");
+
+    SshKey sshKey = SshKey.of(Path.of(StringUtils.replace(sshKeyFile, "~", System.getProperty("user.home"))));
+    
+    return sshKey;
+  }
+  
   @Bean(name = "credentials")
-  public Properties credentials(@Value("file:${t2.security.credential-file:}") Path path) {
+  public Properties credentials(@Value("${t2.security.credential-file:}") String credentialFile) {
+    Path path = Path.of(StringUtils.replace(credentialFile, "~", System.getProperty("user.home")));
     Properties credentials = new Properties();
     if(!Files.exists(path) || !Files.isRegularFile(path) || !Files.isReadable(path)) {
       LOGGER.info("No credentials read, as the path {} does not exist.", path);

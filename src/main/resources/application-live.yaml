@@ -12,4 +12,4 @@ t2:
       file: /var/t2/security-token
       static: null
     credential-file: /var/t2/credentials.properties
-  
+    ssh-key-file: /home/t2/.ssh/t2

@@ -1,0 +1,17 @@
+---
+- name: ensure nginx is installed at the latest version
+  yum:
+    name: nginx
+    state: latest
+  notify:
+    - restart nginx
+- name: place index.html in docroot
+  template:
+    src: index.html
+    dest: /usr/share/nginx/html/index.html
+  notify:
+    - restart nginx
+- name: restart nginx
+  service:
+    name: nginx
+    state: started

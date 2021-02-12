@@ -19,3 +19,8 @@ t2:
       source: static  # options: file | static
       file: null
       static: t2-secret-token
+    credential-file: ~/t2-credentials.properties
+    ssh-key-file: ~/.ssh/id_ionos_rsa
+  dns:
+    cluster-domain: stackable.tech
+    livedns-api-url: https://api.gandi.net/v5/livedns

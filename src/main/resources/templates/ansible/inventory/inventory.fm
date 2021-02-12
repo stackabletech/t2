@@ -1,0 +1,4 @@
+[all]
+${cluster_hostname}
+
+[all:vars]

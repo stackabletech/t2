@@ -1,53 +1,43 @@
 # This file can be used with VS Code's REST Client Plugin (humao.rest-client)
 
-# Define Host
+# User the "environments" feature to set variables: 
+# https://github.com/Huachao/vscode-restclient#environments
 
-
-@protocol = http
-@host = localhost
-@port = :8080
-@token = t2-secret-token
-# redefine if necessary
-#@host = t2.stackable.tech
-#@port =
-#@protocol = https
-#@token = ???
-
-###
 
 # List all clusters
-{{protocol}}://{{host}}{{port}}/api/clusters
-t2-token: {{token}}
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
+t2-token: {{t2-token}}
 
 ###
 
 # broken UUID
-{{protocol}}://{{host}}{{port}}/api/clusters/this-is-no-uuid
-t2-token: {{token}}
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/this-is-no-uuid
+t2-token: {{t2-token}}
 
 ###
 
 # UUID (syntax OK)
-{{protocol}}://{{host}}{{port}}/api/clusters/b1015183-1835-4850-908c-796ac9ddf722
-t2-token: {{token}}
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/b1015183-1835-4850-908c-796ac9ddf722
+t2-token: {{t2-token}}
 
 ###
 
 # UUID exists (please paste existing UUID)
-{{protocol}}://{{host}}{{port}}/api/clusters/534d85b1-32e8-411b-98f9-08d5d5e3a6e2
-t2-token: {{token}}
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/534d85b1-32e8-411b-98f9-08d5d5e3a6e2
+t2-token: {{t2-token}}
 
 ###
 
 # create new cluster
-POST {{protocol}}://{{host}}{{port}}/api/clusters
-t2-token: t2-secret-token
+POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
+t2-token: {{t2-token}}
+t2-ssh-key: {{t2-ssh-key}}
 
 ###
 
 # delete cluster
-DELETE {{protocol}}://{{host}}{{port}}/api/clusters/50c6c5b7-cc0f-4b59-a609-78bb0ec7b5ab
-t2-token: t2-secret-token
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/9e36c8a3-6c2e-44ef-8bee-042a5bfc7a6f
+t2-token: {{t2-token}}
 
 
 

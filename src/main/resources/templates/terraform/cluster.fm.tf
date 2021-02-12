@@ -59,7 +59,7 @@ resource "profitbricks_server" "nat" {
   availability_zone = "ZONE_1"
 
   image_name = data.profitbricks_image.centos7.name
-  ssh_key_path = [ "ssh-key.pub" ]
+  ssh_key_path = [ "${ssh_key_public}" ]
 
   volume {
     name = "nat-storage"
@@ -78,5 +78,5 @@ resource "profitbricks_server" "nat" {
 resource "local_file" "ipv4_file" {
     file_permission = "0440"
     content     = profitbricks_server.nat.primary_ip
-    filename = "ip4v"
+    filename = "ipv4"
 }

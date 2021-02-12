@@ -22,9 +22,6 @@ import tech.stackable.t2.security.SecurityToken;
 import tech.stackable.t2.security.TokenIncorrectException;
 import tech.stackable.t2.security.TokenRequiredException;
 
-/**
- * REST Controller to manage clusters.
- */
 @RestController
 @RequestMapping("api/clusters")
 public class ClusterController {
@@ -35,11 +32,6 @@ public class ClusterController {
   @Autowired
   private SecurityToken requiredToken;
 
-  /**
-   * Get list of all clusters
-   * 
-   * @return list of all clusters
-   */
   @GetMapping()
   @ResponseBody
   @Operation(summary = "Get all clusters", description = "Get list of all active clusters")
@@ -48,12 +40,6 @@ public class ClusterController {
     return clusterService.getAllClusters();
   }
 
-  /**
-   * Get information for a single cluster
-   * 
-   * @param id
-   * @return information for a single cluster
-   */
   @GetMapping("{id}")
   @ResponseBody
   @Operation(summary = "Get cluster", description = "Gets the specified cluster")
@@ -68,11 +54,6 @@ public class ClusterController {
     return cluster;
   }
 
-  /**
-   * Create a new cluster
-   * 
-   * @return information for the cluster
-   */
   @PostMapping()
   @ResponseBody
   @Operation(summary = "Creates a new cluster", description = "Creates a new cluster and starts it")
@@ -83,11 +64,6 @@ public class ClusterController {
     return clusterService.createCluster(new String(Base64.getDecoder().decode(sshKey)));
   }
 
-  /**
-   * Delete a cluster
-   * 
-   * @param id
-   */
   @DeleteMapping("{id}")
   @ResponseBody
   @Operation(summary = "Deletes a cluster", description = "Deletes the specified cluster")
@@ -102,6 +78,10 @@ public class ClusterController {
     return cluster;
   }
   
+  /**
+   * Checks if the given token is valid, throws appropriate exception otherwise
+   * @param token token
+   */
   private void checkToken(String token) {
     if(token==null) {
       throw new TokenRequiredException();

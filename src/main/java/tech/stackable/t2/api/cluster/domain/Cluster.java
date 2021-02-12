@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -29,6 +31,9 @@ public class Cluster {
   @Schema(description = "IP V4 address", required = false)
   private String ipV4Address;
   
+  @Schema(description = "hostname", required = false)
+  private String hostname;
+  
   public Cluster() {
     this(UUID.randomUUID());
   }
@@ -43,6 +48,10 @@ public class Cluster {
 
   public UUID getId() {
     return id;
+  }
+  
+  public String getShortId() {
+    return StringUtils.substring(this.id.toString(), 0, 8);
   }
 
   public Status getStatus() {
@@ -85,6 +94,14 @@ public class Cluster {
 
   public void setIpV4Address(String ipV4Address) {
     this.ipV4Address = ipV4Address;
+  }
+
+  public String getHostname() {
+    return hostname;
+  }
+
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
   }
 
   @Override
