@@ -78,5 +78,5 @@ resource "profitbricks_server" "nat" {
 resource "local_file" "ipv4_file" {
     file_permission = "0440"
     content     = profitbricks_server.nat.primary_ip
-    filename = "ip4v"
+    filename = "ipv4"
 }
