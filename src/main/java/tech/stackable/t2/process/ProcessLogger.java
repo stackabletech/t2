@@ -26,7 +26,7 @@ public class ProcessLogger {
  
   private boolean stopped = false;
   
-  private ProcessLogger(InputStream in, Path logfile) {
+  private ProcessLogger(InputStream in, Path logfile, String prefix) {
     final BufferedReader reader = new BufferedReader(new InputStreamReader(in));
     new Thread(() -> {
       BufferedWriter bufferedWriter = null;
@@ -36,7 +36,7 @@ public class ProcessLogger {
         printWriter = new PrintWriter(bufferedWriter);
         String line = reader.readLine();
         while (!stopped && line != null) {
-          printWriter.println(String.format("[%s] %s", TIMESTAMP_FORMAT.format(Instant.now()), line));
+          printWriter.println(String.format("[%s][%s] %s", TIMESTAMP_FORMAT.format(Instant.now()), prefix, line));
           printWriter.flush();
           line = reader.readLine();
         }
@@ -54,8 +54,8 @@ public class ProcessLogger {
     }).start();
   }
 
-  public static ProcessLogger start(InputStream in, Path logfile) {
-    return new ProcessLogger(in, logfile);
+  public static ProcessLogger start(InputStream in, Path logfile, String prefix) {
+    return new ProcessLogger(in, logfile, prefix);
   }
 
   public void stop() {

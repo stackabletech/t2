@@ -1,0 +1,29 @@
+{
+  "apiVersion": "stable.o8o.io",
+  "kind": "Infra",
+  "metadata": {
+    "name": "stackable-demo",
+    "description" : "Provisioned via terraform for IONOS demo"
+  },
+  "spec": {
+    "region": "de/fra",
+    "osName": "CentOS",
+    "osVersion": "7",
+    "nodes" : {
+      "master": {
+        "numberOfNodes": 1,
+        "numberOfCores": 2,
+        "memoryMb": 1024,
+        "diskType": "HDD",
+        "diskSizeGb" : 15
+      },
+      "worker": {
+        "numberOfNodes": 1,
+        "numberOfCores": 2,
+        "memoryMb": 1024,
+        "diskType": "HDD",
+        "diskSizeGb" : 50
+      }
+    }
+  }
+}

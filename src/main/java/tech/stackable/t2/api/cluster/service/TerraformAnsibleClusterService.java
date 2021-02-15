@@ -25,6 +25,7 @@ import tech.stackable.t2.ansible.AnsibleService;
 import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.api.cluster.domain.Status;
 import tech.stackable.t2.dns.DnsService;
+import tech.stackable.t2.templates.TemplateService;
 import tech.stackable.t2.terraform.TerraformResult;
 import tech.stackable.t2.terraform.TerraformService;
 
@@ -49,6 +50,9 @@ public class TerraformAnsibleClusterService implements ClusterService {
   
   @Autowired
   private DnsService dnsService; 
+  
+  @Autowired
+  private TemplateService templateService; 
   
   @Autowired
   private TerraformService terraformService; 
@@ -95,30 +99,30 @@ public class TerraformAnsibleClusterService implements ClusterService {
         
         TerraformResult terraformResult = null;
         
-        Path terraformFolder = this.terraformService.terraformFolder(cluster);
-        
+        Path workingDirectory = this.templateService.workingDirectory(cluster);
+
         cluster.setStatus(Status.TERRAFORM_INIT);
-        terraformResult = this.terraformService.init(terraformFolder, datacenterName(cluster.getId()));
+        terraformResult = this.terraformService.init(workingDirectory, datacenterName(cluster.getId()));
         if(terraformResult==TerraformResult.ERROR) {
           cluster.setStatus(Status.TERRAFORM_INIT_FAILED);
           return;
         }
         
         cluster.setStatus(Status.TERRAFORM_PLAN);
-        terraformResult = this.terraformService.plan(terraformFolder, datacenterName(cluster.getId()));
+        terraformResult = this.terraformService.plan(workingDirectory, datacenterName(cluster.getId()));
         if(terraformResult==TerraformResult.ERROR) {
           cluster.setStatus(Status.TERRAFORM_PLAN_FAILED);
           return;
         }
         
         cluster.setStatus(Status.TERRAFORM_APPLY);
-        terraformResult = this.terraformService.apply(terraformFolder, datacenterName(cluster.getId()));
+        terraformResult = this.terraformService.apply(workingDirectory, datacenterName(cluster.getId()));
         if(terraformResult==TerraformResult.ERROR) {
           cluster.setStatus(Status.TERRAFORM_APPLY_FAILED);
           return;
         }
         
-        cluster.setIpV4Address(this.terraformService.getIpV4(terraformFolder));
+        cluster.setIpV4Address(this.terraformService.getIpV4(workingDirectory));
 
         cluster.setStatus(Status.DNS_WRITE_RECORD);
         String hostname = this.dnsService.addSubdomain(cluster.getShortId(), cluster.getIpV4Address());
@@ -138,9 +142,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
           e.printStackTrace();
         }
         
-        Path ansibleFolder = this.ansibleService.ansibleFolder(cluster);
-
-        AnsibleResult ansibleResult = this.ansibleService.run(ansibleFolder);
+        AnsibleResult ansibleResult = this.ansibleService.run(workingDirectory);
         if(ansibleResult==AnsibleResult.ERROR) {
           cluster.setStatus(Status.ANSIBLE_FAILED);
           return;
@@ -172,7 +174,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
           return;
         }
 
-        Path terraformFolder = this.terraformService.terraformFolder(cluster);
+        Path terraformFolder = this.templateService.workingDirectory(cluster);
         
         cluster.setStatus(Status.TERRAFORM_DESTROY);
         TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, datacenterName(cluster.getId()));

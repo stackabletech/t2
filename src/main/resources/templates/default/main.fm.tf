@@ -19,28 +19,22 @@ variable "ionos_password" {
   sensitive   = true
 }
 
-variable "ionos_datacenter" {
-  description = "Username to be used with the Profitbricks Cloud Provider - set using environment variable TF_VAR_ionos_datacenter"
-  type        = string
-  sensitive   = true
-}
-
 provider "profitbricks" {
   username = var.ionos_username
   password = var.ionos_password
 }
 
 resource "profitbricks_datacenter" "datacenter" {
-  name = var.ionos_datacenter
-  location = "de/fra"
-  description = "Provisioned via terraform by T2"
+  name = "[= datacenter_name ]"
+  location = "[= spec.region ]"
+  description = "[= metadata.description ]"
 }
 
 data "profitbricks_image" "centos7" {
-  name     = "CentOS"
+  name     = "[= spec.osName ]"
   type     = "HDD"
-  version  = "7"
-  location = "de/fra"
+  version  = "[= spec.osVersion ]"
+  location = "[= spec.region ]"
 }
 
 # Internet facing lan
@@ -66,7 +60,7 @@ resource "profitbricks_server" "nat" {
   availability_zone = "ZONE_1"
 
   image_name = data.profitbricks_image.centos7.name
-  ssh_key_path = [ "${ssh_key_public}" ]
+  ssh_key_path = [ "[=ssh_key_public_path]" ]
 
   volume {
     name = "nat-storage"
@@ -91,81 +85,54 @@ resource "profitbricks_nic" "nat_internal" {
   firewall_active = false
 }
 
-resource "profitbricks_server" "master" {
-  name = "master"
+[#list spec.nodes as node_type, node_spec]
+resource "profitbricks_server" "[= node_type ]" {
+  count = [= node_spec.numberOfNodes ]
+  name = "[= node_type ]-${count.index + 1}"
   datacenter_id = profitbricks_datacenter.datacenter.id
-  cores = 2
-  ram = 1024
+  cores = [= node_spec.numberOfCores ]
+  ram = [= node_spec.memoryMb ]
   availability_zone = "ZONE_1"
 
   image_name = data.profitbricks_image.centos7.name
-  ssh_key_path = [ "${ssh_key_public}" ]
+  ssh_key_path = [ "[=ssh_key_public_path]" ]
 
   volume {
-    name = "master-storage"
-    size = 15
-    disk_type = "HDD"
-
+    name = "[= node_type ]-storage-${count.index + 1}"
+    size = [= node_spec.diskSizeGb ]
+    disk_type = "[= node_spec.diskType ]"
   }
 
   nic {
-    name = "internal-nic-master"
+    name = "internal-nic-[= node_type ]-${count.index + 1}"
     lan = profitbricks_lan.internal.id
     dhcp = true
     firewall_active = false
   }
 }
 
-resource "profitbricks_server" "worker" {
-  name = "worker"
-  datacenter_id = profitbricks_datacenter.datacenter.id
-  cores = 2
-  ram = 1024
-  availability_zone = "ZONE_1"
+[/#list]
 
-  image_name = data.profitbricks_image.centos7.name
-  ssh_key_path = [ "${ssh_key_public}" ]
-
-  volume {
-    name = "worker-storage"
-    size = 50
-    disk_type = "HDD"
-
-  }
-
-  nic {
-    name = "internal-nic-worker"
-    lan = profitbricks_lan.internal.id
-    dhcp = true
-    firewall_active = false
-  }
-}
-
-resource "profitbricks_server" "monitoring" {
-  name = "monitoring"
-  datacenter_id = profitbricks_datacenter.datacenter.id
-  cores = 3
-  ram = 10240
-  availability_zone = "ZONE_1"
-
-  image_name = data.profitbricks_image.centos7.name
-  ssh_key_path = [ "${ssh_key_public}" ]
-
-  volume {
-    name = "nat-storage"
-    size = 300
-    disk_type = "SSD"
-
-  }
-
-  nic {
-    lan = profitbricks_lan.internal.id
-    dhcp = true
-    firewall_active = false
-  }
-}
+# Generate file containing IP of bastion host.
+# This is used by T2 to create DNS record
 resource "local_file" "ipv4_file" {
-    file_permission = "0440"
-    content     = profitbricks_server.nat.primary_ip
     filename = "ipv4"
+    content = profitbricks_server.nat.primary_ip
+    file_permission = "0440"
 }
+
+# generate inventory file for Ansible
+resource "local_file" "ansible-inventory" {
+  filename = "${path.module}/inventory"
+  content = templatefile("${path.module}/templates/ansible-inventory.tpl",
+    {
+      nodetypes = [ [#list spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
+      nodes = { [#list spec.nodes as node_type, node_spec]"[= node_type ]" : profitbricks_server.[= node_type ][#sep] , [/#list] }
+      nat = profitbricks_server.nat
+      nat_public_hostname = "[= public_hostname ]"
+      nat_internal_ip = profitbricks_nic.nat_internal.ips[0]
+      ssh_key_private_path = "[= ssh_key_private_path ]"
+    }
+  )
+  file_permission = "0440"
+} 
