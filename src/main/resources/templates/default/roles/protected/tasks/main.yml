@@ -1,0 +1,7 @@
+---
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}.{{ domain }}"
+
+- name: Configure Network
+  include: network.yml

@@ -1,0 +1,4 @@
+#!/bin/bash
+route add default gw {{ hostvars[groups.nat[0]]['internal_ip'] }} || true
+rm /etc/resolv.conf
+cp /root/resolv.conf.template /etc/resolv.conf

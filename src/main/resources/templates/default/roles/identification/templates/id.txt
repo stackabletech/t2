@@ -1,1 +1,0 @@
-This is a stackable.tech node, id is: {{ inventory_hostname }}

@@ -1,0 +1,14 @@
+[Unit]
+Description=Add default route for internet access
+Requires=firewalld.service
+After=firewalld.service
+
+[Service]
+ExecStart=/usr/sbin/iptables -F -w 30 ; /usr/sbin/iptables -X -w 30 ; /usr/sbin/iptables -t nat -A POSTROUTING -o ens6 -j MASQUERADE -w 30
+User=root
+Type=oneshot
+StandardOutput=journal
+RemainAfterExit=false
+
+[Install]
+WantedBy=firewalld.service

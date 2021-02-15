@@ -79,16 +79,28 @@ public class TemplateService {
       
       // Copy all template files
       copyFromResources("main.fm.tf", workingDirectory);
-      copyFromResources("templates/ansible-inventory.tpl", workingDirectory);
       copyFromResources("ansible.cfg", workingDirectory);
+      copyFromResources("playbook.yml", workingDirectory);
+      copyFromResources("inventory/group_vars/all/all.yml", workingDirectory);
+      copyFromResources("templates/ansible-inventory.tpl", workingDirectory);
+
+      copyFromResources("roles/nat/handlers/main.yml", workingDirectory);
+      copyFromResources("roles/nat/tasks/main.yml", workingDirectory);
+      copyFromResources("roles/nat/tasks/bind.yml", workingDirectory);
+      copyFromResources("roles/nat/tasks/firewall.yml", workingDirectory);
+      copyFromResources("roles/nat/templates/bind/named.conf.j2", workingDirectory);
+      copyFromResources("roles/nat/templates/bind/stackable.zone.j2", workingDirectory);
+      copyFromResources("roles/nat/templates/firewall/setup-firewall.service.j2", workingDirectory);
+
       copyFromResources("roles/nginx/handlers/main.yml", workingDirectory);
       copyFromResources("roles/nginx/templates/index.html", workingDirectory);
       copyFromResources("roles/nginx/tasks/main.yml", workingDirectory);
-      copyFromResources("roles/firewalld/tasks/main.yml", workingDirectory);
-      copyFromResources("roles/identification/tasks/main.yml", workingDirectory);
-      copyFromResources("roles/identification/templates/id.txt", workingDirectory);
-      copyFromResources("roles/enterprise_linux/tasks/main.yml", workingDirectory);
-      copyFromResources("playbook.yml", workingDirectory);
+
+      copyFromResources("roles/protected/tasks/main.yml", workingDirectory);
+      copyFromResources("roles/protected/tasks/network.yml", workingDirectory);
+      copyFromResources("roles/protected/templates/network/configure_network.service.j2", workingDirectory);
+      copyFromResources("roles/protected/templates/network/networkconf.sh.j2", workingDirectory);
+      copyFromResources("roles/protected/templates/network/resolv.conf.j2", workingDirectory);
       
       // templating w/ Freemarker
       Files.walk(workingDirectory)

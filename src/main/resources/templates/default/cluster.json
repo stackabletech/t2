@@ -18,7 +18,7 @@
         "diskSizeGb" : 15
       },
       "worker": {
-        "numberOfNodes": 1,
+        "numberOfNodes": 3,
         "numberOfCores": 2,
         "memoryMb": 1024,
         "diskType": "HDD",

@@ -1,0 +1,10 @@
+options {
+        directory "/var/named";
+        forwarders { 185.48.118.6; 185.48.116.10; };
+        notify no;
+};
+
+zone "{{ domain }}" in {
+       type master;
+       file "stackable.zone";
+};

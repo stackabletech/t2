@@ -1,9 +1,8 @@
 ---
-- hosts: nodes
+- hosts: protected
   roles:
-  - identification
+  - protected
 - hosts: nat
   roles:
-  - enterprise_linux
-  - firewalld
+  - nat
   - nginx

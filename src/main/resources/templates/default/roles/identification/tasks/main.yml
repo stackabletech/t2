@@ -1,9 +1,0 @@
----
-- name: stackable dir
-  file:
-    path: /var/stackable/
-    state: directory
-- name: stackable id file
-  template:
-    src: id.txt
-    dest: /var/stackable

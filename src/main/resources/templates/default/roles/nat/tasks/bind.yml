@@ -1,0 +1,20 @@
+---
+- name: Ensure BIND is installed
+  yum:
+    name: ["bind", "bind-utils"]
+    state: present
+
+- name: Ensure BIND config file is up to date
+  template: src=bind/named.conf.j2 dest=/etc/named.conf
+  notify:
+    - restart bind
+
+- name: Ensure Zone files are in place
+  template: src={{ item.src }} dest=/var/named/{{ item.dest }}
+  with_items:
+    - { src: "bind/stackable.zone.j2", dest: "stackable.zone"}
+  notify:
+    - restart bind
+
+- name: Ensure BIND is running and starting on boot
+  service: name=named state=started enabled=yes

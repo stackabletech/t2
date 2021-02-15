@@ -18,8 +18,7 @@ ansible_user=root
 
 %{ endfor ~}
 
-[nodes:children]
-nat
+[protected:children]
 %{ for nodetype in nodetypes ~}
 ${nodetype}
 %{ endfor ~}

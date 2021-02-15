@@ -123,7 +123,7 @@ resource "local_file" "ipv4_file" {
 
 # generate inventory file for Ansible
 resource "local_file" "ansible-inventory" {
-  filename = "${path.module}/inventory"
+  filename = "${path.module}/inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
       nodetypes = [ [#list spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
