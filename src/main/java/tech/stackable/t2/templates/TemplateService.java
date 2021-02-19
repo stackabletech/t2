@@ -84,6 +84,7 @@ public class TemplateService {
       copyFromResources("inventory/group_vars/all/all.yml", workingDirectory);
       copyFromResources("templates/ansible-inventory.tpl", workingDirectory);
       copyFromResources("templates/ssh-script.tpl", workingDirectory);
+      copyFromResources("templates/ssh-nat-script.tpl", workingDirectory);
 
       copyFromResources("roles/nat/handlers/main.yml", workingDirectory);
       copyFromResources("roles/nat/tasks/main.yml", workingDirectory);

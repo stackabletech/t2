@@ -121,7 +121,7 @@ resource "local_file" "ipv4_file" {
     file_permission = "0440"
 }
 
-# generate inventory file for Ansible
+# inventory file for Ansible
 resource "local_file" "ansible-inventory" {
   filename = "${path.module}/inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
@@ -137,8 +137,20 @@ resource "local_file" "ansible-inventory" {
   file_permission = "0440"
 } 
 
-# generate script to ssh into protected nodes via ssh proxy
+# script to ssh into nat node
+resource "local_file" "nat-ssh-script" {
+  filename = "ssh-nat.sh"
+  file_permission = "0550"
+  content = templatefile("${path.module}/templates/ssh-nat-script.tpl",
+    {
+      nat_public_hostname = "[= public_hostname ]"
+      ssh_key_private_path = "[= ssh_key_private_path ]"
+    }
+  )
+}
+
 [#list spec.nodes as node_type, node_spec]
+# script to ssh into protected [=node_type] nodes via ssh proxy
 resource "local_file" "[= node_type ]-ssh-script" {
   count = [= node_spec.numberOfNodes ]
   filename = "ssh-[= node_type ]-${count.index + 1}.sh"
@@ -153,3 +165,4 @@ resource "local_file" "[= node_type ]-ssh-script" {
 }
 
 [/#list]
+
