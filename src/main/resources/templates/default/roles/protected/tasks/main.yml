@@ -2,6 +2,90 @@
 - name: Set hostname
   hostname:
     name: "{{ inventory_hostname }}.{{ domain }}"
+  when: set_hostname
+
+- name: Ensure that Transparent Hugepages are disabled
+  lineinfile:
+    dest: /etc/default/grub
+    line: GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX transparent_hugepage=never"
+    state: present
+  when: disable_thp
+  notify:
+    - update grub
+    - reboot
+
+- name: Ensure SELinux is disabled
+  selinux:
+    state: disabled
+  when: disable_selinux
+  notify: reboot
+
+- name: Ensure that IPv6 is disabled
+  lineinfile:
+    dest: /etc/default/grub
+    line: GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX ipv6.disable=1"
+    state: present
+  when: disable_ipv6
+  notify: reboot
+
+- name: Ensure that common sysctl tunables are set
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    ignoreerrors: yes
+  loop:
+    - { name: 'vm.swappiness', value: 1 }
+  when: enable_sysctl_tunables
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: ^%wheel
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+  when: enable_passwordless_sudo
+
+# We need to ensure a reboot happens at this point, because some of the things
+# changed further down won't survive a reboot
+- name: Force all notified handlers to run at this point, not waiting for normal sync points
+  meta: flush_handlers
+
+- name: Disable local firewall
+  service:
+    name: firewalld
+    state: stopped
+    enabled: false
 
 - name: Configure Network
   include: network.yml
+
+- name: Ensure system is up to date
+  yum:
+    name: "*"
+    state: latest
+  when: update_system
+
+- name: Ensure important and useful packages are installed
+  yum:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - chrony
+      - libselinux-python
+      - man
+      - tmux
+      - vim-enhanced
+      - wget
+      - java-11-openjdk-devel
+
+- name: Ensure Chrony uses correct NTP servers
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+  when: update_chrony_ntp_servers
+  notify: restart chronyd
+
+- name: Update facts to reflect new hostname
+  setup:

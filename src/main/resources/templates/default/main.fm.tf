@@ -136,3 +136,20 @@ resource "local_file" "ansible-inventory" {
   )
   file_permission = "0440"
 } 
+
+# generate script to ssh into protected nodes via ssh proxy
+[#list spec.nodes as node_type, node_spec]
+resource "local_file" "[= node_type ]-ssh-script" {
+  count = [= node_spec.numberOfNodes ]
+  filename = "ssh-[= node_type ]-${count.index + 1}.sh"
+  file_permission = "0550"
+  content = templatefile("${path.module}/templates/ssh-script.tpl",
+    {
+      node_ip = profitbricks_server.[=node_type][count.index].primary_ip
+      nat_public_hostname = "[= public_hostname ]"
+      ssh_key_private_path = "[= ssh_key_private_path ]"
+    }
+  )
+}
+
+[/#list]

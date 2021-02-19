@@ -83,6 +83,7 @@ public class TemplateService {
       copyFromResources("playbook.yml", workingDirectory);
       copyFromResources("inventory/group_vars/all/all.yml", workingDirectory);
       copyFromResources("templates/ansible-inventory.tpl", workingDirectory);
+      copyFromResources("templates/ssh-script.tpl", workingDirectory);
 
       copyFromResources("roles/nat/handlers/main.yml", workingDirectory);
       copyFromResources("roles/nat/tasks/main.yml", workingDirectory);
@@ -96,8 +97,11 @@ public class TemplateService {
       copyFromResources("roles/nginx/templates/index.html", workingDirectory);
       copyFromResources("roles/nginx/tasks/main.yml", workingDirectory);
 
+      copyFromResources("roles/protected/defaults/main.yml", workingDirectory);
+      copyFromResources("roles/protected/handlers/main.yml", workingDirectory);
       copyFromResources("roles/protected/tasks/main.yml", workingDirectory);
       copyFromResources("roles/protected/tasks/network.yml", workingDirectory);
+      copyFromResources("roles/protected/templates/chrony.conf.j2", workingDirectory);
       copyFromResources("roles/protected/templates/network/configure_network.service.j2", workingDirectory);
       copyFromResources("roles/protected/templates/network/networkconf.sh.j2", workingDirectory);
       copyFromResources("roles/protected/templates/network/resolv.conf.j2", workingDirectory);

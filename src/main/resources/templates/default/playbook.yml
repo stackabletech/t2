@@ -1,8 +1,8 @@
 ---
-- hosts: protected
-  roles:
-  - protected
 - hosts: nat
   roles:
   - nat
   - nginx
+- hosts: protected
+  roles:
+  - protected

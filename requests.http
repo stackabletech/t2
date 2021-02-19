@@ -36,7 +36,7 @@ t2-ssh-key: {{t2-ssh-key}}
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/9e36c8a3-6c2e-44ef-8bee-042a5bfc7a6f
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/5308b94f-dd9a-476a-b901-ce2d4b00c5a6
 t2-token: {{t2-token}}
 
 

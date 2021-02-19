@@ -1,0 +1,11 @@
+---
+- name: update grub
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
+
+- name: restart chronyd
+  service:
+    name: chronyd
+    state: restarted
+
+- name: reboot
+  reboot:
