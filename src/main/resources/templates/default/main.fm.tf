@@ -24,6 +24,31 @@ provider "profitbricks" {
   password = var.ionos_password
 }
 
+variable "wireguard_client_public_keys" {
+  default = [ 
+    [#list wireguard_client_public_keys as wg_key]"[= wg_key ]"[#sep],
+    [/#list] 
+
+  ]
+}
+
+variable "wireguard_client_private_keys" {
+  default = [ 
+    [#list wireguard_client_private_keys as wg_key]"[= wg_key ]"[#sep],
+    [/#list] 
+
+  ]
+}
+
+variable "wireguard_nat_public_key" {
+  default = "[= wireguard_nat_public_key ]"
+}
+
+variable "wireguard_nat_private_key" {
+  default = "[= wireguard_nat_private_key ]"
+}
+
+
 resource "profitbricks_datacenter" "datacenter" {
   name = "[= datacenter_name ]"
   location = "[= spec.region ]"
@@ -136,6 +161,35 @@ resource "local_file" "ansible-inventory" {
   )
   file_permission = "0440"
 } 
+
+# wireguard configfile for bastion host ('nat')
+resource "local_file" "wireguard_nat_config" {
+  filename = "${path.module}/roles/wireguard/files/wg.conf"
+  file_permission = "0440"
+  content = templatefile("${path.module}/templates/wg.conf.tpl",
+    {
+      wg_nat_private_key = var.wireguard_nat_private_key
+      wg_client_public_keys = var.wireguard_client_public_keys
+    }
+  )
+}
+
+# wireguard configfile for clients
+resource "local_file" "wireguard_client_config" {
+  count = [= wireguard_client_private_keys?size]
+  filename = "${path.module}/resources/wireguard-client-config/${count.index + 1}/wg.conf"
+  file_permission = "0440"
+  content = templatefile("${path.module}/templates/wg-client.conf.tpl",
+    {
+      nodes = [ [#list spec.nodes as node_type, node_spec]profitbricks_server.[= node_type ][#sep] , [/#list] ]
+      wg_client_private_key = var.wireguard_client_private_keys[count.index]
+      index = count.index
+      wg_nat_public_key = var.wireguard_nat_public_key
+      nat_public_hostname = "[= public_hostname ]"
+    }
+  )
+}
+
 
 # script to ssh into nat node
 resource "local_file" "nat-ssh-script" {

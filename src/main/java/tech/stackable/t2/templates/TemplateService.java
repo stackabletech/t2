@@ -101,6 +101,8 @@ public class TemplateService {
       copyFromResources("templates/ansible-inventory.tpl", workingDirectory);
       copyFromResources("templates/ssh-script.tpl", workingDirectory);
       copyFromResources("templates/ssh-nat-script.tpl", workingDirectory);
+      copyFromResources("templates/wg-client.conf.tpl", workingDirectory);
+      copyFromResources("templates/wg.conf.tpl", workingDirectory);
 
       copyFromResources("roles/nat/handlers/main.yml", workingDirectory);
       copyFromResources("roles/nat/tasks/main.yml", workingDirectory);
@@ -113,6 +115,9 @@ public class TemplateService {
       copyFromResources("roles/nginx/handlers/main.yml", workingDirectory);
       copyFromResources("roles/nginx/templates/index.html", workingDirectory);
       copyFromResources("roles/nginx/tasks/main.yml", workingDirectory);
+
+      copyFromResources("roles/wireguard/tasks/main.yml", workingDirectory);
+      copyFromResources("roles/wireguard/handlers/main.yml", workingDirectory);
 
       copyFromResources("roles/protected/defaults/main.yml", workingDirectory);
       copyFromResources("roles/protected/handlers/main.yml", workingDirectory);

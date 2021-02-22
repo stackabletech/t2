@@ -6,3 +6,6 @@
 - hosts: protected
   roles:
   - protected
+- hosts: nat
+  roles:
+  - wireguard
