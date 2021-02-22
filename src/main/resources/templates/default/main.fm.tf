@@ -158,6 +158,7 @@ resource "local_file" "ansible-inventory" {
       nat_internal_ip = profitbricks_nic.nat_internal.ips[0]
       ssh_key_private_path = "[= ssh_key_private_path ]"
       ssh_client_public_key = "[= ssh_client_public_key ]"
+      domain = "[= domain ]"
     }
   )
   file_permission = "0440"

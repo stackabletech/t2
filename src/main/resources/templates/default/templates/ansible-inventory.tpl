@@ -1,3 +1,6 @@
+[all:vars]
+domain=${domain}
+
 [nat]
 ${nat_public_hostname} internal_ip=${nat_internal_ip}
 

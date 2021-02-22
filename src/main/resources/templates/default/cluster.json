@@ -5,6 +5,7 @@
     "name": "stackable-demo",
     "description" : "Provisioned via terraform for IONOS demo"
   },
+  "domain": "stackable.demo",
   "spec": {
     "region": "de/fra",
     "osName": "CentOS",
