@@ -99,7 +99,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
         
         TerraformResult terraformResult = null;
         
-        Path workingDirectory = this.templateService.workingDirectory(cluster);
+        Path workingDirectory = this.templateService.workingDirectory(cluster, sshPublicKey);
 
         cluster.setStatus(Status.TERRAFORM_INIT);
         terraformResult = this.terraformService.init(workingDirectory, datacenterName(cluster.getId()));
@@ -174,7 +174,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
           return;
         }
 
-        Path terraformFolder = this.templateService.workingDirectory(cluster);
+        Path terraformFolder = this.templateService.workingDirectory(cluster, null);
         
         cluster.setStatus(Status.TERRAFORM_DESTROY);
         TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, datacenterName(cluster.getId()));

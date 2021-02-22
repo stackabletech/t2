@@ -4,6 +4,12 @@
     name: "{{ inventory_hostname }}.{{ domain }}"
   when: set_hostname
 
+- name: Set authorized key for client
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ ssh_client_public_key }}"
+
 - name: Ensure that Transparent Hugepages are disabled
   lineinfile:
     dest: /etc/default/grub

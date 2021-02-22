@@ -61,7 +61,7 @@ public class ClusterController {
       @RequestHeader(name = "t2-token", required = false) String token,
       @RequestHeader(name = "t2-ssh-key", required = true) String sshKey) {
     checkToken(token);
-    return clusterService.createCluster(new String(Base64.getDecoder().decode(sshKey)));
+    return clusterService.createCluster(new String(Base64.getDecoder().decode(sshKey)).trim());
   }
 
   @DeleteMapping("{id}")

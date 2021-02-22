@@ -22,3 +22,6 @@ ansible_user=root
 %{ for nodetype in nodetypes ~}
 ${nodetype}
 %{ endfor ~}
+
+[protected:vars]
+ssh_client_public_key = ${ssh_client_public_key}

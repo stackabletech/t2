@@ -63,7 +63,7 @@ public class TemplateService {
    * @param cluster Cluster
    * @return working folder for the given cluster
    */
-  public Path workingDirectory(Cluster cluster) {
+  public Path workingDirectory(Cluster cluster, String sshPublicKey) {
     Path workingDirectory = workspaceDirectory.resolve(cluster.getId().toString());
     
     if(Files.exists(workingDirectory) && Files.isDirectory(workingDirectory)) {
@@ -84,6 +84,7 @@ public class TemplateService {
       // Additional props that can be used in a template
       clusterConfig.put("ssh_key_public_path", sshKey.getPublicKeyPath().toString());
       clusterConfig.put("ssh_key_private_path", sshKey.getPrivateKeyPath().toString());
+      clusterConfig.put("ssh_client_public_key", sshPublicKey);
       clusterConfig.put("datacenter_name", MessageFormat.format("t2-{0}", cluster.getId()));
       clusterConfig.put("public_hostname", MessageFormat.format("{0}.{1}", cluster.getShortId(), this.domain));
       clusterConfig.put("wireguard_client_public_keys", clientPublicKeys);
