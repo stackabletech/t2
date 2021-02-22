@@ -82,7 +82,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
     return this.clusters.get(id);
   }
 
-  // TODO The SSH key is ignored, we're working on a sophisticated mechanism: https://github.com/stackabletech/t2/issues/9
+  // TODO The SSH key is ignored, we're working on a more sophisticated mechanism: https://github.com/stackabletech/t2/issues/9
   @Override
   public Cluster createCluster(String sshPublicKey) {
     synchronized(this.clusters) {

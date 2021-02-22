@@ -6,9 +6,11 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,11 +31,15 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.security.SshKey;
+import tech.stackable.t2.wireguard.WireguardService;
 
 @Service
 public class TemplateService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TemplateService.class);  
+
+  @Autowired
+  private WireguardService wireguardService;
 
   @Autowired
   @Qualifier("workspaceDirectory")
@@ -68,12 +74,22 @@ public class TemplateService {
       
       // The cluster config is the base for the props that can be used in a template
       Map<Object, Object> clusterConfig = clusterConfig();
+
+      // Generate Keypairs for Wireguard
+      String natPrivateKey = this.wireguardService.generatePrivateKey();
+      String natPublicKey = this.wireguardService.generatePublicKey(natPrivateKey);
+      List<String> clientPrivateKeys = Stream.generate(wireguardService::generatePrivateKey).limit(8).collect(Collectors.toList());
+      List<String> clientPublicKeys = clientPrivateKeys.stream().map(this.wireguardService::generatePublicKey).collect(Collectors.toList());
       
       // Additional props that can be used in a template
       clusterConfig.put("ssh_key_public_path", sshKey.getPublicKeyPath().toString());
       clusterConfig.put("ssh_key_private_path", sshKey.getPrivateKeyPath().toString());
       clusterConfig.put("datacenter_name", MessageFormat.format("t2-{0}", cluster.getId()));
       clusterConfig.put("public_hostname", MessageFormat.format("{0}.{1}", cluster.getShortId(), this.domain));
+      clusterConfig.put("wireguard_client_public_keys", clientPublicKeys);
+      clusterConfig.put("wireguard_client_private_keys", clientPrivateKeys);
+      clusterConfig.put("wireguard_nat_public_key", natPublicKey);
+      clusterConfig.put("wireguard_nat_private_key", natPrivateKey);
             
       // TODO externalize template stuff: https://github.com/stackabletech/t2/issues/8
       
