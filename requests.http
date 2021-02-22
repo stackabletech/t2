@@ -28,6 +28,12 @@ t2-token: {{t2-token}}
 
 ###
 
+# get wireguard config
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/c480b7e5-d8af-4c6d-bd87-f37eddf8fab1/wireguard-config/3
+t2-token: {{t2-token}}
+
+###
+
 # create new cluster
 POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
 t2-token: {{t2-token}}

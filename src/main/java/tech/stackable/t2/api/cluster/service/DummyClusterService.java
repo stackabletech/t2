@@ -69,4 +69,9 @@ public class DummyClusterService implements ClusterService {
     }
   }
 
+  @Override
+  public String getWireguardClientConfig(UUID id, int index) {
+    return null;
+  }
+
 }

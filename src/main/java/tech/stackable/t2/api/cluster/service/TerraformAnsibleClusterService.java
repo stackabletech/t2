@@ -1,6 +1,9 @@
 package tech.stackable.t2.api.cluster.service;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -11,6 +14,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +86,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
     return this.clusters.get(id);
   }
 
-  // TODO The SSH key is ignored, we're working on a more sophisticated mechanism: https://github.com/stackabletech/t2/issues/9
   @Override
   public Cluster createCluster(String sshPublicKey) {
     synchronized(this.clusters) {
@@ -187,6 +190,21 @@ public class TerraformAnsibleClusterService implements ClusterService {
       }).start();
       
       return cluster;
+    }
+  }
+
+  @Override
+  public String getWireguardClientConfig(UUID id, int index) {
+    Cluster cluster = this.clusters.get(id);
+    if(cluster==null) {
+      return null;
+    }
+    Path clusterBaseFolder = this.templateService.workingDirectory(cluster, null);
+    try {
+      return FileUtils.readFileToString(clusterBaseFolder.resolve(MessageFormat.format("resources/wireguard-client-config/{0}/wg.conf", index)).toFile(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      LOGGER.warn("Wireguard client config could not be read", e);
+      return null;
     }
   }
 
