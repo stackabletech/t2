@@ -1,3 +1,6 @@
+[all:vars]
+domain=${domain}
+
 [nat]
 ${nat_public_hostname} internal_ip=${nat_internal_ip}
 
@@ -22,3 +25,6 @@ ansible_user=root
 %{ for nodetype in nodetypes ~}
 ${nodetype}
 %{ endfor ~}
+
+[protected:vars]
+ssh_client_public_key = ${ssh_client_public_key}

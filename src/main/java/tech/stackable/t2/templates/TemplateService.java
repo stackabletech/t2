@@ -6,9 +6,11 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,11 +31,15 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.security.SshKey;
+import tech.stackable.t2.wireguard.WireguardService;
 
 @Service
 public class TemplateService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TemplateService.class);  
+
+  @Autowired
+  private WireguardService wireguardService;
 
   @Autowired
   @Qualifier("workspaceDirectory")
@@ -57,7 +63,7 @@ public class TemplateService {
    * @param cluster Cluster
    * @return working folder for the given cluster
    */
-  public Path workingDirectory(Cluster cluster) {
+  public Path workingDirectory(Cluster cluster, String sshPublicKey) {
     Path workingDirectory = workspaceDirectory.resolve(cluster.getId().toString());
     
     if(Files.exists(workingDirectory) && Files.isDirectory(workingDirectory)) {
@@ -68,12 +74,23 @@ public class TemplateService {
       
       // The cluster config is the base for the props that can be used in a template
       Map<Object, Object> clusterConfig = clusterConfig();
+
+      // Generate Keypairs for Wireguard
+      String natPrivateKey = this.wireguardService.generatePrivateKey();
+      String natPublicKey = this.wireguardService.generatePublicKey(natPrivateKey);
+      List<String> clientPrivateKeys = Stream.generate(wireguardService::generatePrivateKey).limit(8).collect(Collectors.toList());
+      List<String> clientPublicKeys = clientPrivateKeys.stream().map(this.wireguardService::generatePublicKey).collect(Collectors.toList());
       
       // Additional props that can be used in a template
       clusterConfig.put("ssh_key_public_path", sshKey.getPublicKeyPath().toString());
       clusterConfig.put("ssh_key_private_path", sshKey.getPrivateKeyPath().toString());
+      clusterConfig.put("ssh_client_public_key", sshPublicKey);
       clusterConfig.put("datacenter_name", MessageFormat.format("t2-{0}", cluster.getId()));
       clusterConfig.put("public_hostname", MessageFormat.format("{0}.{1}", cluster.getShortId(), this.domain));
+      clusterConfig.put("wireguard_client_public_keys", clientPublicKeys);
+      clusterConfig.put("wireguard_client_private_keys", clientPrivateKeys);
+      clusterConfig.put("wireguard_nat_public_key", natPublicKey);
+      clusterConfig.put("wireguard_nat_private_key", natPrivateKey);
             
       // TODO externalize template stuff: https://github.com/stackabletech/t2/issues/8
       
@@ -83,6 +100,10 @@ public class TemplateService {
       copyFromResources("playbook.yml", workingDirectory);
       copyFromResources("inventory/group_vars/all/all.yml", workingDirectory);
       copyFromResources("templates/ansible-inventory.tpl", workingDirectory);
+      copyFromResources("templates/ssh-script.tpl", workingDirectory);
+      copyFromResources("templates/ssh-nat-script.tpl", workingDirectory);
+      copyFromResources("templates/wg-client.conf.tpl", workingDirectory);
+      copyFromResources("templates/wg.conf.tpl", workingDirectory);
 
       copyFromResources("roles/nat/handlers/main.yml", workingDirectory);
       copyFromResources("roles/nat/tasks/main.yml", workingDirectory);
@@ -96,8 +117,14 @@ public class TemplateService {
       copyFromResources("roles/nginx/templates/index.html", workingDirectory);
       copyFromResources("roles/nginx/tasks/main.yml", workingDirectory);
 
+      copyFromResources("roles/wireguard/tasks/main.yml", workingDirectory);
+      copyFromResources("roles/wireguard/handlers/main.yml", workingDirectory);
+
+      copyFromResources("roles/protected/defaults/main.yml", workingDirectory);
+      copyFromResources("roles/protected/handlers/main.yml", workingDirectory);
       copyFromResources("roles/protected/tasks/main.yml", workingDirectory);
       copyFromResources("roles/protected/tasks/network.yml", workingDirectory);
+      copyFromResources("roles/protected/templates/chrony.conf.j2", workingDirectory);
       copyFromResources("roles/protected/templates/network/configure_network.service.j2", workingDirectory);
       copyFromResources("roles/protected/templates/network/networkconf.sh.j2", workingDirectory);
       copyFromResources("roles/protected/templates/network/resolv.conf.j2", workingDirectory);

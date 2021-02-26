@@ -2,6 +2,7 @@
 - hosts: all
   roles:
     - ansible
+    - wireguard
     - firewalld
     - caddy
     - terraform

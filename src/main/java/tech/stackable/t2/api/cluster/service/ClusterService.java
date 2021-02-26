@@ -36,4 +36,6 @@ public interface ClusterService {
    */
   Cluster deleteCluster(UUID id);
 
+  String getWireguardClientConfig(UUID id, int index);
+
 }
