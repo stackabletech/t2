@@ -8,7 +8,8 @@
   authorized_key:
     user: root
     state: present
-    key: "{{ ssh_client_public_key }}"
+    key: "{{ item }}"
+  with_items: "{{ ssh_client_keys if ssh_client_keys is iterable else [] }}"
 
 - name: Ensure that Transparent Hugepages are disabled
   lineinfile:
