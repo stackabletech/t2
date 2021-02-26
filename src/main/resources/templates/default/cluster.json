@@ -1,11 +1,13 @@
 {
-  "apiVersion": "stable.o8o.io",
+  "apiVersion": "t2.stackable.tech/v1",
   "kind": "Infra",
   "metadata": {
     "name": "stackable-demo",
-    "description" : "Provisioned via terraform for IONOS demo"
+    "description" : "Stackable cluster provisioned by t2.stackable.tech"
   },
   "domain": "stackable.demo",
+  "sshKeys": [],
+  "template": "default",
   "spec": {
     "region": "de/fra",
     "osName": "CentOS",
@@ -19,7 +21,7 @@
         "diskSizeGb" : 15
       },
       "worker": {
-        "numberOfNodes": 3,
+        "numberOfNodes": 2,
         "numberOfCores": 2,
         "memoryMb": 1024,
         "diskType": "HDD",

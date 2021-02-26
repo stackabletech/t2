@@ -34,15 +34,57 @@ t2-token: {{t2-token}}
 
 ###
 
-# create new cluster
+# create new cluster (default stuff)
 POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
 t2-token: {{t2-token}}
-t2-ssh-key: {{t2-ssh-key}}
+
+###
+
+# create new cluster (provided JSON)
+POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
+t2-token: {{t2-token}}
+Content-Type: application/json
+
+{
+  "apiVersion": "t2.stackable.tech/v1",
+  "kind": "Infra",
+  "template": "default",
+  "metadata": {
+    "name": "stackable-demo",
+    "description" : "This is the cluster I want!"
+  },
+  "domain": "stackable.demo",
+  "sshKeys": [
+    "{{t2-ssh-key}}"
+  ],
+  "spec": {
+    "region": "de/fra",
+    "osName": "CentOS",
+    "osVersion": "7",
+    "nodes" : {
+      "master": {
+        "numberOfNodes": 1,
+        "numberOfCores": 2,
+        "memoryMb": 1024,
+        "diskType": "HDD",
+        "diskSizeGb" : 15
+      },
+      "worker": {
+        "numberOfNodes": 4,
+        "numberOfCores": 2,
+        "memoryMb": 1024,
+        "diskType": "HDD",
+        "diskSizeGb" : 50
+      }
+    }
+  }
+}
+
 
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/5308b94f-dd9a-476a-b901-ce2d4b00c5a6
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/11424e4a-5f40-4e5e-b943-f153ab0dd1f4
 t2-token: {{t2-token}}
 
 

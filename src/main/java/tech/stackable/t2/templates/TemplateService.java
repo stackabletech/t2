@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -59,21 +60,22 @@ public class TemplateService {
   private ResourceLoader resourceLoader;
   
   /**
-   * Gets the working directory for the given cluster, creates it if necessary
+   * Creates a working directory for the given cluster, using the given cluster definition (JSON)
    * @param cluster Cluster
+   * @param clusterDefinition cluster definition as requested by the client. If missing, default of the template is used
    * @return working folder for the given cluster
    */
-  public Path workingDirectory(Cluster cluster, String sshPublicKey) {
+  public Path createWorkingDirectory(Cluster cluster, Map<String, Object> clusterDefinition) {
     Path workingDirectory = workspaceDirectory.resolve(cluster.getId().toString());
     
     if(Files.exists(workingDirectory) && Files.isDirectory(workingDirectory)) {
-      return workingDirectory;
+      throw new RuntimeException(String.format("Working directory for cluster %s could not be created because it already exists.", cluster.getId()));
     }
 
     try {
       
-      // The cluster config is the base for the props that can be used in a template
-      Map<Object, Object> clusterConfig = clusterConfig();
+      // Template variables
+      Map<String, Object> templateVariables = new HashMap<>();
 
       // Generate Keypairs for Wireguard
       String natPrivateKey = this.wireguardService.generatePrivateKey();
@@ -82,23 +84,27 @@ public class TemplateService {
       List<String> clientPublicKeys = clientPrivateKeys.stream().map(this.wireguardService::generatePublicKey).collect(Collectors.toList());
       
       // Additional props that can be used in a template
-      clusterConfig.put("ssh_key_public_path", sshKey.getPublicKeyPath().toString());
-      clusterConfig.put("ssh_key_private_path", sshKey.getPrivateKeyPath().toString());
-      clusterConfig.put("ssh_client_public_key", sshPublicKey);
-      clusterConfig.put("datacenter_name", MessageFormat.format("t2-{0}", cluster.getId()));
-      clusterConfig.put("public_hostname", MessageFormat.format("{0}.{1}", cluster.getShortId(), this.domain));
-      clusterConfig.put("wireguard_client_public_keys", clientPublicKeys);
-      clusterConfig.put("wireguard_client_private_keys", clientPrivateKeys);
-      clusterConfig.put("wireguard_nat_public_key", natPublicKey);
-      clusterConfig.put("wireguard_nat_private_key", natPrivateKey);
-            
-      // TODO externalize template stuff: https://github.com/stackabletech/t2/issues/8
+      templateVariables.put("t2_ssh_key_public", sshKey.getPublicKeyPath().toString());
+      templateVariables.put("t2_ssh_key_private", sshKey.getPrivateKeyPath().toString());
+      templateVariables.put("datacenter_name", MessageFormat.format("t2-{0}", cluster.getId()));
+      templateVariables.put("public_hostname", MessageFormat.format("{0}.{1}", cluster.getShortId(), this.domain));
+      templateVariables.put("wireguard_client_public_keys", clientPublicKeys);
+      templateVariables.put("wireguard_client_private_keys", clientPrivateKeys);
+      templateVariables.put("wireguard_nat_public_key", natPublicKey);
+      templateVariables.put("wireguard_nat_private_key", natPrivateKey);
+
+      // Use cluster definition provided in request or load the dafault from the template files
+      if(clusterDefinition!=null) {
+        templateVariables.put("clusterDefinition", clusterDefinition);
+      } else {
+        templateVariables.put("clusterDefinition", defaultClusterDefinition());
+      }
       
       // Copy all template files
       copyFromResources("main.fm.tf", workingDirectory);
       copyFromResources("ansible.cfg", workingDirectory);
       copyFromResources("playbook.yml", workingDirectory);
-      copyFromResources("inventory/group_vars/all/all.yml", workingDirectory);
+      copyFromResources("templates/ansible-variables.tpl", workingDirectory);
       copyFromResources("templates/ansible-inventory.tpl", workingDirectory);
       copyFromResources("templates/ssh-script.tpl", workingDirectory);
       copyFromResources("templates/ssh-nat-script.tpl", workingDirectory);
@@ -143,7 +149,7 @@ public class TemplateService {
               cfg.setTagSyntax(Configuration.SQUARE_BRACKET_TAG_SYNTAX);
               cfg.setSetting("number_format", "0.####");
               Template template = new Template(newFileName, reader, cfg);
-              String processedTemplateContent = FreeMarkerTemplateUtils.processTemplateIntoString(template, clusterConfig);
+              String processedTemplateContent = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateVariables);
               Files.writeString(processedFile, processedTemplateContent);
               Files.delete(path);
             } catch (IOException | TemplateException e) {
@@ -157,6 +163,17 @@ public class TemplateService {
     }
     return workingDirectory;
   }
+  
+  public Path getWorkingDirectory(Cluster cluster) {
+    Path workingDirectory = workspaceDirectory.resolve(cluster.getId().toString());
+    
+    if(!Files.exists(workingDirectory) || !Files.isDirectory(workingDirectory)) {
+      throw new RuntimeException(String.format("Working directory for cluster %s does not exist.", cluster.getId()));
+    }
+    
+    return workingDirectory;
+  }
+  
   private void copyFromResources(String file, Path target) throws IOException {
     Resource resource = this.resourceLoader.getResource(String.format("classpath:templates/default/%s", file));
     String contents = new BufferedReader(new InputStreamReader(resource.getInputStream())).lines().collect(Collectors.joining(System.lineSeparator()));
@@ -166,7 +183,7 @@ public class TemplateService {
   }
 
   @SuppressWarnings("unchecked")
-  private Map<Object, Object> clusterConfig() throws IOException {
+  private Map<String, Object> defaultClusterDefinition() throws IOException {
     Resource resource = this.resourceLoader.getResource("classpath:templates/default/cluster.json");
     String contents = new BufferedReader(new InputStreamReader(resource.getInputStream())).lines().collect(Collectors.joining(System.lineSeparator()));
     ObjectMapper mapper = new ObjectMapper();

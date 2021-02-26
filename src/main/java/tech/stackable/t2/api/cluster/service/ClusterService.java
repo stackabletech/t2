@@ -1,6 +1,7 @@
 package tech.stackable.t2.api.cluster.service;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import tech.stackable.t2.api.cluster.domain.Cluster;
@@ -12,7 +13,7 @@ public interface ClusterService {
    * 
    * @return new cluster
    */
-  Cluster createCluster(String sshPublicKey);
+  Cluster createCluster(Map<String, Object> clusterDefinition);
 
   /**
    * Gets all clusters

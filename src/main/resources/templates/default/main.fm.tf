@@ -24,6 +24,14 @@ provider "profitbricks" {
   password = var.ionos_password
 }
 
+variable "ssh_client_keys" {
+  default = [ 
+    [#list clusterDefinition.sshKeys as ssh_key]"[= ssh_key ]"[#sep],
+    [/#list] 
+
+  ]
+}
+
 variable "wireguard_client_public_keys" {
   default = [ 
     [#list wireguard_client_public_keys as wg_key]"[= wg_key ]"[#sep],
@@ -51,15 +59,15 @@ variable "wireguard_nat_private_key" {
 
 resource "profitbricks_datacenter" "datacenter" {
   name = "[= datacenter_name ]"
-  location = "[= spec.region ]"
-  description = "[= metadata.description ]"
+  location = "[= clusterDefinition.spec.region ]"
+  description = "[= clusterDefinition.metadata.description ]"
 }
 
 data "profitbricks_image" "centos7" {
-  name     = "[= spec.osName ]"
+  name     = "[= clusterDefinition.spec.osName ]"
   type     = "HDD"
-  version  = "[= spec.osVersion ]"
-  location = "[= spec.region ]"
+  version  = "[= clusterDefinition.spec.osVersion ]"
+  location = "[= clusterDefinition.spec.region ]"
 }
 
 # Internet facing lan
@@ -85,7 +93,7 @@ resource "profitbricks_server" "nat" {
   availability_zone = "ZONE_1"
 
   image_name = data.profitbricks_image.centos7.name
-  ssh_key_path = [ "[=ssh_key_public_path]" ]
+  ssh_key_path = [ "[=t2_ssh_key_public]" ]
 
   volume {
     name = "nat-storage"
@@ -110,7 +118,7 @@ resource "profitbricks_nic" "nat_internal" {
   firewall_active = false
 }
 
-[#list spec.nodes as node_type, node_spec]
+[#list clusterDefinition.spec.nodes as node_type, node_spec]
 resource "profitbricks_server" "[= node_type ]" {
   count = [= node_spec.numberOfNodes ]
   name = "[= node_type ]-${count.index + 1}"
@@ -120,7 +128,7 @@ resource "profitbricks_server" "[= node_type ]" {
   availability_zone = "ZONE_1"
 
   image_name = data.profitbricks_image.centos7.name
-  ssh_key_path = [ "[=ssh_key_public_path]" ]
+  ssh_key_path = [ "[=t2_ssh_key_public]" ]
 
   volume {
     name = "[= node_type ]-storage-${count.index + 1}"
@@ -151,14 +159,24 @@ resource "local_file" "ansible-inventory" {
   filename = "${path.module}/inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
-      nodetypes = [ [#list spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
-      nodes = { [#list spec.nodes as node_type, node_spec]"[= node_type ]" : profitbricks_server.[= node_type ][#sep] , [/#list] }
+      nodetypes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
+      nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : profitbricks_server.[= node_type ][#sep] , [/#list] }
       nat = profitbricks_server.nat
       nat_public_hostname = "[= public_hostname ]"
       nat_internal_ip = profitbricks_nic.nat_internal.ips[0]
-      ssh_key_private_path = "[= ssh_key_private_path ]"
-      ssh_client_public_key = "[= ssh_client_public_key ]"
-      domain = "[= domain ]"
+      ssh_key_private_path = "[= t2_ssh_key_private ]"
+      domain = "[= clusterDefinition.domain ]"
+    }
+  )
+  file_permission = "0440"
+} 
+
+# variable file for Ansible
+resource "local_file" "ansible-variables" {
+  filename = "${path.module}/inventory/group_vars/all/all.yml"
+  content = templatefile("${path.module}/templates/ansible-variables.tpl",
+    {
+      ssh_client_keys = var.ssh_client_keys
     }
   )
   file_permission = "0440"
@@ -183,7 +201,7 @@ resource "local_file" "wireguard_client_config" {
   file_permission = "0440"
   content = templatefile("${path.module}/templates/wg-client.conf.tpl",
     {
-      nodes = [ [#list spec.nodes as node_type, node_spec]profitbricks_server.[= node_type ][#sep] , [/#list] ]
+      nodes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]profitbricks_server.[= node_type ][#sep] , [/#list] ]
       wg_client_private_key = var.wireguard_client_private_keys[count.index]
       index = count.index
       wg_nat_public_key = var.wireguard_nat_public_key
@@ -200,12 +218,12 @@ resource "local_file" "nat-ssh-script" {
   content = templatefile("${path.module}/templates/ssh-nat-script.tpl",
     {
       nat_public_hostname = "[= public_hostname ]"
-      ssh_key_private_path = "[= ssh_key_private_path ]"
+      ssh_key_private_path = "[= t2_ssh_key_private ]"
     }
   )
 }
 
-[#list spec.nodes as node_type, node_spec]
+[#list clusterDefinition.spec.nodes as node_type, node_spec]
 # script to ssh into protected [=node_type] nodes via ssh proxy
 resource "local_file" "[= node_type ]-ssh-script" {
   count = [= node_spec.numberOfNodes ]
@@ -215,7 +233,7 @@ resource "local_file" "[= node_type ]-ssh-script" {
     {
       node_ip = profitbricks_server.[=node_type][count.index].primary_ip
       nat_public_hostname = "[= public_hostname ]"
-      ssh_key_private_path = "[= ssh_key_private_path ]"
+      ssh_key_private_path = "[= t2_ssh_key_private ]"
     }
   )
 }

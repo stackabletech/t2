@@ -87,7 +87,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
   }
 
   @Override
-  public Cluster createCluster(String sshPublicKey) {
+  public Cluster createCluster(Map<String, Object> clusterDefinition) {
     synchronized(this.clusters) {
       
       // TODO count only active clusters for limit
@@ -102,7 +102,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
         
         TerraformResult terraformResult = null;
         
-        Path workingDirectory = this.templateService.workingDirectory(cluster, sshPublicKey);
+        Path workingDirectory = this.templateService.createWorkingDirectory(cluster, clusterDefinition);
 
         cluster.setStatus(Status.TERRAFORM_INIT);
         terraformResult = this.terraformService.init(workingDirectory, datacenterName(cluster.getId()));
@@ -177,7 +177,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
           return;
         }
 
-        Path terraformFolder = this.templateService.workingDirectory(cluster, null);
+        Path terraformFolder = this.templateService.getWorkingDirectory(cluster);
         
         cluster.setStatus(Status.TERRAFORM_DESTROY);
         TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, datacenterName(cluster.getId()));
@@ -199,7 +199,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
     if(cluster==null) {
       return null;
     }
-    Path clusterBaseFolder = this.templateService.workingDirectory(cluster, null);
+    Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
     try {
       return FileUtils.readFileToString(clusterBaseFolder.resolve(MessageFormat.format("resources/wireguard-client-config/{0}/wg.conf", index)).toFile(), StandardCharsets.UTF_8);
     } catch (IOException e) {
