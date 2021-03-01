@@ -8,12 +8,6 @@
     state: latest
   notify: reboot
 
-- name: disable and stop firewalld
-  service:
-    name: firewalld
-    state: stopped    
-    enabled: no
-
 - name: Flush handler if needed
   meta: flush_handlers
 
@@ -51,6 +45,34 @@
     owner: root
     group: root
     mode: 0600
+  notify:
+    - restart wireguard
+
+- name: Ensure directory for wireguard scripts exists
+  file: 
+    path: /etc/wireguard/scripts/
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Ensure script to add NAT routing for wireguard is up-to-date
+  copy:
+    src: add-nat-routing.sh
+    dest: "/etc/wireguard/scripts/add-nat-routing.sh"
+    owner: root
+    group: root
+    mode: 0700
+  notify:
+    - restart wireguard
+
+- name: Ensure script to remove NAT routing for wireguard is up-to-date
+  copy:
+    src: remove-nat-routing.sh
+    dest: "/etc/wireguard/scripts/remove-nat-routing.sh"
+    owner: root
+    group: root
+    mode: 0700
   notify:
     - restart wireguard
 

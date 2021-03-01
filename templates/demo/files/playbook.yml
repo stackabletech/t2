@@ -2,10 +2,8 @@
 - hosts: nat
   roles:
   - nat
+  - wireguard
   - nginx
 - hosts: protected
   roles:
   - protected
-- hosts: nat
-  roles:
-  - wireguard
