@@ -20,58 +20,63 @@ import tech.stackable.t2.api.cluster.domain.Status;
 @Repository
 @ConditionalOnProperty(name = "t2.feature.provision-real-clusters", havingValue = "false")
 public class DummyClusterService implements ClusterService {
-  
-  private static final Logger LOGGER = LoggerFactory.getLogger(DummyClusterService.class);  
 
-  private Map<UUID, Cluster> clusters = new HashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(DummyClusterService.class);
 
-  private int provisionClusterLimit = -1;  
-  
-  public DummyClusterService(@Value("${t2.feature.provision-cluster-limit}") int provisionClusterLimit) {
-    this.provisionClusterLimit = provisionClusterLimit;
-    LOGGER.info("ClusterService cluster number limit: {}", this.provisionClusterLimit);
-  }
+    private Map<UUID, Cluster> clusters = new HashMap<>();
 
-  @Override
-  public Cluster createCluster(Map<String, Object> clusterDefinition) {
-    synchronized(this.clusters) {
-      if(clusters.size()>=this.provisionClusterLimit) {
-        throw new ClusterLimitReachedException();
-      }
-      Cluster cluster = new Cluster();
-      clusters.put(cluster.getId(), cluster);
-      new Thread(() -> {
-        try {
-          Thread.sleep(30000);
-          cluster.setStatus(Status.RUNNING);
-        } catch (InterruptedException e) {
-          // we can live with that as of now
+    private int provisionClusterLimit = -1;
+
+    public DummyClusterService(@Value("${t2.feature.provision-cluster-limit}") int provisionClusterLimit) {
+        this.provisionClusterLimit = provisionClusterLimit;
+        LOGGER.info("ClusterService cluster number limit: {}", this.provisionClusterLimit);
+    }
+
+    @Override
+    public Cluster createCluster(Map<String, Object> clusterDefinition) {
+        synchronized (this.clusters) {
+            if (clusters.size() >= this.provisionClusterLimit) {
+                throw new ClusterLimitReachedException();
+            }
+            Cluster cluster = new Cluster();
+            clusters.put(cluster.getId(), cluster);
+            new Thread(() -> {
+                try {
+                    Thread.sleep(30000);
+                    cluster.setStatus(Status.RUNNING);
+                } catch (InterruptedException e) {
+                    // we can live with that as of now
+                }
+            }).start();
+            return cluster;
         }
-      }).start();
-      return cluster;
     }
-  }
 
-  @Override
-  public Collection<Cluster> getAllClusters() {
-    return this.clusters.values();
-  }
-
-  @Override
-  public Cluster getCluster(UUID id) {
-    return this.clusters.get(id);
-  }
-
-  @Override
-  public Cluster deleteCluster(UUID id) {
-    synchronized(this.clusters) {
-      return clusters.remove(id);
+    @Override
+    public Collection<Cluster> getAllClusters() {
+        return this.clusters.values();
     }
-  }
 
-  @Override
-  public String getWireguardClientConfig(UUID id, int index) {
-    return null;
-  }
+    @Override
+    public Cluster getCluster(UUID id) {
+        return this.clusters.get(id);
+    }
+
+    @Override
+    public Cluster deleteCluster(UUID id) {
+        synchronized (this.clusters) {
+            return clusters.remove(id);
+        }
+    }
+
+    @Override
+    public String getWireguardClientConfig(UUID id, int index) {
+        return null;
+    }
+
+    @Override
+    public String getLogs(UUID id) {
+        return "";
+    }
 
 }
