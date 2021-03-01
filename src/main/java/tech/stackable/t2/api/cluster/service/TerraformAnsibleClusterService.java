@@ -95,15 +95,16 @@ public class TerraformAnsibleClusterService implements ClusterService {
         throw new ClusterLimitReachedException();
       }
       Cluster cluster = new Cluster();
-      clusters.put(cluster.getId(), cluster);
       cluster.setStatus(Status.CREATION_STARTED);
       
+      Path workingDirectory = this.templateService.createWorkingDirectory(cluster, clusterDefinition);
+      cluster.setStatus(Status.WORKING_DIR_CREATED);
+      clusters.put(cluster.getId(), cluster);
+
       new Thread(() -> {
         
         TerraformResult terraformResult = null;
         
-        Path workingDirectory = this.templateService.createWorkingDirectory(cluster, clusterDefinition);
-
         cluster.setStatus(Status.TERRAFORM_INIT);
         terraformResult = this.terraformService.init(workingDirectory, datacenterName(cluster.getId()));
         if(terraformResult==TerraformResult.ERROR) {

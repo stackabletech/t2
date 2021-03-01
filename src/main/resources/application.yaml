@@ -10,7 +10,10 @@ t2:
     timestamp: "@build-timestamp@"
     git-commit: "@git.commit.id.describe-short@"
   workspace:
-    directory: /tmp/t2-workspace/  
+    directory: /tmp/t2-workspace/
+  templates:
+    directory: templates/
+    default: demo 
   feature:
     provision-real-clusters: true
     provision-cluster-limit: 5

@@ -6,6 +6,9 @@ t2:
     provision-cluster-limit: 20
   workspace:
     directory: /var/t2/workspace/  
+  templates:
+    directory: /var/t2/templates/
+    default: demo 
   security:
     token:
       source: file  # options: file | static

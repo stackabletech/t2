@@ -55,4 +55,32 @@ public class T2ServerApplication {
     
   }
 
+  @Bean(name = "templateDirectory")
+  public Path templateDirectory(@Value("${t2.templates.directory}") String templateDirectory) {
+    
+    LOGGER.info("Configure template directory...");
+    
+    Path path = Path.of(templateDirectory);
+    
+    if(exists(path) && isDirectory(path)) {
+      if(!isWritable(path)) {
+        throw new BeanCreationException(String.format("The specified template directory '%s' is not writeable.", templateDirectory));
+      }
+      return path;
+    }
+
+    if(exists(path)) {
+      throw new BeanCreationException(String.format("The specified template directory '%s' is not a directory.", templateDirectory));
+    }
+
+    try {
+      createDirectories(path);
+      LOGGER.info("Configured template directory: {}", path);
+      return path;
+    } catch (IOException ioe) {
+      throw new BeanCreationException(String.format("The specified template directory '%s' cannot be created.", templateDirectory), ioe);
+    }
+    
+  }
+
 }
