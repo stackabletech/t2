@@ -82,7 +82,7 @@ public class TerraformService {
                 processBuilder.environment().put(String.format("TF_VAR_%s", key), value.toString());
             });
             Process process = processBuilder.redirectErrorStream(true).start();
-            ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), workingDirectory.resolve("terraform.log"), MessageFormat.format("terraform-{0}", command));
+            ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), workingDirectory.resolve("cluster.log"), MessageFormat.format("terraform-{0}", command));
             int exitCode = process.waitFor();
             outLogger.stop();
             return exitCode;

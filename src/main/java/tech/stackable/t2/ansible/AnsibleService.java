@@ -26,13 +26,13 @@ public class AnsibleService {
         return result == 0 ? AnsibleResult.SUCCESS : AnsibleResult.ERROR;
     }
 
-    private int callAnsible(Path ansibleFolder) {
+    private int callAnsible(Path workingDirectory) {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder()
                     .command("sh", "-c", "ansible-playbook playbook.yml")
-                    .directory(ansibleFolder.toFile());
+                    .directory(workingDirectory.toFile());
             Process process = processBuilder.redirectErrorStream(true).start();
-            ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), ansibleFolder.resolve("ansible.log"), "ansible");
+            ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), workingDirectory.resolve("cluster.log"), "ansible");
             int exitCode = process.waitFor();
             outLogger.stop();
             return exitCode;

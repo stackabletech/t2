@@ -74,4 +74,9 @@ public class DummyClusterService implements ClusterService {
         return null;
     }
 
+    @Override
+    public String getLogs(UUID id) {
+        return "";
+    }
+
 }

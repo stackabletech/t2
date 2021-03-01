@@ -34,6 +34,12 @@ t2-token: {{t2-token}}
 
 ###
 
+# get logs
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/1a4db525-fe33-42bc-b8d5-0d31714a25ea/log
+t2-token: {{t2-token}}
+
+###
+
 # create new cluster (default stuff)
 POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
 t2-token: {{t2-token}}
@@ -48,7 +54,7 @@ Content-Type: application/json
 {
   "apiVersion": "t2.stackable.tech/v1",
   "kind": "Infra",
-  "template": "default",
+  "template": "demo",
   "metadata": {
     "name": "stackable-demo",
     "description" : "This is the cluster I want!"
@@ -84,7 +90,7 @@ Content-Type: application/json
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/11424e4a-5f40-4e5e-b943-f153ab0dd1f4
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/1a4db525-fe33-42bc-b8d5-0d31714a25ea
 t2-token: {{t2-token}}
 
 

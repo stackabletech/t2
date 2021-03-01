@@ -209,6 +209,21 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
+    @Override
+    public String getLogs(UUID id) {
+        Cluster cluster = this.clusters.get(id);
+        if (cluster == null) {
+            return "";
+        }
+        Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
+        try {
+            return FileUtils.readFileToString(clusterBaseFolder.resolve("cluster.log").toFile(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            LOGGER.warn("Wireguard client config could not be read", e);
+            return "";
+        }
+    }
+    
     /**
      * Cleans up list of clusters regularly.
      */
