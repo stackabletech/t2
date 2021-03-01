@@ -67,6 +67,9 @@
 - name: Configure Network
   include: network.yml
 
+- name: Mutual access inside the cluster
+  include: mutual_access.yml
+
 - name: Ensure system is up to date
   yum:
     name: "*"
