@@ -5,7 +5,7 @@ DNS = 10.11.12.1
 
 [Peer]
 PublicKey = ${wg_nat_public_key}
-AllowedIPs = 10.11.12.0/24%{ for nodetype in nodes ~}%{ for node in nodetype ~},${node.primary_ip}/32%{ endfor ~}%{ endfor ~}
+AllowedIPs = 10.11.12.0/24%{ for nodetype in nodes ~}%{ for node in nodetype ~},${node.primary_ip}/32%{ endfor ~}%{ endfor ~},${orchestrator_ip}/32
 
 Endpoint=${nat_public_hostname}:52888
 PersistentKeepAlive=20

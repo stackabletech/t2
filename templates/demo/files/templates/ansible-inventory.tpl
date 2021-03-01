@@ -21,7 +21,16 @@ ansible_user=root
 
 %{ endfor ~}
 
+[orchestrator]
+orchestrator ansible_host=${orchestrator.primary_ip}
+
+[orchestrator:vars]
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q root@${nat_public_hostname}'
+ansible_ssh_private_key_file=${ssh_key_private_path}
+ansible_user=root
+
 [protected:children]
 %{ for nodetype in nodetypes ~}
 ${nodetype}
 %{ endfor ~}
+orchestrator

@@ -118,6 +118,30 @@ resource "profitbricks_nic" "nat_internal" {
   firewall_active = false
 }
 
+resource "profitbricks_server" "orchestrator" {
+  name = "orchestrator"
+  datacenter_id = profitbricks_datacenter.datacenter.id
+  cores = 2
+  ram = 1024
+  availability_zone = "ZONE_1"
+
+  image_name = data.profitbricks_image.centos7.name
+  ssh_key_path = [ "[=t2_ssh_key_public]" ]
+
+  volume {
+    name = "orchestrator-storage"
+    size = 15
+    disk_type = "HDD"
+  }
+
+  nic {
+    name = "internal-nic-orchestrator"
+    lan = profitbricks_lan.internal.id
+    dhcp = true
+    firewall_active = false
+  }
+}
+
 [#list clusterDefinition.spec.nodes as node_type, node_spec]
 resource "profitbricks_server" "[= node_type ]" {
   count = [= node_spec.numberOfNodes ]
@@ -164,6 +188,7 @@ resource "local_file" "ansible-inventory" {
       nat = profitbricks_server.nat
       nat_public_hostname = "[= public_hostname ]"
       nat_internal_ip = profitbricks_nic.nat_internal.ips[0]
+      orchestrator = profitbricks_server.orchestrator
       ssh_key_private_path = "[= t2_ssh_key_private ]"
       domain = "[= clusterDefinition.domain ]"
     }
@@ -202,6 +227,7 @@ resource "local_file" "wireguard_client_config" {
   content = templatefile("${path.module}/templates/wg-client.conf.tpl",
     {
       nodes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]profitbricks_server.[= node_type ][#sep] , [/#list] ]
+      orchestrator_ip = profitbricks_server.orchestrator.primary_ip
       wg_client_private_key = var.wireguard_client_private_keys[count.index]
       index = count.index
       wg_nat_public_key = var.wireguard_nat_public_key
@@ -239,4 +265,18 @@ resource "local_file" "[= node_type ]-ssh-script" {
 }
 
 [/#list]
+
+# script to ssh into orchestrator via ssh proxy
+resource "local_file" "orchestrator-ssh-script" {
+  filename = "ssh-orchestrator.sh"
+  file_permission = "0550"
+  content = templatefile("${path.module}/templates/ssh-script.tpl",
+    {
+      node_ip = profitbricks_server.orchestrator.primary_ip
+      nat_public_hostname = "[= public_hostname ]"
+      ssh_key_private_path = "[= t2_ssh_key_private ]"
+    }
+  )
+}
+
 
