@@ -16,50 +16,51 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Logs the given output stream of a process asynchronously into a given file.
- * Stops to do so either when the stream has reached its end or when the {@code #stop()} method is called.
+ * Stops to do so either when the stream has reached its end or when the
+ * {@code #stop()} method is called.
  */
 public class ProcessLogger {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ProcessLogger.class);
-  
-  private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ISO_INSTANT;
- 
-  private boolean stopped = false;
-  
-  private ProcessLogger(InputStream in, Path logfile, String prefix) {
-    final BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-    new Thread(() -> {
-      BufferedWriter bufferedWriter = null;
-      PrintWriter printWriter = null;
-      try {
-        bufferedWriter = new BufferedWriter(new FileWriter(logfile.toFile(), true));
-        printWriter = new PrintWriter(bufferedWriter);
-        String line = reader.readLine();
-        while (!stopped && line != null) {
-          printWriter.println(String.format("[%s][%s] %s", TIMESTAMP_FORMAT.format(Instant.now()), prefix, line));
-          printWriter.flush();
-          line = reader.readLine();
-        }
-      } catch (IOException ioe) {
-        LOGGER.error("Error while writing process log to {}", logfile, ioe);
-        throw new RuntimeException(String.format("Error while writing process log to %s", logfile), ioe);
-      } finally {
-        try {
-          bufferedWriter.close();
-        } catch (IOException ioe) {
-          LOGGER.error("Error while closing writer to file {}", logfile, ioe);
-        }
-      }
-      
-    }).start();
-  }
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessLogger.class);
 
-  public static ProcessLogger start(InputStream in, Path logfile, String prefix) {
-    return new ProcessLogger(in, logfile, prefix);
-  }
+    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ISO_INSTANT;
 
-  public void stop() {
-    this.stopped = true;
-  }
+    private boolean stopped = false;
+
+    private ProcessLogger(InputStream in, Path logfile, String prefix) {
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        new Thread(() -> {
+            BufferedWriter bufferedWriter = null;
+            PrintWriter printWriter = null;
+            try {
+                bufferedWriter = new BufferedWriter(new FileWriter(logfile.toFile(), true));
+                printWriter = new PrintWriter(bufferedWriter);
+                String line = reader.readLine();
+                while (!stopped && line != null) {
+                    printWriter.println(String.format("[%s][%s] %s", TIMESTAMP_FORMAT.format(Instant.now()), prefix, line));
+                    printWriter.flush();
+                    line = reader.readLine();
+                }
+            } catch (IOException ioe) {
+                LOGGER.error("Error while writing process log to {}", logfile, ioe);
+                throw new RuntimeException(String.format("Error while writing process log to %s", logfile), ioe);
+            } finally {
+                try {
+                    bufferedWriter.close();
+                } catch (IOException ioe) {
+                    LOGGER.error("Error while closing writer to file {}", logfile, ioe);
+                }
+            }
+
+        }).start();
+    }
+
+    public static ProcessLogger start(InputStream in, Path logfile, String prefix) {
+        return new ProcessLogger(in, logfile, prefix);
+    }
+
+    public void stop() {
+        this.stopped = true;
+    }
 
 }

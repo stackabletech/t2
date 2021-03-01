@@ -6,13 +6,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(code = HttpStatus.BAD_REQUEST)
 public class MalformedClusterDefinitionException extends RuntimeException {
 
-  private static final long serialVersionUID = -5279165502248464802L;
+    private static final long serialVersionUID = -5279165502248464802L;
 
-  public MalformedClusterDefinitionException(String msg) {
-    super(msg);
-  }
+    public MalformedClusterDefinitionException(String msg) {
+        super(msg);
+    }
 
-  public MalformedClusterDefinitionException(String msg, Throwable t) {
-    super(msg, t);
-  }
+    public MalformedClusterDefinitionException(String msg, Throwable t) {
+        super(msg, t);
+    }
 }

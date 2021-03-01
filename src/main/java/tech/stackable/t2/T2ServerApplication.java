@@ -21,66 +21,66 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class T2ServerApplication {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(T2ServerApplication.class);  
+    private static final Logger LOGGER = LoggerFactory.getLogger(T2ServerApplication.class);
 
-  public static void main(String[] args) {
-    SpringApplication.run(T2ServerApplication.class, args);
-  }
-  
-  @Bean(name = "workspaceDirectory")
-  public Path workspaceDirectory(@Value("${t2.workspace.directory}") String workspaceDirectory) {
-    
-    LOGGER.info("Configure workspace directory...");
-    
-    Path path = Path.of(workspaceDirectory);
-    
-    if(exists(path) && isDirectory(path)) {
-      if(!isWritable(path)) {
-        throw new BeanCreationException(String.format("The specified workspace directory '%s' is not writeable.", workspaceDirectory));
-      }
-      return path;
+    public static void main(String[] args) {
+        SpringApplication.run(T2ServerApplication.class, args);
     }
 
-    if(exists(path)) {
-      throw new BeanCreationException(String.format("The specified workspace directory '%s' is not a directory.", workspaceDirectory));
+    @Bean(name = "workspaceDirectory")
+    public Path workspaceDirectory(@Value("${t2.workspace.directory}") String workspaceDirectory) {
+
+        LOGGER.info("Configure workspace directory...");
+
+        Path path = Path.of(workspaceDirectory);
+
+        if (exists(path) && isDirectory(path)) {
+            if (!isWritable(path)) {
+                throw new BeanCreationException(String.format("The specified workspace directory '%s' is not writeable.", workspaceDirectory));
+            }
+            return path;
+        }
+
+        if (exists(path)) {
+            throw new BeanCreationException(String.format("The specified workspace directory '%s' is not a directory.", workspaceDirectory));
+        }
+
+        try {
+            createDirectories(path);
+            LOGGER.info("Configured workspace directory: {}", path);
+            return path;
+        } catch (IOException ioe) {
+            throw new BeanCreationException(String.format("The specified workspace directory '%s' cannot be created.", workspaceDirectory), ioe);
+        }
+
     }
 
-    try {
-      createDirectories(path);
-      LOGGER.info("Configured workspace directory: {}", path);
-      return path;
-    } catch (IOException ioe) {
-      throw new BeanCreationException(String.format("The specified workspace directory '%s' cannot be created.", workspaceDirectory), ioe);
-    }
-    
-  }
+    @Bean(name = "templateDirectory")
+    public Path templateDirectory(@Value("${t2.templates.directory}") String templateDirectory) {
 
-  @Bean(name = "templateDirectory")
-  public Path templateDirectory(@Value("${t2.templates.directory}") String templateDirectory) {
-    
-    LOGGER.info("Configure template directory...");
-    
-    Path path = Path.of(templateDirectory);
-    
-    if(exists(path) && isDirectory(path)) {
-      if(!isWritable(path)) {
-        throw new BeanCreationException(String.format("The specified template directory '%s' is not writeable.", templateDirectory));
-      }
-      return path;
-    }
+        LOGGER.info("Configure template directory...");
 
-    if(exists(path)) {
-      throw new BeanCreationException(String.format("The specified template directory '%s' is not a directory.", templateDirectory));
-    }
+        Path path = Path.of(templateDirectory);
 
-    try {
-      createDirectories(path);
-      LOGGER.info("Configured template directory: {}", path);
-      return path;
-    } catch (IOException ioe) {
-      throw new BeanCreationException(String.format("The specified template directory '%s' cannot be created.", templateDirectory), ioe);
+        if (exists(path) && isDirectory(path)) {
+            if (!isWritable(path)) {
+                throw new BeanCreationException(String.format("The specified template directory '%s' is not writeable.", templateDirectory));
+            }
+            return path;
+        }
+
+        if (exists(path)) {
+            throw new BeanCreationException(String.format("The specified template directory '%s' is not a directory.", templateDirectory));
+        }
+
+        try {
+            createDirectories(path);
+            LOGGER.info("Configured template directory: {}", path);
+            return path;
+        } catch (IOException ioe) {
+            throw new BeanCreationException(String.format("The specified template directory '%s' cannot be created.", templateDirectory), ioe);
+        }
+
     }
-    
-  }
 
 }

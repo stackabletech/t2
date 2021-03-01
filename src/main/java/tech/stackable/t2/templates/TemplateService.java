@@ -62,10 +62,13 @@ public class TemplateService {
     private SshKey sshKey;
 
     /**
-     * Creates a working directory for the given cluster, using the given cluster definition (JSON)
+     * Creates a working directory for the given cluster, using the given cluster
+     * definition (JSON)
      * 
-     * @param cluster cluster metadata
-     * @param clusterDefinition cluster definition as requested by the client. If missing, default cluster definition of the template is used
+     * @param cluster           cluster metadata
+     * @param clusterDefinition cluster definition as requested by the client. If
+     *                          missing, default cluster definition of the template
+     *                          is used
      * @return working directory path
      * @throws RuntimeException if directory does not exist
      */
@@ -127,13 +130,16 @@ public class TemplateService {
     }
 
     /**
-     * Processes all the (Freemarker) template files in the newly created working directory.
+     * Processes all the (Freemarker) template files in the newly created working
+     * directory.
      * 
-     * All files containing .fm will be processed and replaced by the same file without the '.fm' part in the name
+     * All files containing .fm will be processed and replaced by the same file
+     * without the '.fm' part in the name
      * 
-     * @param cluster cluster metadata
-     * @param workingDirectory working dir
-     * @param templateVariables (nested) map of variables to use while processing template
+     * @param cluster           cluster metadata
+     * @param workingDirectory  working dir
+     * @param templateVariables (nested) map of variables to use while processing
+     *                          template
      */
     private void processTemplates(Cluster cluster, Path workingDirectory, Map<String, Object> templateVariables) throws IOException, TemplateException {
 
@@ -162,6 +168,7 @@ public class TemplateService {
 
     /**
      * Gets an (existing!) working dir for the given cluster
+     * 
      * @param cluster cluster metadata
      * @return working directory path
      * @throws RuntimeException if directory does not exist
