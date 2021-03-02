@@ -1,0 +1,14 @@
+---
+- name: Install K3s w/ rancher script
+  shell: "curl -sfL https://get.k3s.io | sh -"
+  args:
+    warn: no
+
+- name: generate config for other k8s nodes
+  shell: "cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig"
+
+- name: Fetch the kubeconfig
+  fetch: 
+    src: "/tmp/kubeconfig"
+    dest: "temp/kubeconfig"
+    flat: yes

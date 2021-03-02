@@ -89,6 +89,7 @@
       - vim-enhanced
       - wget
       - java-11-openjdk-devel
+      - gnupg
 
 - name: Ensure Chrony uses correct NTP servers
   template:

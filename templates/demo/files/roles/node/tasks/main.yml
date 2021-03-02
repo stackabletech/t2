@@ -1,0 +1,24 @@
+---
+- name: Add repository
+  yum_repository:
+    name: Kubernetes
+    description: Kubernetes YUM repo
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgcheck: yes
+    repo_gpgcheck: yes
+    gpgkey: "https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"
+
+- name: Ensure kubectl is installed
+  yum:
+    name: kubectl
+    state: present
+
+- name: Create directory for kubeconfig
+  file:
+    path: /root/.kube
+    state: directory
+
+- name: copy the kubeconfig to all nodes
+  copy:
+    src: "temp/kubeconfig"
+    dest: "/root/.kube/config"
