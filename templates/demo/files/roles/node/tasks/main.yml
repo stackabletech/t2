@@ -30,3 +30,17 @@
     baseurl: https://repo.stackable.tech/repository/rpm-nightly/el7/
     gpgcheck: no
     repo_gpgcheck: no
+
+- name: Ensure stackable agent is installed
+  yum:
+    name: stackable-agent.x86_64
+    state: present
+
+- name: Start stackable agent
+  systemd:
+    name: stackable-agent
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+
