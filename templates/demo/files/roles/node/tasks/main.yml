@@ -1,5 +1,5 @@
 ---
-- name: Add repository
+- name: Add Kubernetes repository
   yum_repository:
     name: Kubernetes
     description: Kubernetes YUM repo
@@ -22,3 +22,11 @@
   copy:
     src: "temp/kubeconfig"
     dest: "/root/.kube/config"
+
+- name: Add Stackable repository
+  yum_repository:
+    name: Stackable
+    description: Stackable YUM repo
+    baseurl: https://repo.stackable.tech/repository/rpm-nightly/el7/
+    gpgcheck: no
+    repo_gpgcheck: no
