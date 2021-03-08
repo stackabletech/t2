@@ -13,3 +13,6 @@
 - hosts: nodes
   roles:
   - node
+- hosts: orchestrators
+  roles:
+  - orchestrator_finalized

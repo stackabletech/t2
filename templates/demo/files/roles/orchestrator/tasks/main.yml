@@ -3,9 +3,8 @@
   shell: "curl -sfL https://get.k3s.io | sh -"
   args:
     warn: no
-  creates: /etc/rancher/k3s/k3s.yaml
-
-  # todo restart und flush handlers?
+    creates: /etc/rancher/k3s/k3s.yaml
+  notify: restart k3s
 
 - name: generate config for other k8s nodes
   shell: "cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig"
@@ -26,6 +25,9 @@
   with_items: 
     - "stackable-repositories.crd.yml"
     - "stackablepublic-repo.yml"
+
+- name: Force all notified handlers to run at this point, not waiting for normal sync points
+  meta: flush_handlers
 
 - name: Apply Kubernetes configs
   shell: "kubectl apply -f /tmp/{{ item }}"
