@@ -7,3 +7,12 @@
 - hosts: protected
   roles:
   - protected
+- hosts: orchestrators
+  roles:
+  - orchestrator
+- hosts: nodes
+  roles:
+  - node
+- hosts: orchestrators
+  roles:
+  - orchestrator_finalized

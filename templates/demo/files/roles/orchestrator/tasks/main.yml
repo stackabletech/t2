@@ -1,0 +1,40 @@
+---
+- name: Install K3s w/ rancher script
+  shell: "curl -sfL https://get.k3s.io | sh -"
+  args:
+    warn: no
+    creates: /etc/rancher/k3s/k3s.yaml
+  notify: restart k3s
+
+- name: generate config for other k8s nodes
+  shell: "cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig"
+
+- name: Fetch the kubeconfig to distribute it to the nodes later
+  fetch: 
+    src: "/tmp/kubeconfig"
+    dest: "temp/kubeconfig"
+    flat: yes
+
+- name: Ensure Kubernetes configs are present on orchestrator
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp/"
+    owner: root
+    group: root
+    mode: 0400
+  with_items: 
+    - "stackable-repositories.crd.yml"
+    - "stackablepublic-repo.yml"
+
+- name: Force all notified handlers to run at this point, not waiting for normal sync points
+  meta: flush_handlers
+
+- name: Apply Kubernetes configs
+  shell: "kubectl apply -f /tmp/{{ item }}"
+  args:
+    warn: no
+  with_items: 
+    - "stackable-repositories.crd.yml"
+    - "stackablepublic-repo.yml"
+
+    
