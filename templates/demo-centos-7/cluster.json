@@ -7,11 +7,9 @@
   },
   "domain": "stackable.demo",
   "sshKeys": [],
-  "template": "default",
+  "template": "demo-centos-7",
   "spec": {
     "region": "de/fra",
-    "osName": "CentOS",
-    "osVersion": "7",
     "nodes" : {
       "master": {
         "numberOfNodes": 1,

@@ -13,7 +13,7 @@ t2:
     directory: /tmp/t2-workspace/
   templates:
     directory: templates/
-    default: demo 
+    default: demo-centos-7
   feature:
     provision-real-clusters: true
     provision-cluster-limit: 5

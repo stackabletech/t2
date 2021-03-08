@@ -67,7 +67,7 @@
 - name: Configure Network
   include: network.yml
 
-- name: Mutual access inside the cluster
+- name: Mutual access between all hosts within the cluster
   include: mutual_access.yml
 
 - name: Ensure system is up to date
