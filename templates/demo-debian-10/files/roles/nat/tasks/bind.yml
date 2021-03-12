@@ -1,0 +1,23 @@
+---
+- name: Ensure BIND is installed
+  apt:
+    name: ["bind9", "bind9utils"]
+    state: present
+
+- name: Ensure BIND config file is up to date
+  template: src=named.conf.j2 dest=/etc/bind/named.conf
+  notify:
+    - reboot
+
+- name: Ensure Zone files are in place
+  template: src={{ item.src }} dest=/var/cache/bind/{{ item.dest }}
+  with_items:
+    - { src: "stackable.zone.j2", dest: "stackable.zone"}
+  notify:
+    - reboot
+
+- name: Ensure BIND is running and starting on boot
+  service: 
+    name: bind9 
+    state: started
+    enabled: yes

@@ -1,0 +1,49 @@
+---
+- name: Add key for Kubernetes repository
+  apt_key:
+    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+    state: present
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Ensure kubectl is installed
+  apt:
+    name: kubectl
+    state: present
+
+- name: Create directory for kubeconfig
+  file:
+    path: /root/.kube
+    state: directory
+
+- name: copy the kubeconfig to all nodes
+  copy:
+    src: "temp/kubeconfig"
+    dest: "/root/.kube/config"
+
+- name: Add key for Stackable repository
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 16dd12f5c7a6d76a
+
+- name: Add Stackable repository
+  apt_repository:
+    repo: deb https://repo.stackable.tech/repository/deb-nightly buster main
+    state: present
+
+- name: Ensure stackable agent is installed
+  apt:
+    name: stackable-agent
+    state: present
+
+- name: Start stackable agent
+  systemd:
+    name: stackable-agent
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+
