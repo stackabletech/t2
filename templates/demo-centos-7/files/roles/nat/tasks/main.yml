@@ -1,0 +1,42 @@
+---
+- name: Install EPEL repo
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+
+- name: Disable local firewall
+  service:
+    name: firewalld
+    state: stopped
+    enabled: false
+
+- name: Enable IP forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Ensure iptables-services is installed
+  yum:
+    name: iptables-services
+    state: present
+
+- name: Ensure iptables config is up-to-date
+  copy:
+    src: iptables
+    dest: /etc/sysconfig/iptables
+    owner: root
+    group: root
+  notify: 
+    - restart iptables
+
+- name: Install & configure BIND (DNS)
+  include: bind.yml
+
+- name: Install & configure Wireguard (VPN)
+  include: wireguard.yml
+
+
+

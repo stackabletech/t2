@@ -64,9 +64,9 @@ resource "profitbricks_datacenter" "datacenter" {
 }
 
 data "profitbricks_image" "centos7" {
-  name     = "[= clusterDefinition.spec.osName ]"
+  name     = "CentOS"
   type     = "HDD"
-  version  = "[= clusterDefinition.spec.osVersion ]"
+  version  = "7"
   location = "[= clusterDefinition.spec.region ]"
 }
 
@@ -209,7 +209,7 @@ resource "local_file" "ansible-variables" {
 
 # wireguard configfile for bastion host ('nat')
 resource "local_file" "wireguard_nat_config" {
-  filename = "${path.module}/roles/wireguard/files/wg.conf"
+  filename = "${path.module}/roles/nat/files/wg.conf"
   file_permission = "0440"
   content = templatefile("${path.module}/templates/wg.conf.tpl",
     {
