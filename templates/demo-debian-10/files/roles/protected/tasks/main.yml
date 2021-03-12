@@ -11,15 +11,15 @@
     key: "{{ item }}"
   with_items: "{{ ssh_client_keys if ssh_client_keys is iterable else [] }}"
 
-#- name: Ensure that Transparent Hugepages are disabled
-#  lineinfile:
-#    dest: /etc/default/grub
-#    line: GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX transparent_hugepage=never"
-#    state: present
-#  when: disable_thp
-#  notify:
-#    - update grub
-#    - reboot
+- name: Ensure that Transparent Hugepages are disabled
+  lineinfile:
+    dest: /etc/default/grub
+    line: GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX transparent_hugepage=never"
+    state: present
+  when: disable_thp
+  notify:
+    - update grub
+    - reboot
 
 - name: Ensure that IPv6 is disabled
   lineinfile:
@@ -38,14 +38,6 @@
   loop:
     - { name: 'vm.swappiness', value: 1 }
   when: enable_sysctl_tunables
-
-#- name: Allow 'wheel' group to have passwordless sudo
-#  lineinfile:
-#    dest: /etc/sudoers
-#    state: present
-#    regexp: ^%wheel
-#    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
-#  when: enable_passwordless_sudo
 
 # We need to ensure a reboot happens at this point, because some of the things
 # changed further down won't survive a reboot
@@ -77,6 +69,15 @@
       - tmux
       - openjdk-11-jdk
       - gnupg
+      - sudo
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: ^%wheel
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+  when: enable_passwordless_sudo
 
 - name: Ensure Chrony uses correct NTP servers
   template:
