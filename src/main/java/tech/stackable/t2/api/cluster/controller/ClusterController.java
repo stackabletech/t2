@@ -103,6 +103,24 @@ public class ClusterController {
         return wireguardClientConfig;
     }
 
+    @GetMapping("{id}/stackable-client-script")
+    @ResponseBody
+    @Operation(summary = "read Stackable client script", description = "Reads the client script to work with the cluster")
+    public String getClientScript(
+            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
+            @RequestHeader(name = "t2-token", required = false) String token) {
+        checkToken(token);
+        Cluster cluster = clusterService.getCluster(id);
+        if (cluster == null) {
+            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
+        }
+        String wireguardClientConfig = this.clusterService.getClientScript(id);
+        if (wireguardClientConfig == null) {
+            throw new ClusterNotFoundException(String.format("No Stackable client script found for cluster with id '%s'.", id));
+        }
+        return wireguardClientConfig;
+    }
+
     @GetMapping("{id}/log")
     @ResponseBody
     @Operation(summary = "read logs", description = "Reads the logs for the given cluster")

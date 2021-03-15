@@ -38,5 +38,13 @@
 - name: Install & configure Wireguard (VPN)
   include: wireguard.yml
 
+- name: Set authorized key for client
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ item }}"
+  with_items: "{{ ssh_client_keys if ssh_client_keys is iterable else [] }}"
+
+
 
 

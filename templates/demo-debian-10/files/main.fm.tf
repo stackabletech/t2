@@ -279,4 +279,16 @@ resource "local_file" "orchestrator-ssh-script" {
   )
 }
 
-
+# stackable client script
+resource "local_file" "stackable-client" {
+  filename = "${path.module}/resources/stackable.sh"
+  content = templatefile("${path.module}/templates/stackable-script.tpl",
+    {
+      nodetypes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
+      nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : profitbricks_server.[= node_type ][#sep] , [/#list] }
+      orchestrator = profitbricks_server.orchestrator
+      nat_public_hostname = "[= public_hostname ]"
+    }
+  )
+  file_permission = "0440"
+} 

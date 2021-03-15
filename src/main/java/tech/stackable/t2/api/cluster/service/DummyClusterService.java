@@ -75,6 +75,11 @@ public class DummyClusterService implements ClusterService {
     }
 
     @Override
+    public String getClientScript(UUID id) {
+        return null;
+    }
+
+    @Override
     public String getLogs(UUID id) {
         return "";
     }

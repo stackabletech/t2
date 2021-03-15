@@ -39,6 +39,8 @@ public interface ClusterService {
 
     String getWireguardClientConfig(UUID id, int index);
 
+    String getClientScript(UUID id);
+    
     String getLogs(UUID id);
 
 }

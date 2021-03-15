@@ -210,6 +210,21 @@ public class TerraformAnsibleClusterService implements ClusterService {
     }
 
     @Override
+    public String getClientScript(UUID id) {
+        Cluster cluster = this.clusters.get(id);
+        if (cluster == null) {
+            return null;
+        }
+        Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
+        try {
+            return FileUtils.readFileToString(clusterBaseFolder.resolve("resources/stackable.sh").toFile(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            LOGGER.warn("Stackable client script could not be read", e);
+            return null;
+        }
+    }
+
+    @Override
     public String getLogs(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
