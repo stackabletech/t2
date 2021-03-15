@@ -54,7 +54,7 @@ Content-Type: application/json
 {
   "apiVersion": "t2.stackable.tech/v1",
   "kind": "Infra",
-  "template": "demo-centos-7",
+  "template": "demo-debian-10",
   "metadata": {
     "name": "stackable-demo",
     "description" : "This is the cluster I want!"
