@@ -20,4 +20,8 @@
   shell: "cat /tmp/{{item}}-id_rsa.pub >> ~/.ssh/authorized_keys"
   when: "item != ansible_hostname"
   with_items: "{{groups['protected']}}"
-      
+
+- name: copy the ssh config
+  copy:
+    src: ssh_config
+    dest: "/root/.ssh/config"

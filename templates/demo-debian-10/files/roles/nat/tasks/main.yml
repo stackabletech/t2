@@ -24,8 +24,8 @@
 - name: Install & configure BIND (DNS)
   include: bind.yml
 
-#- name: Install & configure Wireguard (VPN)
-#  include: wireguard.yml
+- name: Install & configure Wireguard (VPN)
+  include: wireguard.yml
 
 
 

@@ -3,7 +3,7 @@
 # This is needed on CentOS/RHEL because otherwise the running kernel and the kernel-headers (installed as a dependency of wireguard)
 # might differ in version numbers and that causes the wireguard kernel module compilation to fail
 - name: Upgrade all packages so Kernel headers match
-  yum:
+  apt:
     name: '*'
     state: latest
   notify: reboot
@@ -11,20 +11,15 @@
 - name: Flush handler if needed
   meta: flush_handlers
 
-- name: Ensure WireGuard repo exists
-  get_url:
-    url: https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
-    dest: /etc/yum.repos.d/wireguard.repo
-
-- name: Ensure EPEL Release is installed
-  yum:
-    name: epel-release
+- name: Ensure WireGuard repository exists
+  apt_repository:
+    repo: deb http://deb.debian.org/debian buster-backports main
     state: present
 
 - name: Ensure WireGuard is installed
-  package:
+  apt:
     name:
-      - wireguard-dkms
+      - wireguard
       - wireguard-tools
     state: present
 
