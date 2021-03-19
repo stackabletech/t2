@@ -2,7 +2,6 @@
 - hosts: nat
   roles:
   - nat
-  - nginx
 - hosts: protected
   roles:
   - protected
