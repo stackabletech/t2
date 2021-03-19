@@ -8,9 +8,12 @@
 - hosts: orchestrators
   roles:
   - orchestrator
+  - tools
+  - operators
 - hosts: nodes
   roles:
   - node
+  - tools
 - hosts: orchestrators
   roles:
   - orchestrator_finalized

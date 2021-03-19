@@ -9,6 +9,9 @@
 - name: generate config for other k8s nodes
   shell: "cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig"
 
+- name: provide kubeconfig at common location
+  shell: "mkdir -p /root/.kube/ && cp /etc/rancher/k3s/k3s.yaml /root/.kube/config"
+
 - name: Fetch the kubeconfig to distribute it to the nodes later
   fetch: 
     src: "/tmp/kubeconfig"
@@ -37,4 +40,13 @@
     - "stackable-repositories.crd.yml"
     - "stackablepublic-repo.yml"
 
-    
+- name: Add key for Stackable repository
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 16dd12f5c7a6d76a
+
+- name: Add Stackable repository
+  apt_repository:
+    repo: deb https://repo.stackable.tech/repository/deb-nightly buster main
+    state: present
+
