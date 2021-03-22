@@ -76,8 +76,6 @@ public class TerraformService {
             ProcessBuilder processBuilder = new ProcessBuilder()
                     .command("sh", "-c", String.format("terraform %s %s -no-color", command, params))
                     .directory(workingDirectory.toFile());
-            processBuilder.environment().put("TF_VAR_ionos_datacenter", datacenter);
-            // TODO only use selected values needed for terraform
             this.credentials.forEach((key, value) -> {
                 processBuilder.environment().put(String.format("TF_VAR_%s", key), value.toString());
             });

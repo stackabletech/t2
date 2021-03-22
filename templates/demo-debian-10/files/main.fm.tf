@@ -1,25 +1,25 @@
 terraform {
   required_providers {
-    profitbricks = {
-      source = "ionos-cloud/profitbricks"
-      version = "1.6.5"
+    ionoscloud = {
+      source = "ionos-cloud/ionoscloud"
+      version = "5.0.4"
     }
   }
 }
 
 variable "ionos_username" {
-  description = "Username to be used with the Profitbricks Cloud Provider - set using environment variable TF_VAR_ionos_username"
+  description = "Username to be used with the IONOS Cloud Provider - set using environment variable TF_VAR_ionos_username"
   type        = string
   sensitive   = true
 }
 
 variable "ionos_password" {
-  description = "Password to be used with the Profitbricks Cloud Provider - set using environment variable TF_VAR_ionos_password"
+  description = "Password to be used with the IONOS Cloud Provider - set using environment variable TF_VAR_ionos_password"
   type        = string
   sensitive   = true
 }
 
-provider "profitbricks" {
+provider "ionoscloud" {
   username = var.ionos_username
   password = var.ionos_password
 }
@@ -57,13 +57,13 @@ variable "wireguard_nat_private_key" {
 }
 
 
-resource "profitbricks_datacenter" "datacenter" {
+resource "ionoscloud_datacenter" "datacenter" {
   name = "[= datacenter_name ]"
   location = "[= clusterDefinition.spec.region ]"
   description = "[= clusterDefinition.metadata.description ]"
 }
 
-data "profitbricks_image" "os_image" {
+data "ionoscloud_image" "os_image" {
   name     = "Debian"
   type     = "HDD"
   version  = "10"
@@ -71,28 +71,28 @@ data "profitbricks_image" "os_image" {
 }
 
 # Internet facing lan
-resource "profitbricks_lan" "external" {
+resource "ionoscloud_lan" "external" {
   name = "External Network"
-  datacenter_id = profitbricks_datacenter.datacenter.id
+  datacenter_id = ionoscloud_datacenter.datacenter.id
   public = true
 }
 
 // Private lan
-resource "profitbricks_lan" "internal" {
+resource "ionoscloud_lan" "internal" {
   name = "Internal Network"
-  datacenter_id = profitbricks_datacenter.datacenter.id
+  datacenter_id = ionoscloud_datacenter.datacenter.id
   public = false
 }
 
 # NAT Server on the Edge to forward requests and serve as VPN endpoint
-resource "profitbricks_server" "nat" {
+resource "ionoscloud_server" "nat" {
   name = "nat"
-  datacenter_id = profitbricks_datacenter.datacenter.id
+  datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = 2
   ram = 1024
   availability_zone = "ZONE_1"
 
-  image_name = data.profitbricks_image.os_image.name
+  image_name = data.ionoscloud_image.os_image.name
   ssh_key_path = [ "[=t2_ssh_key_public]" ]
 
   volume {
@@ -103,29 +103,29 @@ resource "profitbricks_server" "nat" {
   }
 
   nic {
-    lan = profitbricks_lan.external.id
+    lan = ionoscloud_lan.external.id
     dhcp = true
     firewall_active = false
   }
 }
 
-resource "profitbricks_nic" "nat_internal" {
-  datacenter_id = profitbricks_datacenter.datacenter.id
-  lan = profitbricks_lan.internal.id
-  server_id = profitbricks_server.nat.id
+resource "ionoscloud_nic" "nat_internal" {
+  datacenter_id = ionoscloud_datacenter.datacenter.id
+  lan = ionoscloud_lan.internal.id
+  server_id = ionoscloud_server.nat.id
 
   dhcp = true
   firewall_active = false
 }
 
-resource "profitbricks_server" "orchestrator" {
+resource "ionoscloud_server" "orchestrator" {
   name = "orchestrator"
-  datacenter_id = profitbricks_datacenter.datacenter.id
+  datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = 4
   ram = 8192
   availability_zone = "ZONE_1"
 
-  image_name = data.profitbricks_image.os_image.name
+  image_name = data.ionoscloud_image.os_image.name
   ssh_key_path = [ "[=t2_ssh_key_public]" ]
 
   volume {
@@ -136,22 +136,22 @@ resource "profitbricks_server" "orchestrator" {
 
   nic {
     name = "internal-nic-orchestrator"
-    lan = profitbricks_lan.internal.id
+    lan = ionoscloud_lan.internal.id
     dhcp = true
     firewall_active = false
   }
 }
 
 [#list clusterDefinition.spec.nodes as node_type, node_spec]
-resource "profitbricks_server" "[= node_type ]" {
+resource "ionoscloud_server" "[= node_type ]" {
   count = [= node_spec.numberOfNodes ]
   name = "[= node_type ]-${count.index + 1}"
-  datacenter_id = profitbricks_datacenter.datacenter.id
+  datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = [= node_spec.numberOfCores ]
   ram = [= node_spec.memoryMb ]
   availability_zone = "ZONE_1"
 
-  image_name = data.profitbricks_image.os_image.name
+  image_name = data.ionoscloud_image.os_image.name
   ssh_key_path = [ "[=t2_ssh_key_public]" ]
 
   volume {
@@ -162,7 +162,7 @@ resource "profitbricks_server" "[= node_type ]" {
 
   nic {
     name = "internal-nic-[= node_type ]-${count.index + 1}"
-    lan = profitbricks_lan.internal.id
+    lan = ionoscloud_lan.internal.id
     dhcp = true
     firewall_active = false
   }
@@ -174,7 +174,7 @@ resource "profitbricks_server" "[= node_type ]" {
 # This is used by T2 to create DNS record
 resource "local_file" "ipv4_file" {
     filename = "ipv4"
-    content = profitbricks_server.nat.primary_ip
+    content = ionoscloud_server.nat.primary_ip
     file_permission = "0440"
 }
 
@@ -184,11 +184,11 @@ resource "local_file" "ansible-inventory" {
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
       nodetypes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
-      nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : profitbricks_server.[= node_type ][#sep] , [/#list] }
-      nat = profitbricks_server.nat
+      nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : ionoscloud_server.[= node_type ][#sep] , [/#list] }
+      nat = ionoscloud_server.nat
       nat_public_hostname = "[= public_hostname ]"
-      nat_internal_ip = profitbricks_nic.nat_internal.ips[0]
-      orchestrator = profitbricks_server.orchestrator
+      nat_internal_ip = ionoscloud_nic.nat_internal.ips[0]
+      orchestrator = ionoscloud_server.orchestrator
       ssh_key_private_path = "[= t2_ssh_key_private ]"
       domain = "[= clusterDefinition.domain ]"
     }
@@ -208,6 +208,7 @@ resource "local_file" "ansible-variables" {
 } 
 
 # service definition files
+[#if clusterDefinition.services??]
 [#list clusterDefinition.services as service_name, service_definition]
 resource "local_file" "service-[= service_name]" {
   filename = "roles/services/files/[= service_name].yaml"
@@ -218,6 +219,7 @@ END_OF_SERVICE_DEF
 }
 
 [/#list]
+[/#if]
 
 # wireguard configfile for bastion host ('nat')
 resource "local_file" "wireguard_nat_config" {
@@ -238,8 +240,8 @@ resource "local_file" "wireguard_client_config" {
   file_permission = "0440"
   content = templatefile("${path.module}/templates/wg-client.conf.tpl",
     {
-      nodes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]profitbricks_server.[= node_type ][#sep] , [/#list] ]
-      orchestrator_ip = profitbricks_server.orchestrator.primary_ip
+      nodes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]ionoscloud_server.[= node_type ][#sep] , [/#list] ]
+      orchestrator_ip = ionoscloud_server.orchestrator.primary_ip
       wg_client_private_key = var.wireguard_client_private_keys[count.index]
       index = count.index
       wg_nat_public_key = var.wireguard_nat_public_key
@@ -269,7 +271,7 @@ resource "local_file" "[= node_type ]-ssh-script" {
   file_permission = "0550"
   content = templatefile("${path.module}/templates/ssh-script.tpl",
     {
-      node_ip = profitbricks_server.[=node_type][count.index].primary_ip
+      node_ip = ionoscloud_server.[=node_type][count.index].primary_ip
       nat_public_hostname = "[= public_hostname ]"
       ssh_key_private_path = "[= t2_ssh_key_private ]"
     }
@@ -284,7 +286,7 @@ resource "local_file" "orchestrator-ssh-script" {
   file_permission = "0550"
   content = templatefile("${path.module}/templates/ssh-script.tpl",
     {
-      node_ip = profitbricks_server.orchestrator.primary_ip
+      node_ip = ionoscloud_server.orchestrator.primary_ip
       nat_public_hostname = "[= public_hostname ]"
       ssh_key_private_path = "[= t2_ssh_key_private ]"
     }
@@ -297,8 +299,8 @@ resource "local_file" "stackable-client" {
   content = templatefile("${path.module}/templates/stackable-script.tpl",
     {
       nodetypes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
-      nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : profitbricks_server.[= node_type ][#sep] , [/#list] }
-      orchestrator = profitbricks_server.orchestrator
+      nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : ionoscloud_server.[= node_type ][#sep] , [/#list] }
+      orchestrator = ionoscloud_server.orchestrator
       nat_public_hostname = "[= public_hostname ]"
     }
   )
