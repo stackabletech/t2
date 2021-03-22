@@ -29,13 +29,19 @@ t2-token: {{t2-token}}
 ###
 
 # get wireguard config
-{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/555db5bd-1f4a-4ad0-9af8-a0b9e7a7038d/wireguard-config/1
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/660a4545-e3e8-4897-ae0e-06f112869894/wireguard-config/1
+t2-token: {{t2-token}}
+
+###
+
+# get stackable client script
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/660a4545-e3e8-4897-ae0e-06f112869894/stackable-client-script
 t2-token: {{t2-token}}
 
 ###
 
 # get logs
-{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/decadbe6-96dc-4bd8-8903-285cde6d8e06/log
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/660a4545-e3e8-4897-ae0e-06f112869894/log
 t2-token: {{t2-token}}
 
 ###
