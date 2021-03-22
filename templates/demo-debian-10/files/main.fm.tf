@@ -121,8 +121,8 @@ resource "profitbricks_nic" "nat_internal" {
 resource "profitbricks_server" "orchestrator" {
   name = "orchestrator"
   datacenter_id = profitbricks_datacenter.datacenter.id
-  cores = 2
-  ram = 1024
+  cores = 4
+  ram = 8192
   availability_zone = "ZONE_1"
 
   image_name = data.profitbricks_image.os_image.name
