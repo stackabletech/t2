@@ -207,6 +207,18 @@ resource "local_file" "ansible-variables" {
   file_permission = "0440"
 } 
 
+# service definition files
+[#list clusterDefinition.services as service_name, service_definition]
+resource "local_file" "service-[= service_name]" {
+  filename = "roles/services/files/[= service_name].yaml"
+  file_permission = "0440"
+  content = <<-END_OF_SERVICE_DEF
+[= service_definition]
+END_OF_SERVICE_DEF
+}
+
+[/#list]
+
 # wireguard configfile for bastion host ('nat')
 resource "local_file" "wireguard_nat_config" {
   filename = "${path.module}/roles/nat/files/wg.conf"

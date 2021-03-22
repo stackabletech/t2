@@ -17,3 +17,4 @@
 - hosts: orchestrators
   roles:
   - orchestrator_finalized
+  - services

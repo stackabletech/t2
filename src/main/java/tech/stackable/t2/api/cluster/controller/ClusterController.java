@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -168,12 +169,12 @@ public class ClusterController {
         Map<String, Object> clusterDefinitionMap = null;
         if (clusterDefinition != null) {
             try {
-                clusterDefinitionMap = new ObjectMapper().readValue(clusterDefinition, Map.class);
+                clusterDefinitionMap = new ObjectMapper(new YAMLFactory()).readValue(clusterDefinition, Map.class);
             } catch (JsonProcessingException e) {
-                throw new MalformedClusterDefinitionException("The cluster definition does not contain valid JSON.", e);
+                throw new MalformedClusterDefinitionException("The cluster definition does not contain valid YAML/JSON.", e);
             }
         }
-
+        
         if (!"t2.stackable.tech/v1".equals(clusterDefinitionMap.get("apiVersion"))) {
             throw new MalformedClusterDefinitionException("The apiVersion is either missing or not valid.");
         }
