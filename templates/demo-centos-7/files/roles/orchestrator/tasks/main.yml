@@ -9,6 +9,9 @@
 - name: generate config for other k8s nodes
   shell: "cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig"
 
+- name: provide kubeconfig at common location
+  shell: "mkdir -p /root/.kube/ && cp /etc/rancher/k3s/k3s.yaml /root/.kube/config"
+
 - name: Fetch the kubeconfig to distribute it to the nodes later
   fetch: 
     src: "/tmp/kubeconfig"
@@ -37,4 +40,11 @@
     - "stackable-repositories.crd.yml"
     - "stackablepublic-repo.yml"
 
+- name: Add Stackable repository
+  yum_repository:
+    name: Stackable
+    description: Stackable YUM repo
+    baseurl: https://repo.stackable.tech/repository/rpm-nightly/el7/
+    gpgcheck: no
+    repo_gpgcheck: no
     
