@@ -121,8 +121,8 @@ resource "profitbricks_nic" "nat_internal" {
 resource "profitbricks_server" "orchestrator" {
   name = "orchestrator"
   datacenter_id = profitbricks_datacenter.datacenter.id
-  cores = 2
-  ram = 1024
+  cores = 4
+  ram = 8192
   availability_zone = "ZONE_1"
 
   image_name = data.profitbricks_image.os_image.name
@@ -206,6 +206,18 @@ resource "local_file" "ansible-variables" {
   )
   file_permission = "0440"
 } 
+
+# service definition files
+[#list clusterDefinition.services as service_name, service_definition]
+resource "local_file" "service-[= service_name]" {
+  filename = "roles/services/files/[= service_name].yaml"
+  file_permission = "0440"
+  content = <<-END_OF_SERVICE_DEF
+[= service_definition]
+END_OF_SERVICE_DEF
+}
+
+[/#list]
 
 # wireguard configfile for bastion host ('nat')
 resource "local_file" "wireguard_nat_config" {

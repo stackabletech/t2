@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -63,7 +64,7 @@ public class TemplateService {
 
     /**
      * Creates a working directory for the given cluster, using the given cluster
-     * definition (JSON)
+     * definition (YAML)
      * 
      * @param cluster           cluster metadata
      * @param clusterDefinition cluster definition as requested by the client. If
@@ -114,14 +115,14 @@ public class TemplateService {
             if (clusterDefinition != null) {
                 templateVariables.put("clusterDefinition", clusterDefinition);
             } else {
-                templateVariables.put("clusterDefinition", new ObjectMapper().readValue(templatePath.resolve("cluster.json").toFile(), Map.class));
+                templateVariables.put("clusterDefinition", new ObjectMapper(new YAMLFactory()).readValue(templatePath.resolve("cluster.yaml").toFile(), Map.class));
             }
 
             Files.createDirectory(workingDirectory);
             FileUtils.copyDirectory(templatePath.resolve("files/").toFile(), workingDirectory.toFile());
 
             processTemplates(cluster, workingDirectory, templateVariables);
-
+            
         } catch (IOException | TemplateException e) {
             LOGGER.error("Working directory for cluster {} could not be created.", cluster.getId(), e);
             throw new RuntimeException(String.format("Working directory for cluster %s could not be created.", cluster.getId()));

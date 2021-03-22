@@ -2,16 +2,19 @@
 - hosts: nat
   roles:
   - nat
-  - nginx
 - hosts: protected
   roles:
   - protected
 - hosts: orchestrators
   roles:
   - orchestrator
+  - tools
+  - operators
 - hosts: nodes
   roles:
   - node
+  - tools
 - hosts: orchestrators
   roles:
   - orchestrator_finalized
+  - services
