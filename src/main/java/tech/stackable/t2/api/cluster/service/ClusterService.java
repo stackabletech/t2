@@ -43,4 +43,11 @@ public interface ClusterService {
     
     String getLogs(UUID id);
 
+    /**
+     * Creates a new DIY cluster
+     * 
+     * @return new DIY cluster
+     */
+    byte[] createDiyCluster(Map<String, Object> clusterDefinition);
+
 }

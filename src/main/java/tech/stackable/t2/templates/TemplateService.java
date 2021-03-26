@@ -29,7 +29,6 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import tech.stackable.t2.api.cluster.controller.MalformedClusterDefinitionException;
-import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.security.SshKey;
 import tech.stackable.t2.wireguard.WireguardService;
 
@@ -40,10 +39,6 @@ public class TemplateService {
 
     @Autowired
     private WireguardService wireguardService;
-
-    @Autowired
-    @Qualifier("workspaceDirectory")
-    private Path workspaceDirectory;
 
     @Autowired
     @Qualifier("templateDirectory")
@@ -66,20 +61,14 @@ public class TemplateService {
      * Creates a working directory for the given cluster, using the given cluster
      * definition (YAML)
      * 
-     * @param cluster           cluster metadata
+     * @param workingDirectory  working directory location
      * @param clusterDefinition cluster definition as requested by the client. If
      *                          missing, default cluster definition of the template
      *                          is used
      * @return working directory path
      * @throws RuntimeException if directory does not exist
      */
-    public Path createWorkingDirectory(Cluster cluster, Map<String, Object> clusterDefinition) {
-        Path workingDirectory = workspaceDirectory.resolve(cluster.getId().toString());
-
-        if (Files.exists(workingDirectory) && Files.isDirectory(workingDirectory)) {
-            throw new RuntimeException(String.format("Working directory for cluster %s could not be created because it already exists.", cluster.getId()));
-        }
-
+    public Path createWorkingDirectory(Path workingDirectory, Map<String, Object> clusterDefinition) {
         String templateName = this.defaultTemplateName;
         if (clusterDefinition != null && clusterDefinition.containsKey("template") && clusterDefinition.get("template") instanceof String) {
             templateName = (String) clusterDefinition.get("template");
@@ -103,8 +92,6 @@ public class TemplateService {
             // Additional props that can be used in a template
             templateVariables.put("t2_ssh_key_public", sshKey.getPublicKeyPath().toString());
             templateVariables.put("t2_ssh_key_private", sshKey.getPrivateKeyPath().toString());
-            templateVariables.put("datacenter_name", MessageFormat.format("t2-{0}", cluster.getId()));
-            templateVariables.put("public_hostname", MessageFormat.format("{0}.{1}", cluster.getShortId(), this.domain));
             templateVariables.put("wireguard_client_public_keys", clientPublicKeys);
             templateVariables.put("wireguard_client_private_keys", clientPrivateKeys);
             templateVariables.put("wireguard_nat_public_key", natPublicKey);
@@ -118,14 +105,17 @@ public class TemplateService {
                 templateVariables.put("clusterDefinition", new ObjectMapper(new YAMLFactory()).readValue(templatePath.resolve("cluster.yaml").toFile(), Map.class));
             }
 
-            Files.createDirectory(workingDirectory);
+            if (!Files.exists(workingDirectory)) {
+                Files.createDirectory(workingDirectory);
+            }
+
             FileUtils.copyDirectory(templatePath.resolve("files/").toFile(), workingDirectory.toFile());
 
-            processTemplates(cluster, workingDirectory, templateVariables);
+            processTemplates(workingDirectory, templateVariables);
             
         } catch (IOException | TemplateException e) {
-            LOGGER.error("Working directory for cluster {} could not be created.", cluster.getId(), e);
-            throw new RuntimeException(String.format("Working directory for cluster %s could not be created.", cluster.getId()));
+            LOGGER.error("Working directory {} could not be created.", workingDirectory, e);
+            throw new RuntimeException(String.format("Working directory %s could not be created.", workingDirectory));
         }
         return workingDirectory;
     }
@@ -137,12 +127,11 @@ public class TemplateService {
      * All files containing .fm will be processed and replaced by the same file
      * without the '.fm' part in the name
      * 
-     * @param cluster           cluster metadata
      * @param workingDirectory  working dir
      * @param templateVariables (nested) map of variables to use while processing
      *                          template
      */
-    private void processTemplates(Cluster cluster, Path workingDirectory, Map<String, Object> templateVariables) throws IOException, TemplateException {
+    private void processTemplates(Path workingDirectory, Map<String, Object> templateVariables) throws IOException, TemplateException {
 
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_30);
         cfg.setInterpolationSyntax(Configuration.SQUARE_BRACKET_INTERPOLATION_SYNTAX);
@@ -161,27 +150,10 @@ public class TemplateService {
                         Files.writeString(processedFile, processedTemplateContent);
                         Files.delete(path);
                     } catch (IOException | TemplateException e) {
-                        LOGGER.error("Working directory for cluster {} could not be created.", cluster.getId(), e);
-                        throw new RuntimeException(String.format("Working directory for cluster %s could not be created.", cluster.getId()));
+                        LOGGER.error("Working directory {} could not be created.", workingDirectory, e);
+                        throw new RuntimeException(String.format("Working directory %s could not be created.", workingDirectory));
                     }
                 });
-    }
-
-    /**
-     * Gets an (existing!) working dir for the given cluster
-     * 
-     * @param cluster cluster metadata
-     * @return working directory path
-     * @throws RuntimeException if directory does not exist
-     */
-    public Path getWorkingDirectory(Cluster cluster) {
-        Path workingDirectory = workspaceDirectory.resolve(cluster.getId().toString());
-
-        if (!Files.exists(workingDirectory) || !Files.isDirectory(workingDirectory)) {
-            throw new RuntimeException(String.format("Working directory for cluster %s does not exist.", cluster.getId()));
-        }
-
-        return workingDirectory;
     }
 
 }

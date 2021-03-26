@@ -79,6 +79,7 @@ public class TerraformService {
             this.credentials.forEach((key, value) -> {
                 processBuilder.environment().put(String.format("TF_VAR_%s", key), value.toString());
             });
+            processBuilder.environment().put("TF_VAR_ionos_datacenter", datacenter);
             Process process = processBuilder.redirectErrorStream(true).start();
             ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), workingDirectory.resolve("cluster.log"), MessageFormat.format("terraform-{0}", command));
             int exitCode = process.waitFor();

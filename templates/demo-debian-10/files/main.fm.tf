@@ -19,6 +19,11 @@ variable "ionos_password" {
   sensitive   = true
 }
 
+variable "ionos_datacenter" {
+  description = "Name of the datacenter in the IONOS cloud - set using environment variable TF_VAR_ionos_datacenter"
+  type        = string
+}
+
 provider "ionoscloud" {
   username = var.ionos_username
   password = var.ionos_password
@@ -58,7 +63,7 @@ variable "wireguard_nat_private_key" {
 
 
 resource "ionoscloud_datacenter" "datacenter" {
-  name = "[= datacenter_name ]"
+  name = var.ionos_datacenter
   location = "[= clusterDefinition.spec.region ]"
   description = "[= clusterDefinition.metadata.description ]"
 }
@@ -304,5 +309,5 @@ resource "local_file" "stackable-client" {
       nat_public_ip = ionoscloud_server.nat.primary_ip
     }
   )
-  file_permission = "0440"
+  file_permission = "0550"
 } 

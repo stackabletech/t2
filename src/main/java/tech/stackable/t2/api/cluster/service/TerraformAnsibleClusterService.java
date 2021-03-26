@@ -1,7 +1,9 @@
 package tech.stackable.t2.api.cluster.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.time.Duration;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
+import org.zeroturnaround.zip.ZipUtil;
 
 import tech.stackable.t2.ansible.AnsibleResult;
 import tech.stackable.t2.ansible.AnsibleService;
@@ -97,7 +100,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
             Cluster cluster = new Cluster();
             cluster.setStatus(Status.CREATION_STARTED);
 
-            Path workingDirectory = this.templateService.createWorkingDirectory(cluster, clusterDefinition);
+            Path workingDirectory = this.templateService.createWorkingDirectory(workspaceDirectory.resolve(cluster.getId().toString()), clusterDefinition);
             cluster.setStatus(Status.WORKING_DIR_CREATED);
             clusters.put(cluster.getId(), cluster);
 
@@ -178,7 +181,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
                     return;
                 }
 
-                Path terraformFolder = this.templateService.getWorkingDirectory(cluster);
+                Path terraformFolder = workspaceDirectory.resolve(cluster.getId().toString());
 
                 cluster.setStatus(Status.TERRAFORM_DESTROY);
                 TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, datacenterName(cluster.getId()));
@@ -200,7 +203,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
         if (cluster == null) {
             return null;
         }
-        Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
+        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
         try {
             return FileUtils.readFileToString(clusterBaseFolder.resolve(MessageFormat.format("resources/wireguard-client-config/{0}/wg.conf", index)).toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -215,7 +218,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
         if (cluster == null) {
             return null;
         }
-        Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
+        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
         try {
             return FileUtils.readFileToString(clusterBaseFolder.resolve("resources/stackable.sh").toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -230,13 +233,27 @@ public class TerraformAnsibleClusterService implements ClusterService {
         if (cluster == null) {
             return "";
         }
-        Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
+        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
         try {
             return FileUtils.readFileToString(clusterBaseFolder.resolve("cluster.log").toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             LOGGER.warn("Wireguard client config could not be read", e);
             return "";
         }
+    }
+    
+    @Override
+    public byte[] createDiyCluster(Map<String, Object> clusterDefinition) {
+        Path workingDirectory;
+        try {
+            workingDirectory = Files.createTempDirectory("t2-diy-");
+        } catch (IOException e) {
+            throw new RuntimeException("Internal error creating temp folder.", e);
+        }
+        this.templateService.createWorkingDirectory(workingDirectory, clusterDefinition);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ZipUtil.pack(workingDirectory.toFile(), bos);
+        return bos.toByteArray();
     }
     
     /**

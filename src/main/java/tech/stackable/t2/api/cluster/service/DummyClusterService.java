@@ -84,4 +84,10 @@ public class DummyClusterService implements ClusterService {
         return "";
     }
 
+    @Override
+    public byte[] createDiyCluster(Map<String, Object> clusterDefinition) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }
