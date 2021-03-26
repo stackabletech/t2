@@ -186,7 +186,7 @@ resource "local_file" "ansible-inventory" {
       nodetypes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
       nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : ionoscloud_server.[= node_type ][#sep] , [/#list] }
       nat = ionoscloud_server.nat
-      nat_public_hostname = "[= public_hostname ]"
+      nat_public_ip = ionoscloud_server.nat.primary_ip
       nat_internal_ip = ionoscloud_nic.nat_internal.ips[0]
       orchestrator = ionoscloud_server.orchestrator
       ssh_key_private_path = "[= t2_ssh_key_private ]"
@@ -245,7 +245,7 @@ resource "local_file" "wireguard_client_config" {
       wg_client_private_key = var.wireguard_client_private_keys[count.index]
       index = count.index
       wg_nat_public_key = var.wireguard_nat_public_key
-      nat_public_hostname = "[= public_hostname ]"
+      nat_public_ip = ionoscloud_server.nat.primary_ip
     }
   )
 }
@@ -257,7 +257,7 @@ resource "local_file" "nat-ssh-script" {
   file_permission = "0550"
   content = templatefile("${path.module}/templates/ssh-nat-script.tpl",
     {
-      nat_public_hostname = "[= public_hostname ]"
+      nat_public_ip = ionoscloud_server.nat.primary_ip
       ssh_key_private_path = "[= t2_ssh_key_private ]"
     }
   )
@@ -272,7 +272,7 @@ resource "local_file" "[= node_type ]-ssh-script" {
   content = templatefile("${path.module}/templates/ssh-script.tpl",
     {
       node_ip = ionoscloud_server.[=node_type][count.index].primary_ip
-      nat_public_hostname = "[= public_hostname ]"
+      nat_public_ip = ionoscloud_server.nat.primary_ip
       ssh_key_private_path = "[= t2_ssh_key_private ]"
     }
   )
@@ -287,7 +287,7 @@ resource "local_file" "orchestrator-ssh-script" {
   content = templatefile("${path.module}/templates/ssh-script.tpl",
     {
       node_ip = ionoscloud_server.orchestrator.primary_ip
-      nat_public_hostname = "[= public_hostname ]"
+      nat_public_ip = ionoscloud_server.nat.primary_ip
       ssh_key_private_path = "[= t2_ssh_key_private ]"
     }
   )
@@ -301,7 +301,7 @@ resource "local_file" "stackable-client" {
       nodetypes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
       nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : ionoscloud_server.[= node_type ][#sep] , [/#list] }
       orchestrator = ionoscloud_server.orchestrator
-      nat_public_hostname = "[= public_hostname ]"
+      nat_public_ip = ionoscloud_server.nat.primary_ip
     }
   )
   file_permission = "0440"

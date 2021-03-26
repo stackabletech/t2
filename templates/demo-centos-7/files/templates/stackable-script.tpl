@@ -32,4 +32,4 @@ fi
 
 private_key_file=$2
 
-ssh root@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -W %h:%p -q root@${nat_public_hostname}' $3
+ssh root@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -W %h:%p -q root@${nat_public_ip}' $3

@@ -2,7 +2,7 @@
 domain=${domain}
 
 [nat]
-${nat_public_hostname} internal_ip=${nat_internal_ip}
+${nat_public_ip} internal_ip=${nat_internal_ip}
 
 [nat:vars]
 ansible_user=root 
@@ -15,7 +15,7 @@ ${node.name} ansible_host=${node.primary_ip}
 %{ endfor ~}
 
 [${nodetype}:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q root@${nat_public_hostname}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q root@${nat_public_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=root
 
@@ -25,7 +25,7 @@ ansible_user=root
 orchestrator ansible_host=${orchestrator.primary_ip}
 
 [orchestrators:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q root@${nat_public_hostname}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q root@${nat_public_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=root
 
