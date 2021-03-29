@@ -7,6 +7,23 @@ terraform {
   }
 }
 
+resource "tls_private_key" "cluster_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "local_file" "cluster_private_key" { 
+  filename = "${path.module}/cluster_key"
+  content = tls_private_key.cluster_key.private_key_pem
+  file_permission = "0400"
+}
+
+resource "local_file" "cluster_public_key" { 
+  filename = "${path.module}/cluster_key.pub"
+  content = tls_private_key.cluster_key.public_key_openssh
+  file_permission = "0440"
+}
+
 variable "ionos_username" {
   description = "Username to be used with the IONOS Cloud Provider - set using environment variable TF_VAR_ionos_username"
   type        = string
@@ -98,7 +115,7 @@ resource "ionoscloud_server" "nat" {
   availability_zone = "ZONE_1"
 
   image_name = data.ionoscloud_image.os_image.name
-  ssh_key_path = [ "[=t2_ssh_key_public]" ]
+  ssh_key_path = [ local_file.cluster_public_key.filename ]
 
   volume {
     name = "nat-storage"
@@ -131,7 +148,7 @@ resource "ionoscloud_server" "orchestrator" {
   availability_zone = "ZONE_1"
 
   image_name = data.ionoscloud_image.os_image.name
-  ssh_key_path = [ "[=t2_ssh_key_public]" ]
+  ssh_key_path = [ local_file.cluster_public_key.filename ]
 
   volume {
     name = "orchestrator-storage"
@@ -157,7 +174,7 @@ resource "ionoscloud_server" "[= node_type ]" {
   availability_zone = "ZONE_1"
 
   image_name = data.ionoscloud_image.os_image.name
-  ssh_key_path = [ "[=t2_ssh_key_public]" ]
+  ssh_key_path = [ local_file.cluster_public_key.filename ]
 
   volume {
     name = "[= node_type ]-storage-${count.index + 1}"
@@ -194,7 +211,7 @@ resource "local_file" "ansible-inventory" {
       nat_public_ip = ionoscloud_server.nat.primary_ip
       nat_internal_ip = ionoscloud_nic.nat_internal.ips[0]
       orchestrator = ionoscloud_server.orchestrator
-      ssh_key_private_path = "[= t2_ssh_key_private ]"
+      ssh_key_private_path = local_file.cluster_private_key.filename
       domain = "[= clusterDefinition.domain ]"
     }
   )
@@ -263,7 +280,7 @@ resource "local_file" "nat-ssh-script" {
   content = templatefile("${path.module}/templates/ssh-nat-script.tpl",
     {
       nat_public_ip = ionoscloud_server.nat.primary_ip
-      ssh_key_private_path = "[= t2_ssh_key_private ]"
+      ssh_key_private_path = local_file.cluster_private_key.filename
     }
   )
 }
@@ -278,7 +295,7 @@ resource "local_file" "[= node_type ]-ssh-script" {
     {
       node_ip = ionoscloud_server.[=node_type][count.index].primary_ip
       nat_public_ip = ionoscloud_server.nat.primary_ip
-      ssh_key_private_path = "[= t2_ssh_key_private ]"
+      ssh_key_private_path = local_file.cluster_private_key.filename
     }
   )
 }
@@ -293,7 +310,7 @@ resource "local_file" "orchestrator-ssh-script" {
     {
       node_ip = ionoscloud_server.orchestrator.primary_ip
       nat_public_ip = ionoscloud_server.nat.primary_ip
-      ssh_key_private_path = "[= t2_ssh_key_private ]"
+      ssh_key_private_path = local_file.cluster_private_key.filename
     }
   )
 }

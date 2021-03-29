@@ -1,11 +1,44 @@
 #!/bin/sh 
 
-if [ -z "$1" ]; then
-    echo "Please supply node name."
+print_usage() {
+    echo "stackable.sh [-i <keyfile>] <hostname> [<command>]" 
+}
+
+host=""
+command=""
+
+while [ -n "$1" ]; do
+
+    if [ "-i" = "$1" ]; then
+        if [ -n "$2" ]; then
+            private_key_file=$2
+            shift
+            shift
+        else   
+            print_usage
+            exit 1 
+        fi
+    else 
+
+        if [ -z "$host" ]; then
+            host=$1
+            shift
+        elif [ -z "$command" ]; then
+            command=$1
+            shift
+        else
+            print_usage
+            exit 1
+        fi
+
+    fi
+
+done
+
+if [ -z "$host" ]; then
+    print_usage
     exit 1
 fi
-
-host=$1
 
 %{ for nodetype in nodetypes ~}
 %{ for node in nodes[nodetype] ~}
@@ -21,15 +54,13 @@ if [ "orchestrator" = "$host" ]; then
 fi
 
 if [ -z "$ip" ]; then
-    echo "Node unknown."
+    echo "Host '$host' unknown in this Stackable cluster."
     exit 1
 fi
 
-if [ -z "$2" ]; then
-    echo "Please supply private key file."
-    exit 1
+if [ -n "$private_key_file" ]; then
+    ssh root@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -W %h:%p -q root@${nat_public_ip}' $command
+else 
+    ssh root@"$ip" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %h:%p -q root@${nat_public_ip}' $command
 fi
 
-private_key_file=$2
-
-ssh root@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -W %h:%p -q root@${nat_public_ip}' $3
