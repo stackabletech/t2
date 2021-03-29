@@ -16,14 +16,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.swagger.v3.oas.annotations.Operation;
-import tech.stackable.t2.api.cluster.service.ClusterService;
+import tech.stackable.t2.api.cluster.service.TerraformAnsibleClusterService;
 
 @RestController
 @RequestMapping("api/diy-cluster")
 public class DiyClusterController {
 
     @Autowired
-    private ClusterService clusterService;
+    private TerraformAnsibleClusterService clusterService;
 
     @GetMapping(produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody

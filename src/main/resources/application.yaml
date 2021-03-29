@@ -14,9 +14,7 @@ t2:
   templates:
     directory: templates/
     default: demo-centos-7
-  feature:
-    provision-real-clusters: true
-    provision-cluster-limit: 5
+  cluster-count-limit: 5
   security:
     token:
       source: static  # options: file | static

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import tech.stackable.t2.api.cluster.domain.Cluster;
-import tech.stackable.t2.api.cluster.service.ClusterService;
+import tech.stackable.t2.api.cluster.service.TerraformAnsibleClusterService;
 import tech.stackable.t2.security.SecurityToken;
 import tech.stackable.t2.security.TokenIncorrectException;
 import tech.stackable.t2.security.TokenRequiredException;
@@ -33,7 +33,7 @@ import tech.stackable.t2.security.TokenRequiredException;
 public class ClusterController {
 
     @Autowired
-    private ClusterService clusterService;
+    private TerraformAnsibleClusterService clusterService;
 
     @Autowired
     private SecurityToken requiredToken;

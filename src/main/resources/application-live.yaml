@@ -1,9 +1,7 @@
 server:
   port: 8080
 t2:
-  feature:
-    provision-real-clusters: true
-    provision-cluster-limit: 20
+  cluster-count-limit: 20
   workspace:
     directory: /var/t2/workspace/  
   templates:

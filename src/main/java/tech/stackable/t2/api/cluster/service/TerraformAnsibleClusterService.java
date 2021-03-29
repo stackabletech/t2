@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 import org.zeroturnaround.zip.ZipUtil;
@@ -41,8 +40,7 @@ import tech.stackable.t2.terraform.TerraformService;
  * Manages clusters provisioned with Terraform and Ansible
  */
 @Repository
-@ConditionalOnProperty(name = "t2.feature.provision-real-clusters", havingValue = "true")
-public class TerraformAnsibleClusterService implements ClusterService {
+public class TerraformAnsibleClusterService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TerraformAnsibleClusterService.class);
 
@@ -75,22 +73,19 @@ public class TerraformAnsibleClusterService implements ClusterService {
      */
     private Map<UUID, Cluster> clusters = new HashMap<>();
 
-    public TerraformAnsibleClusterService(@Value("${t2.feature.provision-cluster-limit}") int provisionClusterLimit) {
+    public TerraformAnsibleClusterService(@Value("${t2.cluster-count-limit}") int provisionClusterLimit) {
         this.provisionClusterLimit = provisionClusterLimit;
         LOGGER.info("Created TerraformAnsibleClusterService, cluster count limit: {}", this.provisionClusterLimit);
     }
 
-    @Override
     public Collection<Cluster> getAllClusters() {
         return this.clusters.values();
     }
 
-    @Override
     public Cluster getCluster(UUID id) {
         return this.clusters.get(id);
     }
 
-    @Override
     public Cluster createCluster(Map<String, Object> clusterDefinition) {
         synchronized (this.clusters) {
 
@@ -166,7 +161,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
-    @Override
     public Cluster deleteCluster(UUID id) {
         synchronized (this.clusters) {
             Cluster cluster = this.clusters.get(id);
@@ -202,7 +196,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
-    @Override
     public String getWireguardClientConfig(UUID id, int index) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
@@ -217,7 +210,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
-    @Override
     public String getClientScript(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
@@ -232,7 +224,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
-    @Override
     public String getLogs(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
@@ -247,7 +238,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
     
-    @Override
     public byte[] createDiyCluster(Map<String, Object> clusterDefinition) {
         Path workingDirectory;
         try {
