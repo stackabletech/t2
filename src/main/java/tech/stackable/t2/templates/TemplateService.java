@@ -48,9 +48,6 @@ public class TemplateService {
     @Qualifier("credentials")
     private Properties credentials;
 
-    @Value("${t2.dns.cluster-domain}")
-    private String domain;
-
     @Value("${t2.templates.default}")
     private String defaultTemplateName;
 

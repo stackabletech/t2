@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import tech.stackable.t2.process.ProcessLogger;
@@ -27,9 +26,6 @@ public class TerraformService {
     @Autowired
     @Qualifier("credentials")
     private Properties credentials;
-
-    @Value("${t2.dns.cluster-domain}")
-    private String domain;
 
     public TerraformResult init(Path workingDirectory, String datacenter) {
         LOGGER.info("Running Terraform init on {}", workingDirectory);

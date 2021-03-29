@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -56,7 +57,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
     private Properties credentials;
 
     @Autowired
-    private DnsService dnsService;
+    private Optional<DnsService> dnsService;
 
     @Autowired
     private TemplateService templateService;
@@ -131,17 +132,19 @@ public class TerraformAnsibleClusterService implements ClusterService {
 
                 cluster.setIpV4Address(this.terraformService.getIpV4(workingDirectory));
 
-                cluster.setStatus(Status.DNS_WRITE_RECORD);
-                String hostname = this.dnsService.addSubdomain(cluster.getShortId(), cluster.getIpV4Address());
-                if (hostname == null) {
-                    cluster.setStatus(Status.DNS_WRITE_RECORD_FAILED);
-                    return;
+                if(this.dnsService.isPresent()) {
+                    cluster.setStatus(Status.DNS_WRITE_RECORD);
+                    String hostname = this.dnsService.get().addSubdomain(cluster.getShortId(), cluster.getIpV4Address());
+                    if (hostname == null) {
+                        cluster.setStatus(Status.DNS_WRITE_RECORD_FAILED);
+                        return;
+                    }
+                    
+                    cluster.setHostname(hostname);
                 }
 
-                cluster.setHostname(hostname);
-
                 cluster.setStatus(Status.ANSIBLE_PROVISIONING);
-
+                
                 // TODO use kind of a retry mechanism instead of waiting stupidly
                 try {
                     Thread.sleep(60_000);
@@ -174,11 +177,13 @@ public class TerraformAnsibleClusterService implements ClusterService {
 
             new Thread(() -> {
 
-                cluster.setStatus(Status.DNS_DELETE_RECORD);
-                boolean dnsRemovalSucceded = this.dnsService.removeSubdomain(cluster.getShortId());
-                if (!dnsRemovalSucceded) {
-                    cluster.setStatus(Status.DNS_DELETE_RECORD_FAILED);
-                    return;
+                if(this.dnsService.isPresent()) {
+                    cluster.setStatus(Status.DNS_DELETE_RECORD);
+                    boolean dnsRemovalSucceded = this.dnsService.get().removeSubdomain(cluster.getShortId());
+                    if (!dnsRemovalSucceded) {
+                        cluster.setStatus(Status.DNS_DELETE_RECORD_FAILED);
+                        return;
+                    }
                 }
 
                 Path terraformFolder = workspaceDirectory.resolve(cluster.getId().toString());
