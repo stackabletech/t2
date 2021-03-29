@@ -29,7 +29,6 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import tech.stackable.t2.api.cluster.controller.MalformedClusterDefinitionException;
-import tech.stackable.t2.security.SshKey;
 import tech.stackable.t2.wireguard.WireguardService;
 
 @Service
@@ -50,9 +49,6 @@ public class TemplateService {
 
     @Value("${t2.templates.default}")
     private String defaultTemplateName;
-
-    @Autowired
-    private SshKey sshKey;
 
     /**
      * Creates a working directory for the given cluster, using the given cluster
@@ -87,8 +83,6 @@ public class TemplateService {
             List<String> clientPublicKeys = clientPrivateKeys.stream().map(this.wireguardService::generatePublicKey).collect(Collectors.toList());
 
             // Additional props that can be used in a template
-            templateVariables.put("t2_ssh_key_public", sshKey.getPublicKeyPath().toString());
-            templateVariables.put("t2_ssh_key_private", sshKey.getPrivateKeyPath().toString());
             templateVariables.put("wireguard_client_public_keys", clientPublicKeys);
             templateVariables.put("wireguard_client_private_keys", clientPrivateKeys);
             templateVariables.put("wireguard_nat_public_key", natPublicKey);

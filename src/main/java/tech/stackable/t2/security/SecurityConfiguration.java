@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -55,17 +54,6 @@ public class SecurityConfiguration {
             LOGGER.error("Could not read security token from file '{}'", tokenFile, e);
             throw new BeanCreationException("Security token could not be created.");
         }
-    }
-
-    @Bean
-    @ConditionalOnProperty("t2.security.ssh-key-file")
-    public SshKey sshKey(@Value("${t2.security.ssh-key-file}") String sshKeyFile) {
-
-        LOGGER.info("Creating SSH key object...");
-
-        SshKey sshKey = SshKey.of(Path.of(StringUtils.replace(sshKeyFile, "~", System.getProperty("user.home"))));
-
-        return sshKey;
     }
 
     @Bean(name = "credentials")
