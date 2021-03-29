@@ -1,18 +1,15 @@
 server:
   port: 8080
 t2:
-  feature:
-    provision-real-clusters: true
-    provision-cluster-limit: 20
+  cluster-count-limit: 20
   workspace:
     directory: /var/t2/workspace/  
   templates:
     directory: /var/t2/templates/
-    default: demo 
+    default: demo-debian-10 
   security:
     token:
       source: file  # options: file | static
       file: /var/t2/security-token
       static: null
     credential-file: /var/t2/credentials.properties
-    ssh-key-file: /home/t2/.ssh/t2

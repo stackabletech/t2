@@ -1,7 +1,9 @@
 package tech.stackable.t2.api.cluster.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.time.Duration;
@@ -10,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,9 +23,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
+import org.zeroturnaround.zip.ZipUtil;
 
 import tech.stackable.t2.ansible.AnsibleResult;
 import tech.stackable.t2.ansible.AnsibleService;
@@ -37,8 +40,7 @@ import tech.stackable.t2.terraform.TerraformService;
  * Manages clusters provisioned with Terraform and Ansible
  */
 @Repository
-@ConditionalOnProperty(name = "t2.feature.provision-real-clusters", havingValue = "true")
-public class TerraformAnsibleClusterService implements ClusterService {
+public class TerraformAnsibleClusterService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TerraformAnsibleClusterService.class);
 
@@ -53,7 +55,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
     private Properties credentials;
 
     @Autowired
-    private DnsService dnsService;
+    private Optional<DnsService> dnsService;
 
     @Autowired
     private TemplateService templateService;
@@ -71,22 +73,19 @@ public class TerraformAnsibleClusterService implements ClusterService {
      */
     private Map<UUID, Cluster> clusters = new HashMap<>();
 
-    public TerraformAnsibleClusterService(@Value("${t2.feature.provision-cluster-limit}") int provisionClusterLimit) {
+    public TerraformAnsibleClusterService(@Value("${t2.cluster-count-limit}") int provisionClusterLimit) {
         this.provisionClusterLimit = provisionClusterLimit;
         LOGGER.info("Created TerraformAnsibleClusterService, cluster count limit: {}", this.provisionClusterLimit);
     }
 
-    @Override
     public Collection<Cluster> getAllClusters() {
         return this.clusters.values();
     }
 
-    @Override
     public Cluster getCluster(UUID id) {
         return this.clusters.get(id);
     }
 
-    @Override
     public Cluster createCluster(Map<String, Object> clusterDefinition) {
         synchronized (this.clusters) {
 
@@ -97,7 +96,7 @@ public class TerraformAnsibleClusterService implements ClusterService {
             Cluster cluster = new Cluster();
             cluster.setStatus(Status.CREATION_STARTED);
 
-            Path workingDirectory = this.templateService.createWorkingDirectory(cluster, clusterDefinition);
+            Path workingDirectory = this.templateService.createWorkingDirectory(workspaceDirectory.resolve(cluster.getId().toString()), clusterDefinition);
             cluster.setStatus(Status.WORKING_DIR_CREATED);
             clusters.put(cluster.getId(), cluster);
 
@@ -128,17 +127,19 @@ public class TerraformAnsibleClusterService implements ClusterService {
 
                 cluster.setIpV4Address(this.terraformService.getIpV4(workingDirectory));
 
-                cluster.setStatus(Status.DNS_WRITE_RECORD);
-                String hostname = this.dnsService.addSubdomain(cluster.getShortId(), cluster.getIpV4Address());
-                if (hostname == null) {
-                    cluster.setStatus(Status.DNS_WRITE_RECORD_FAILED);
-                    return;
+                if(this.dnsService.isPresent()) {
+                    cluster.setStatus(Status.DNS_WRITE_RECORD);
+                    String hostname = this.dnsService.get().addSubdomain(cluster.getShortId(), cluster.getIpV4Address());
+                    if (hostname == null) {
+                        cluster.setStatus(Status.DNS_WRITE_RECORD_FAILED);
+                        return;
+                    }
+                    
+                    cluster.setHostname(hostname);
                 }
 
-                cluster.setHostname(hostname);
-
                 cluster.setStatus(Status.ANSIBLE_PROVISIONING);
-
+                
                 // TODO use kind of a retry mechanism instead of waiting stupidly
                 try {
                     Thread.sleep(60_000);
@@ -160,7 +161,6 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
-    @Override
     public Cluster deleteCluster(UUID id) {
         synchronized (this.clusters) {
             Cluster cluster = this.clusters.get(id);
@@ -171,14 +171,16 @@ public class TerraformAnsibleClusterService implements ClusterService {
 
             new Thread(() -> {
 
-                cluster.setStatus(Status.DNS_DELETE_RECORD);
-                boolean dnsRemovalSucceded = this.dnsService.removeSubdomain(cluster.getShortId());
-                if (!dnsRemovalSucceded) {
-                    cluster.setStatus(Status.DNS_DELETE_RECORD_FAILED);
-                    return;
+                if(this.dnsService.isPresent()) {
+                    cluster.setStatus(Status.DNS_DELETE_RECORD);
+                    boolean dnsRemovalSucceded = this.dnsService.get().removeSubdomain(cluster.getShortId());
+                    if (!dnsRemovalSucceded) {
+                        cluster.setStatus(Status.DNS_DELETE_RECORD_FAILED);
+                        return;
+                    }
                 }
 
-                Path terraformFolder = this.templateService.getWorkingDirectory(cluster);
+                Path terraformFolder = workspaceDirectory.resolve(cluster.getId().toString());
 
                 cluster.setStatus(Status.TERRAFORM_DESTROY);
                 TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, datacenterName(cluster.getId()));
@@ -194,13 +196,12 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
-    @Override
     public String getWireguardClientConfig(UUID id, int index) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
             return null;
         }
-        Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
+        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
         try {
             return FileUtils.readFileToString(clusterBaseFolder.resolve(MessageFormat.format("resources/wireguard-client-config/{0}/wg.conf", index)).toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -209,13 +210,12 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
-    @Override
     public String getClientScript(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
             return null;
         }
-        Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
+        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
         try {
             return FileUtils.readFileToString(clusterBaseFolder.resolve("resources/stackable.sh").toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -224,19 +224,31 @@ public class TerraformAnsibleClusterService implements ClusterService {
         }
     }
 
-    @Override
     public String getLogs(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
             return "";
         }
-        Path clusterBaseFolder = this.templateService.getWorkingDirectory(cluster);
+        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
         try {
             return FileUtils.readFileToString(clusterBaseFolder.resolve("cluster.log").toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             LOGGER.warn("Wireguard client config could not be read", e);
             return "";
         }
+    }
+    
+    public byte[] createDiyCluster(Map<String, Object> clusterDefinition) {
+        Path workingDirectory;
+        try {
+            workingDirectory = Files.createTempDirectory("t2-diy-");
+        } catch (IOException e) {
+            throw new RuntimeException("Internal error creating temp folder.", e);
+        }
+        this.templateService.createWorkingDirectory(workingDirectory, clusterDefinition);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ZipUtil.pack(workingDirectory.toFile(), bos);
+        return bos.toByteArray();
     }
     
     /**

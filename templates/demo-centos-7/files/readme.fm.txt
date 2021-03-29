@@ -1,0 +1,93 @@
+Stackable cluster setup files
+
+This folder contains files that help you set up a running Stackable cluster in the cloud.
+
+WARNING! Although we put much effort into it and do not know of any flaw, this cluster setup package 
+is provided "as is", without warranty of any kind. You use it at your own risk.
+
+What does this package provide?
+
+In this package you find all the Terraform and Ansible files you need to create a working Stackable 
+cluster in the IONOS cloud (https://cloud.ionos.de/).
+
+What do I need?
+
+* an account for the IONOS cloud
+* Terraform v0.14.4 or higher
+* Ansible v2.9.16 or higher
+* at least one of the private SSH keys matching one of the public keys provided during generation of this package
+
+How do I provision the Stackable cluster?
+
+Terraform
+
+To run the Terraform scripts you need to provide the following variables
+
+* ionos_username
+* ionos_password
+* ionos_datacenter
+
+You can either just type them when prompted to do so or put them into an environment variable beforehand. 
+If doing the latter, remember to add the prefix 'TF_VAR_' to the variable name.
+
+To create the resources with Terraform:
+
+* run 'terraform init'
+* run 'terraform plan'
+* run 'terraform apply'
+
+Besides the obvious resources created (datacenter, networks, servers), Terraform will create files in this
+directory. On the one hand, there are files needed by Ansible (next step). On the other hand, there are files
+you might need later on (convenient way to SSH into cluster, VPN setup stuff...)
+
+Ansible
+
+If the creation of Terraform resources was successful, you can execute the provided Ansible playbook:
+
+* run 'ansible-playbook playbook.yml'
+
+The explanation of all the steps Ansible performs here would go way beyond the scope of this readme.
+Please feel free to have a look into the files and find out yourselves ;-)
+
+What is created for you?
+
+The following nodes are provisioned for you:
+
+[#list clusterDefinition.spec.nodes as node_type, node_spec]
+* [= node_type ] nodes:
+[#list 1..node_spec.numberOfNodes as n]
+  * [= node_type ]-[=n]
+[/#list]
+[/#list]
+* the 'orchestrator' node
+
+Access the cluster (without VPN)
+
+To use the cluster without a VPN, you can use the 'Stackable client script' to interact with the cluster
+via SSH. This script is created for you in the resources/ folder and is named 'stackable.sh'
+
+The script expects the private SSH key to be in your keystore (~/.ssh/ in Linux). If you keep it outside of 
+your keystore, you can provide the path to the private key with the '-i' option.
+
+To ssh into a host, just provide the hostname as the single parameter, e.g.
+
+./stackable.sh orchestrator
+
+If you want to execute a command on the host, you can add a command as a second param, e.g.
+
+./stackable.sh orchestrator "kubectl get nodes"
+
+VPN
+
+In the folder resources/wireguard-client-config/ you find a bunch of prepared Wireguard configs to access
+the cluster via a VPN. Please refer to the Wireguard docs for your OS to learn how to apply the config.
+You only need one of the files, we provide several of them if you are using the cluster with multiple users.
+
+Once you have setup the VPN, the following servers are accessible as if part of your network:
+
+[#list clusterDefinition.spec.nodes as node_type, node_spec]
+[#list 1..node_spec.numberOfNodes as n]
+[= node_type ]-[=n].[= clusterDefinition.domain ]
+[/#list]
+[/#list]
+orchestrator.[= clusterDefinition.domain ]

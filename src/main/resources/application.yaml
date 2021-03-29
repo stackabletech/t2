@@ -13,17 +13,15 @@ t2:
     directory: /tmp/t2-workspace/
   templates:
     directory: templates/
-    default: demo-centos-7
-  feature:
-    provision-real-clusters: true
-    provision-cluster-limit: 5
+    default: demo-debian-10
+  cluster-count-limit: 5
   security:
     token:
       source: static  # options: file | static
       file: null
       static: t2-secret-token
     credential-file: ~/t2-credentials.properties
-    ssh-key-file: ~/.ssh/id_ionos_rsa
   dns:
+    enabled: true
     cluster-domain: stackable.tech
     livedns-api-url: https://api.gandi.net/v5/livedns
