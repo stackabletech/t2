@@ -55,46 +55,6 @@ t2-token: {{t2-token}}
 # create new cluster (provided YAML)
 POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
 t2-token: {{t2-token}}
-Content-Type: application/json
-
-{
-  "apiVersion": "t2.stackable.tech/v1",
-  "kind": "Infra",
-  "template": "demo-debian-10",
-  "metadata": {
-    "name": "stackable-demo",
-    "description" : "This is the cluster I want!"
-  },
-  "domain": "stackable.demo",
-  "sshKeys": [
-    "{{t2-ssh-key}}"
-  ],
-  "spec": {
-    "region": "de/fra",
-    "nodes" : {
-      "master": {
-        "numberOfNodes": 1,
-        "numberOfCores": 2,
-        "memoryMb": 1024,
-        "diskType": "HDD",
-        "diskSizeGb" : 15
-      },
-      "worker": {
-        "numberOfNodes": 3,
-        "numberOfCores": 2,
-        "memoryMb": 1024,
-        "diskType": "HDD",
-        "diskSizeGb" : 50
-      }
-    }
-  }
-}
-
-###
-
-# create new cluster (provided YAML)
-POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
-t2-token: {{t2-token}}
 Content-Type: application/yaml
 
 ---
@@ -178,7 +138,7 @@ services:
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/8851c561-f984-4d03-a5ca-a598db487ee0
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/b8ee3143-8b6c-46d7-b67d-272522811881
 t2-token: {{t2-token}}
 
 

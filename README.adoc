@@ -1,6 +1,151 @@
+// Header of this document:
+
 = T2 - Test & Troubleshooting Platform
+:toc:
+:toc-placement: preamble
+:toclevels: 2
+:showtitle:
+:base-repo: https://github.com/stackabletech/t2
+
+// Need some preamble to get TOC:
+{empty}
 
 image:https://github.com/stackabletech/t2/workflows/Build%20and%20Test/badge.svg[link="https://github.com/stackabletech/t2/actions"]
 
-This platform helps us by offering tools for (integration) tests and troubleshooting (support).
+== Motivation
+
+There are two situations in which we need to launch fully-fledged Stackable clusters:
+
+* in our CI/CD pipelines' integration *tests*
+* when we want to help customers with issues by reproducing their environments (*troubleshooting*)
+
+== The two ways to create clusters with T2
+
+A running T2 instance provides a restful API which provides you with two ways to create a cluster:
+
+* The cluster can be launched by T2 inside a connected cloud infrastructure.
+* You can download a package with all the required Terraform and Ansible files to launch the cluster using your own tools and cloud provider account.
+
+While the former method is not publicly available to everyone and requires authentication, we are happy to provide the latter method free of charge and publicly accessible. Please understand that the scripts we provide come without any warranty.
+
+== The Stackable cluster definition YAML
+
+In either way you choose, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. As of now, this Stackable cluster definition format is work in progress and the only documentation is the following example:
+
+[source,yaml]
+----
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: demo-debian-10
+metadata: 
+  name: stackable-demo
+  description: "This is the cluster I want!"
+domain: stackable.demo
+sshKeys:
+  - "{{t2-ssh-key}}"
+spec:
+  region: de/fra
+  nodes:
+    main:
+      numberOfNodes: 1
+      numberOfCores: 2
+      memoryMb: 8192
+      diskType: HDD 
+      diskSizeGb: 15
+    worker:
+      numberOfNodes: 4
+      numberOfCores: 4
+      memoryMb: 8192
+      diskType: HDD 
+      diskSizeGb: 15
+services:
+  spark-primary: |
+    apiVersion: spark.stackable.tech/v1
+    kind: SparkCluster
+    metadata:
+      name: spark-primary
+    spec:
+      master:
+        selectors:
+          - nodeName: "main-1.stackable.demo"
+            instances: 1
+            masterPort: 9999
+            masterWebUiPort: 11111
+      worker:
+        selectors:
+          - nodeName: "worker-1.stackable.demo"
+            instances: 1
+            cores: 1
+            memory: "1g"
+      historyServer:
+        selectors:
+          - nodeName: "worker-3.stackable.demo"
+            instances: 1
+      version: "3.0.1"
+      maxPortRetries: 0
+  spark-secondary: |
+    apiVersion: spark.stackable.tech/v1
+    kind: SparkCluster
+    metadata:
+      name: spark-secondary
+    spec:
+      master:
+        selectors:
+          - nodeName: "main-1.stackable.demo"
+            instances: 1
+            masterPort: 9998
+            masterWebUiPort: 11112
+      worker:
+        selectors:
+          - nodeName: "worker-2.stackable.demo"
+            instances: 1
+            cores: 1
+            memory: "1g"
+      historyServer:
+        selectors:
+          - nodeName: "worker-4.stackable.demo"
+            instances: 1
+      version: "3.0.1"
+      maxPortRetries: 0        
+----
+
+== Using T2
+
+At Stackable, we have a https://t2.stackable.tech/swagger-ui/[running instance of T2] to provision our own clusters. As described above, we use it for integration testing and troubleshooting and do not provide access publicly.
+
+=== Create a cluster in T2's infrastructure
+
+With a POST request to https://t2.stackable.tech/swagger-ui/#/cluster-controller/createClusterUsingPOST[this endpoint] you can create a new cluster. You have to provide the Stackable cluster definition as payload and a Token via the `t2-token` HTTP header to authenticate. The response is a description of the current cluster state.
+
+To track the progress while the cluster is created, you can use https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClusterUsingGET[this endpoint]. The desired state you want to wait for is `RUNNING`. (requires token as well)
+
+To see in more detail what T2 is doing to create your cluster, you can https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[trace the output log here]. (requires token as well)
+
+Once the cluster is up and running, you can download the https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClientScriptUsingGET[Stackable client script]. This script provides you with a convenient way to access the cluster.
+
+The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition) to be in your keystore (~/.ssh/ in Linux). If you keep it at another location, you can provide the path to the private key with the '-i' option.
+
+To ssh into a host, just provide the hostname as the single parameter, e.g.
+
+[source,bash]
+----
+./stackable.sh orchestrator
+----
+
+If you want to execute a command on the host, you can add a command as a second param, e.g.
+
+[source,bash]
+----
+./stackable.sh orchestrator "kubectl get nodes"
+----
+
+=== Create a cluster in your infrastructure
+
+To create a cluster yourself, we offer what we call the *DIY option*. To use it, you can use todo[this service]. You have to provide a Stackable cluster definition file and get a ZIP file in return. This ZIP file comes with a readme.txt which explains the next steps
+
+== Running T2
+
+This section describes how to run the T2 API Server on premise. 
+
+
 
