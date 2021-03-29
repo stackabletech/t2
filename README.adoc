@@ -30,7 +30,7 @@ While the former method is not publicly available to everyone and requires authe
 
 == The Stackable cluster definition YAML
 
-In either way you choose, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. As of now, this Stackable cluster definition format is work in progress and the only documentation is the following example:
+In either way you choose, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. As of now, this Stackable cluster definition format is work in progress and the only documentation is the following example and the following table:
 
 [source,yaml]
 ----
@@ -42,7 +42,8 @@ metadata:
   description: "This is the cluster I want!"
 domain: stackable.demo
 sshKeys:
-  - "{{t2-ssh-key}}"
+  - "ssh-rsa AAAAB3NzaC1..."
+  - "ssh-rsa AAAACmtp4Ko..."
 spec:
   region: de/fra
   nodes:
@@ -109,6 +110,32 @@ services:
       maxPortRetries: 0        
 ----
 
+[options="header"]
+|=======
+|key |description
+|apiVersion |always 't2.stackable.tech/v1'
+|kind |always 'Infra'
+|template |one of 'demo-debian-10' or 'demo-centos-7' depending on the desired OS
+|metadata.name |name of the cluster
+|metadata.description |description of the cluster
+|domain |domain for DNS inside the cluster or when accessing through VPN
+|sshKeys |list of SSH public keys to allow access to cluster nodes
+|spec.region |one of the regions that IONOS provides
+|spec.nodes |map of node-types with their specification
+|spec.nodes.<node-type>.numberOfNodes |# of nodes of the given type
+|spec.nodes.<node-type>.numberOfCores |# of cores each node of the given type should have
+|spec.nodes.<node-type>.memoryMb |amount of memory each node of the given type should have
+|spec.nodes.<node-type>.diskType | type of disk each node of the given type should have
+|spec.nodes.<node-type>.diskSizeGb |size of the disk of the given node
+|services |map of service descriptions as embedded YAMLs
+|=======
+
+The service descriptions depend on the used services. Please refer to the documentation of the operator for the product: 
+
+* https://github.com/stackabletech/spark-operator[Spark]
+* https://github.com/stackabletech/zookeeper-operator[Zookeeper]
+* https://github.com/stackabletech/kafka-operator[Kafka]
+
 == Using T2
 
 At Stackable, we have a https://t2.stackable.tech/swagger-ui/[running instance of T2] to provision our own clusters. As described above, we use it for integration testing and troubleshooting and do not provide access publicly.
@@ -141,11 +168,42 @@ If you want to execute a command on the host, you can add a command as a second 
 
 === Create a cluster in your infrastructure
 
-To create a cluster yourself, we offer what we call the *DIY option*. To use it, you can use todo[this service]. You have to provide a Stackable cluster definition file and get a ZIP file in return. This ZIP file comes with a readme.txt which explains the next steps
+To create a cluster yourself, we offer what we call the *DIY option*. To use it, you can use https://t2.stackable.tech/swagger-ui/#/diy-cluster-controller/createClusterUsingGET[this service]. You have to provide a Stackable cluster definition file and get a ZIP file in return. This ZIP file comes with a readme.txt which explains the next steps
 
 == Running T2
 
-This section describes how to run the T2 API Server on premise. 
+You can run T2 on premise if you like, but currently, we haven't put too much effort into making it conveniently reusable but merely built it to fit our very own needs. Nevertheless, this section might help if you want to run T2.
 
+T2 is a SpringBoot application and can be packaged via Maven:
 
+[source,bash]
+----
+mvn clean package
+----
 
+The resulting file `target/t2-server.jar` can be executed via Java:
+
+[source,bash]
+----
+java -jar target/t2-server.jar [options]
+----
+
+The `options` are given in the form `--key1=value1 --key2=value2`. The option keys are described below.
+
+=== Config options
+
+The following table describes the config options of T2:
+
+[options="header"]
+|=======
+|key |description |default value
+|server.port |port of the HTTP server |8080
+|t2.cluster-count-limit |max # of clusters that are provisioned at the same time |5
+|t2.workspace.directory |directory where T2 stores the working dirs of the clusters |`/tmp/t2-workspace`/
+|t2.templates.directory |directory where the T2 cluster templates are located |`./templates`
+|t2.security.token.source |Source of the access token to secure T2. `file` means the token is stored in a file, `static` means it is provided as a property |`static`
+|t2.security.token.file |location of the token file (see above) |`null`
+|t2.security.token.file |security token (see above) |`t2-secret-token`
+|t2.credential-file |File containing credentials in property format, e.g. ionos_username or ionos_password |`~/t2-credentials.properties`
+|t2.dns.enabled |Should T2 create a DNS entry for the created cluster. If you are not us, you should set it to `false` ;-) |`true`
+|=======
