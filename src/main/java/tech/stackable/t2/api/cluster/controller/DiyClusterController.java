@@ -25,13 +25,13 @@ public class DiyClusterController {
     @Autowired
     private TerraformAnsibleClusterService clusterService;
 
-    @GetMapping(produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @GetMapping(consumes = { "application/json",
+            "application/yaml" }, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
     @Operation(summary = "Get DIY cluster package", description = "Creates a DIY cluster package (ZIP)")
     public byte[] createCluster(@RequestBody(required = false) String clusterDefinition) {
         return clusterService.createDiyCluster(clusterDefinition(clusterDefinition));
     }
-
 
     // TODO De-duplicate
     /**
@@ -55,16 +55,18 @@ public class DiyClusterController {
             try {
                 clusterDefinitionMap = new ObjectMapper(new YAMLFactory()).readValue(clusterDefinition, Map.class);
             } catch (JsonProcessingException e) {
-                throw new MalformedClusterDefinitionException("The cluster definition does not contain valid YAML/JSON.", e);
+                throw new MalformedClusterDefinitionException(
+                        "The cluster definition does not contain valid YAML/JSON.", e);
             }
         }
-        
+
         if (!"t2.stackable.tech/v1".equals(clusterDefinitionMap.get("apiVersion"))) {
             throw new MalformedClusterDefinitionException("The apiVersion is either missing or not valid.");
         }
 
         if (!"Infra".equals(clusterDefinitionMap.get("kind"))) {
-            throw new MalformedClusterDefinitionException("The kind of requested resource is either missing or not valid.");
+            throw new MalformedClusterDefinitionException(
+                    "The kind of requested resource is either missing or not valid.");
         }
 
         return clusterDefinitionMap;
