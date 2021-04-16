@@ -209,6 +209,7 @@ resource "local_file" "ansible-inventory" {
   filename = "${path.module}/inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
+      # REVIEW orchestrator is not in nodetype list is it possible to include it?
       nodetypes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
       nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : ionoscloud_server.[= node_type ][#sep] , [/#list] }
       nat = ionoscloud_server.nat
