@@ -144,7 +144,8 @@ resource "ionoscloud_nic" "nat_internal" {
 }
 
 resource "ionoscloud_server" "orchestrator" {
-  name = "orchestrator"
+  count = 1
+  name = "orchestrator-${count.index + 1}"
   datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = 4
   ram = 8192
@@ -154,13 +155,13 @@ resource "ionoscloud_server" "orchestrator" {
   ssh_key_path = [ local_file.cluster_public_key.filename ]
 
   volume {
-    name = "orchestrator-storage"
+    name = "orchestrator-${count.index + 1}-storage"
     size = 15
     disk_type = "HDD"
   }
 
   nic {
-    name = "internal-nic-orchestrator"
+    name = "internal-nic-orchestrator-${count.index + 1}"
     lan = ionoscloud_lan.internal.id
     dhcp = true
     firewall_active = false
@@ -180,7 +181,7 @@ resource "ionoscloud_server" "[= node_type ]" {
   ssh_key_path = [ local_file.cluster_public_key.filename ]
 
   volume {
-    name = "[= node_type ]-storage-${count.index + 1}"
+    name = "[= node_type ]-${count.index + 1}-storage"
     size = [= node_spec.diskSizeGb ]
     disk_type = "[= node_spec.diskType ]"
   }
