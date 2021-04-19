@@ -23,7 +23,7 @@ There are two situations in which we need to launch fully-fledged Stackable clus
 
 A running T2 instance provides a restful API which provides you with two ways to create a cluster:
 
-* The cluster can be launched by T2 inside a connected cloud infrastructure.
+* The cluster can be launched by T2 inside a cloud infrastructure.
 * You can download a package with all the required Terraform and Ansible files to launch the cluster using your own tools and cloud provider account.
 
 While the former method is not publicly available to everyone and requires authentication, we are happy to provide the latter method free of charge and publicly accessible. Please understand that the scripts we provide come without any warranty.
@@ -120,7 +120,7 @@ services:
 |metadata.description |description of the cluster
 |domain |domain for DNS inside the cluster or when accessing through VPN
 |sshKeys |list of SSH public keys to allow access to cluster nodes
-|spec.region |one of the regions that IONOS provides
+|spec.region |one of the regions that the cloud vendor provides
 |spec.nodes |map of node types with their specification
 |spec.nodes.<type>.numberOfNodes |# of nodes of the given type
 |spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have
@@ -174,7 +174,7 @@ To create a cluster yourself, we offer what we call the *DIY option*. To use it,
 
 You can run T2 on premise if you like, but currently, we haven't put too much effort into making it conveniently reusable but merely built it to fit our very own needs. Nevertheless, this section might help if you want to run T2.
 
-T2 is a SpringBoot application and can be packaged via Maven:
+T2 is a Spring Boot application and can be packaged via Maven:
 
 [source,bash]
 ----
