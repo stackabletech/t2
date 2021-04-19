@@ -150,7 +150,7 @@ To see in more detail what T2 is doing to create your cluster, you can https://t
 
 Once the cluster is up and running, you can download the https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClientScriptUsingGET[Stackable client script]. This script provides you with a convenient way to access the cluster.
 
-The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition) to be in your keystore (`~/.ssh/`` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
+The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition) to be in your keystore (`~/.ssh/` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
 
 To ssh into a host, just provide the hostname as the single parameter, e.g.
 
