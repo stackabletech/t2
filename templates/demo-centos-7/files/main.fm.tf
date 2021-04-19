@@ -51,7 +51,7 @@ provider "ionoscloud" {
 
 variable "ssh_client_keys" {
   default = [ 
-    [#list clusterDefinition.sshKeys as ssh_key]"[= ssh_key ]"[#sep],
+    [#list clusterDefinition.publicKeys as ssh_key]"[= ssh_key ]"[#sep],
     [/#list] 
 
   ]

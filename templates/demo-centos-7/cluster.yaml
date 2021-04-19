@@ -6,7 +6,7 @@
     "description" : "Stackable cluster provisioned by t2.stackable.tech"
   },
   "domain": "stackable.demo",
-  "sshKeys": [],
+  "publicKeys": [],
   "template": "demo-centos-7",
   "spec": {
     "region": "de/fra",
