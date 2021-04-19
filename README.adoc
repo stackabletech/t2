@@ -41,7 +41,7 @@ metadata:
   name: stackable-demo
   description: "This is the cluster I want!"
 domain: stackable.demo
-sshKeys:
+publicKeys:
   - "ssh-rsa AAAAB3NzaC1..."
   - "ssh-rsa AAAACmtp4Ko..."
 spec:
@@ -119,7 +119,7 @@ services:
 |metadata.name |name of the cluster
 |metadata.description |description of the cluster
 |domain |domain for DNS inside the cluster or when accessing through VPN
-|sshKeys |list of SSH public keys to allow access to cluster nodes
+|publicKeys |list of SSH public keys to allow access to cluster nodes
 |spec.region |one of the regions that the cloud vendor provides
 |spec.nodes |map of node types with their specification
 |spec.nodes.<type>.numberOfNodes |# of nodes of the given type

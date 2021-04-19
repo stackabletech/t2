@@ -65,7 +65,7 @@ metadata:
   name: stackable-demo
   description: "This is the cluster I want!"
 domain: stackable.demo
-sshKeys:
+publicKeys:
   - "{{t2-ssh-key}}"
 spec:
   region: de/fra
@@ -156,7 +156,7 @@ metadata:
   name: stackable-demo
   description: "This is the cluster I want!"
 domain: stackable.demo
-sshKeys:
+publicKeys:
   - "{{t2-ssh-key}}"
 spec:
   region: de/fra
