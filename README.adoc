@@ -132,9 +132,9 @@ services:
 
 The service descriptions depend on the used services. Please refer to the documentation of the operator for the product: 
 
-* https://github.com/stackabletech/spark-operator[Spark]
-* https://github.com/stackabletech/zookeeper-operator[Zookeeper]
-* https://github.com/stackabletech/kafka-operator[Kafka]
+* https://github.com/stackabletech/spark-operator[Apache Spark]
+* https://github.com/stackabletech/zookeeper-operator[Apache ZooKeeper]
+* https://github.com/stackabletech/kafka-operator[Apache Kafka]
 
 == Using T2
 
