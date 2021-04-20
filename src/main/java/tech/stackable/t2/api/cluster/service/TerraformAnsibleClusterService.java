@@ -18,6 +18,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,10 +90,10 @@ public class TerraformAnsibleClusterService {
     public Cluster createCluster(Map<String, Object> clusterDefinition) {
         synchronized (this.clusters) {
 
-            // TODO count only active clusters for limit
-            if (clusters.size() >= this.provisionClusterLimit) {
+            if (isClusterLimitReached()) {
                 throw new ClusterLimitReachedException();
             }
+            
             Cluster cluster = new Cluster();
             cluster.setStatus(Status.CREATION_STARTED);
 
@@ -100,6 +101,15 @@ public class TerraformAnsibleClusterService {
             cluster.setStatus(Status.WORKING_DIR_CREATED);
             clusters.put(cluster.getId(), cluster);
 
+            // This thread must be started if the cluster launch fails after terraform apply has started as there may be created resources
+            // which have to be torn down...
+            Thread tearDownOnFailure = new Thread(() -> {
+                if(this.dnsService.isPresent() && StringUtils.isNotEmpty(cluster.getHostname())) {
+                    this.dnsService.get().removeSubdomain(cluster.getShortId());
+                }
+                this.terraformService.destroy(workingDirectory, datacenterName(cluster.getId()));
+            });
+            
             new Thread(() -> {
 
                 TerraformResult terraformResult = null;
@@ -122,6 +132,7 @@ public class TerraformAnsibleClusterService {
                 terraformResult = this.terraformService.apply(workingDirectory, datacenterName(cluster.getId()));
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_APPLY_FAILED);
+                    tearDownOnFailure.start();
                     return;
                 }
 
@@ -132,6 +143,7 @@ public class TerraformAnsibleClusterService {
                     String hostname = this.dnsService.get().addSubdomain(cluster.getShortId(), cluster.getIpV4Address());
                     if (hostname == null) {
                         cluster.setStatus(Status.DNS_WRITE_RECORD_FAILED);
+                        tearDownOnFailure.start();
                         return;
                     }
                     
@@ -150,6 +162,7 @@ public class TerraformAnsibleClusterService {
                 AnsibleResult ansibleResult = this.ansibleService.run(workingDirectory);
                 if (ansibleResult == AnsibleResult.ERROR) {
                     cluster.setStatus(Status.ANSIBLE_FAILED);
+                    tearDownOnFailure.start();
                     return;
                 }
 
@@ -287,6 +300,15 @@ public class TerraformAnsibleClusterService {
                 && Duration.between(cluster.getLastChangedAt(), LocalDateTime.now()).compareTo(CLEANUP_INACTIVITY_THRESHOLD) > 0;
     }
 
+    /**
+     * Did we reach the max number of clusters?
+     * @return Did we reach the max number of clusters?
+     */
+    private boolean isClusterLimitReached() {
+        long nonTerminatedClusterCount = this.clusters.values().stream().filter(c -> c.getStatus()!=Status.TERMINATED).count();
+        return nonTerminatedClusterCount >= this.provisionClusterLimit;
+    }
+    
     /**
      * Datacenter name for the given cluster
      * 
