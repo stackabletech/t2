@@ -60,7 +60,7 @@ public class ClusterController {
         return cluster;
     }
 
-    @PostMapping()
+    @PostMapping(consumes = { "application/json", "application/yaml" })
     @ResponseBody
     @Operation(summary = "Creates a new cluster", description = "Creates a new cluster and starts it")
     public Cluster createCluster(
