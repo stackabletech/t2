@@ -6,6 +6,7 @@
 :toclevels: 2
 :showtitle:
 :base-repo: https://github.com/stackabletech/t2
+:imagesdir: diagrams
 
 // Need some preamble to get TOC:
 {empty}
