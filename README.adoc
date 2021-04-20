@@ -6,6 +6,7 @@
 :toclevels: 2
 :showtitle:
 :base-repo: https://github.com/stackabletech/t2
+:imagesdir: diagrams
 
 // Need some preamble to get TOC:
 {empty}
@@ -19,6 +20,17 @@ There are two situations in which we need to launch fully-fledged Stackable clus
 * in our CI/CD pipelines' integration *tests*
 * when we want to help customers with issues by reproducing their environments (*troubleshooting*)
 
+== High Level Architecture
+The following diagram shows at a very high level how T2 is integrated into the workflow of setting up a Stackable environment on a cloud provider.
+
+image::t2-provider.png[]
+
+1. The user sends a cluster definition to T2, this can optionally already include a definition of services that should be set up on the platform (see <<yaml>>).
+2. T2 generates Terraform and Ansible code from this cluster definition and executes this against a cloud provider to instantiate VMs (4 in this example) and provision them with the base Stackable components.
+3. After the base platform has been provisioned T2 acts as a Stackable client and posts the initial product config - if one was specified in the call to T2. +
+From a technical point of view this means creating custom resources in the Kubernetes that backs the Stackable platform.
+4. At this point the user can interact with the cluster via the kube-apiserver to add / remove / manage the needed tools.
+
 == The two ways to create clusters with T2
 
 A running T2 instance provides a restful API which provides you with two ways to create a cluster:
@@ -28,6 +40,7 @@ A running T2 instance provides a restful API which provides you with two ways to
 
 While the former method is not publicly available to everyone and requires authentication, we are happy to provide the latter method free of charge and publicly accessible. Please understand that the scripts we provide come without any warranty.
 
+[[yaml]]
 == The Stackable cluster definition YAML
 
 In either way you choose, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. As of now, this Stackable cluster definition format is work in progress and the only documentation is the following example and the following table:
