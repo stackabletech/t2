@@ -77,13 +77,13 @@ spec:
       diskType: HDD 
       diskSizeGb: 15
     worker:
-      numberOfNodes: 4
+      numberOfNodes: 2
       numberOfCores: 4
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
 services:
-  spark-primary: |
+  spark-demo: |
     apiVersion: spark.stackable.tech/v1
     kind: SparkCluster
     metadata:
@@ -100,45 +100,20 @@ services:
           - nodeName: "worker-1.stackable.demo"
             instances: 1
             cores: 1
-            memory: "1g"
-      historyServer:
-        selectors:
-          - nodeName: "worker-3.stackable.demo"
-            instances: 1
-      version: "3.0.1"
-      maxPortRetries: 0
-  spark-secondary: |
-    apiVersion: spark.stackable.tech/v1
-    kind: SparkCluster
-    metadata:
-      name: spark-secondary
-    spec:
-      master:
-        selectors:
-          - nodeName: "main-1.stackable.demo"
-            instances: 1
-            masterPort: 9998
-            masterWebUiPort: 11112
-      worker:
-        selectors:
+            memory: "4g"
           - nodeName: "worker-2.stackable.demo"
             instances: 1
             cores: 1
-            memory: "1g"
-      historyServer:
-        selectors:
-          - nodeName: "worker-4.stackable.demo"
-            instances: 1
+            memory: "4g"
       version: "3.0.1"
-      maxPortRetries: 0        
-
+      maxPortRetries: 0
 
 
 
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/b8ee3143-8b6c-46d7-b67d-272522811881
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/cd082b2c-006a-4e1e-bf28-eefedec605b8
 t2-token: {{t2-token}}
 
 
@@ -222,10 +197,4 @@ services:
             instances: 1
       version: "3.0.1"
       maxPortRetries: 0        
-
-
-
-
-
-
 
