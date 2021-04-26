@@ -115,6 +115,9 @@ resource "ionoscloud_server" "nat" {
   datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = 2
   ram = 1024
+[#if clusterDefinition.spec.cpuFamily??]
+  cpu_family = "[= clusterDefinition.spec.cpuFamily]"
+[/#if]
   availability_zone = "ZONE_1"
 
   image_name = data.ionoscloud_image.centos7.name
@@ -146,8 +149,16 @@ resource "ionoscloud_nic" "nat_internal" {
 resource "ionoscloud_server" "orchestrator" {
   name = "orchestrator"
   datacenter_id = ionoscloud_datacenter.datacenter.id
+[#if clusterDefinition.spec.orchestrator??]
+  cores = [= clusterDefinition.spec.orchestrator.numberOfCores!4]
+  ram = [= clusterDefinition.spec.orchestrator.memoryMb!8192]
+[#else]
   cores = 4
   ram = 8192
+[/#if]
+[#if clusterDefinition.spec.cpuFamily??]
+  cpu_family = "[= clusterDefinition.spec.cpuFamily]"
+[/#if]
   availability_zone = "ZONE_1"
 
   image_name = data.ionoscloud_image.centos7.name
@@ -155,8 +166,13 @@ resource "ionoscloud_server" "orchestrator" {
 
   volume {
     name = "orchestrator-storage"
+[#if clusterDefinition.spec.orchestrator??]
+    size = [= clusterDefinition.spec.orchestrator.diskSizeGb!15]
+    disk_type = "[= clusterDefinition.spec.orchestrator.diskType!'HDD']"
+[#else]
     size = 15
     disk_type = "HDD"
+[/#if]
   }
 
   nic {
@@ -174,8 +190,8 @@ resource "ionoscloud_server" "[= node_type ]" {
   datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = [= node_spec.numberOfCores ]
   ram = [= node_spec.memoryMb ]
-[#if node_spec.cpuFamily??]
-  cpu_family = "[= node_spec.cpuFamily]"
+[#if clusterDefinition.spec.cpuFamily??]
+  cpu_family = "[= clusterDefinition.spec.cpuFamily]"
 [/#if]
   availability_zone = "ZONE_1"
 
