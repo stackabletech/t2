@@ -146,8 +146,13 @@ resource "ionoscloud_nic" "nat_internal" {
 resource "ionoscloud_server" "orchestrator" {
   name = "orchestrator"
   datacenter_id = ionoscloud_datacenter.datacenter.id
+[#if clusterDefinition.spec.orchestrator??]
+  cores = [= clusterDefinition.spec.orchestrator.numberOfCores!4]
+  ram = [= clusterDefinition.spec.orchestrator.memoryMb!8192]
+[#else]
   cores = 4
   ram = 8192
+[/#if]
 [#if clusterDefinition.spec.cpuFamily??]
   cpu_family = "[= clusterDefinition.spec.cpuFamily]"
 [/#if]
@@ -158,8 +163,13 @@ resource "ionoscloud_server" "orchestrator" {
 
   volume {
     name = "orchestrator-storage"
+[#if clusterDefinition.spec.orchestrator??]
+    size = [= clusterDefinition.spec.orchestrator.diskSizeGb!15]
+    disk_type = "[= clusterDefinition.spec.orchestrator.diskType!'HDD']"
+[#else]
     size = 15
     disk_type = "HDD"
+[/#if]
   }
 
   nic {

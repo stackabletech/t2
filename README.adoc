@@ -60,6 +60,11 @@ publicKeys:
 spec:
   region: de/fra
   cpuFamily: INTEL_XEON
+  orchestrator:
+    numberOfCores: 4
+    memoryMb: 8192
+    diskType: HDD
+    diskSizeGb: 15
   nodes:
     main:
       numberOfNodes: 1
@@ -136,6 +141,11 @@ services:
 |publicKeys |list of SSH public keys to allow access to cluster nodes
 |spec.region |one of the regions that the cloud vendor provides
 |spec.cpuFamily |(optional) specify CPU-Family for the nodes of the given type. Values: "AMD_OPTERON" or "INTEL_XEON". If not provided, the default of the IONOS cloud applies.
+|spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
+|spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have
+|spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have
+|spec.orchestrator.diskType |(optional) type of disk the orchestrator should have
+|spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator
 |spec.nodes |map of node types with their specification
 |spec.nodes.<type>.numberOfNodes |# of nodes of the given type
 |spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have
