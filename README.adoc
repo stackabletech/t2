@@ -59,6 +59,7 @@ publicKeys:
   - "ssh-rsa AAAACmtp4Ko..."
 spec:
   region: de/fra
+  cpuFamily: INTEL_XEON
   nodes:
     main:
       numberOfNodes: 1
@@ -66,7 +67,6 @@ spec:
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
-      cpuFamily: INTEL_XEON
     worker:
       numberOfNodes: 4
       numberOfCores: 4
@@ -135,13 +135,13 @@ services:
 |domain |domain for DNS inside the cluster or when accessing through VPN
 |publicKeys |list of SSH public keys to allow access to cluster nodes
 |spec.region |one of the regions that the cloud vendor provides
+|spec.cpuFamily |(optional) specify CPU-Family for the nodes of the given type. Values: "AMD_OPTERON" or "INTEL_XEON". If not provided, the default of the IONOS cloud applies.
 |spec.nodes |map of node types with their specification
 |spec.nodes.<type>.numberOfNodes |# of nodes of the given type
 |spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have
 |spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have
 |spec.nodes.<type>.diskType | type of disk each node of the given type should have
 |spec.nodes.<type>.diskSizeGb |size of the disk of the given node
-|spec.nodes.<type>.cpuFamily |(optional) specify CPU-Family for the nodes of the given type. Values: "AMD_OPTERON" or "INTEL_XEON". Defaults to "AMD_OPTERON".
 |services |map of service descriptions as embedded YAMLs
 |=======
 

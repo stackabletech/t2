@@ -112,6 +112,9 @@ resource "ionoscloud_server" "nat" {
   datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = 2
   ram = 1024
+[#if clusterDefinition.spec.cpuFamily??]
+  cpu_family = "[= clusterDefinition.spec.cpuFamily]"
+[/#if]
   availability_zone = "ZONE_1"
 
   image_name = data.ionoscloud_image.os_image.name
@@ -145,6 +148,9 @@ resource "ionoscloud_server" "orchestrator" {
   datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = 4
   ram = 8192
+[#if clusterDefinition.spec.cpuFamily??]
+  cpu_family = "[= clusterDefinition.spec.cpuFamily]"
+[/#if]
   availability_zone = "ZONE_1"
 
   image_name = data.ionoscloud_image.os_image.name
@@ -171,8 +177,8 @@ resource "ionoscloud_server" "[= node_type ]" {
   datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = [= node_spec.numberOfCores ]
   ram = [= node_spec.memoryMb ]
-[#if node_spec.cpuFamily??]
-  cpu_family = "[= node_spec.cpuFamily]"
+[#if clusterDefinition.spec.cpuFamily??]
+  cpu_family = "[= clusterDefinition.spec.cpuFamily]"
 [/#if]
   availability_zone = "ZONE_1"
 
