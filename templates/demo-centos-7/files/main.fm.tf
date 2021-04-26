@@ -174,6 +174,9 @@ resource "ionoscloud_server" "[= node_type ]" {
   datacenter_id = ionoscloud_datacenter.datacenter.id
   cores = [= node_spec.numberOfCores ]
   ram = [= node_spec.memoryMb ]
+[#if node_spec.cpuFamily??]
+  cpu_family = "[= node_spec.cpuFamily]"
+[/#if]
   availability_zone = "ZONE_1"
 
   image_name = data.ionoscloud_image.centos7.name
