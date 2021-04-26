@@ -66,6 +66,7 @@ spec:
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
+      cpuFamily: INTEL_XEON
     worker:
       numberOfNodes: 4
       numberOfCores: 4
@@ -140,6 +141,7 @@ services:
 |spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have
 |spec.nodes.<type>.diskType | type of disk each node of the given type should have
 |spec.nodes.<type>.diskSizeGb |size of the disk of the given node
+|spec.nodes.<type>.cpuFamily |(optional) specify CPU-Family for the nodes of the given type. Values: "AMD_OPTERON" or "INTEL_XEON". Defaults to "AMD_OPTERON".
 |services |map of service descriptions as embedded YAMLs
 |=======
 
