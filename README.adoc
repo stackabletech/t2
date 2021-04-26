@@ -140,7 +140,7 @@ services:
 |domain |domain for DNS inside the cluster or when accessing through VPN
 |publicKeys |list of SSH public keys to allow access to cluster nodes
 |spec.region |one of the regions that the cloud vendor provides
-|spec.cpuFamily |(optional) specify CPU-Family for the nodes of the given type. Values: "AMD_OPTERON" or "INTEL_XEON". If not provided, the default of the IONOS cloud applies.
+|spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values.
 |spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
 |spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have
 |spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have
