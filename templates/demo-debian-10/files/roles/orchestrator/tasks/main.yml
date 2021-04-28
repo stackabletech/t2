@@ -1,6 +1,15 @@
 ---
 - name: Install K3s w/ rancher script
-  shell: "curl -sfL https://get.k3s.io | sh -"
+  shell: |
+    curl -sfL https://get.k3s.io | sh -s - \
+    --kube-controller-manager-arg cluster-signing-cert-file= \
+    --kube-controller-manager-arg cluster-signing-key-file= \
+    --kube-controller-manager-arg cluster-signing-kube-apiserver-client-cert-file=/var/lib/rancher/k3s/server/tls/client-ca.crt \
+    --kube-controller-manager-arg cluster-signing-kube-apiserver-client-key-file=/var/lib/rancher/k3s/server/tls/client-ca.key \
+    --kube-controller-manager-arg cluster-signing-kubelet-client-cert-file=/var/lib/rancher/k3s/server/tls/client-ca.crt \
+    --kube-controller-manager-arg cluster-signing-kubelet-client-key-file=/var/lib/rancher/k3s/server/tls/client-ca.key \
+    --kube-controller-manager-arg cluster-signing-kubelet-serving-cert-file=/var/lib/rancher/k3s/server/tls/server-ca.crt \
+    --kube-controller-manager-arg cluster-signing-kubelet-serving-key-file=/var/lib/rancher/k3s/server/tls/server-ca.key
   args:
     warn: no
     creates: /etc/rancher/k3s/k3s.yaml
