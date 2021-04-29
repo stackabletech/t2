@@ -1,0 +1,237 @@
+// Header of this document:
+
+= Using T2
+:toc:
+:toc-placement: preamble
+:toclevels: 2
+:showtitle:
+:base-repo: https://github.com/stackabletech/t2
+:imagesdir: diagrams
+
+// Need some preamble to get TOC:
+{empty}
+
+At Stackable, we have a https://t2.stackable.tech/swagger-ui/[running instance of T2, window="_blank"] to provision our own clusters. As described in the link:../README.adoc[README], we use it for integration testing and troubleshooting and do not provide access publicly (except DIY, see below).
+
+== Create a cluster
+
+=== Create a cluster in T2's infrastructure
+
+With request to https://t2.stackable.tech/swagger-ui/#/cluster-controller/createClusterUsingPOST[this endpoint, window="_blank"] you can create a new cluster. You have to provide the Stackable cluster definition as payload and a Token via the `t2-token` HTTP header to authenticate. The response is a description of the current cluster state.
+
+To track the progress while the cluster is created, you can use https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClusterUsingGET[this endpoint, window="_blank"]. The desired state you want to wait for is `RUNNING`. (requires token as well)
+
+To see in more detail what T2 is doing to create your cluster, you can https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[trace the output log here, window="_blank"]. (requires token as well)
+
+Once the cluster is up and running, you can download a script https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClientScriptUsingGET[here, window="_blank"] which provides you with a convenient way to access the nodes of the cluster (see <<client_script>> below).
+
+=== Create a cluster in your infrastructure
+
+To create a cluster yourself, we offer what we call the *DIY option*. To use it, you can use https://t2.stackable.tech/swagger-ui/#/diy-cluster-controller/createClusterUsingGET[this service]. You have to provide a Stackable cluster definition as request body and get a ZIP file in return. This ZIP file comes with a `readme.txt` which explains the usage.
+
+
+[[client_script]]
+== The Stackable client script
+
+This script can be used to access a running cluster conveniently. 
+
+The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition, see <<yaml>>) to be in your keystore (`~/.ssh/` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
+
+To ssh into a host, just provide the hostname as the single parameter, e.g.
+
+[source,bash]
+----
+./stackable.sh worker-12
+----
+
+or, with path to key: 
+
+[source,bash]
+----
+./stackable.sh worker-12 -i path/to/my/key
+----
+
+If you want to execute a command on the host, you can add it as a second param, e.g.
+
+[source,bash]
+----
+./stackable.sh worker-12 "kubectl get nodes"
+----
+
+or, with path to key:
+
+[source,bash]
+----
+./stackable.sh worker-12 -i path/to/my/key "kubectl get nodes"
+----
+
+[[yaml]]
+== The Stackable cluster definition YAML
+
+In either way you choose to use T2, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. As of now, this Stackable cluster definition format is work in progress and the only documentation is the following example and the following table:
+
+[source,yaml]
+----
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: demo-debian-10
+metadata: 
+  name: stackable-demo
+  description: "This is the cluster I want!"
+domain: stackable.demo
+publicKeys:
+  - "ssh-rsa AAAAB3NzaC1..."
+  - "ssh-rsa AAAACmtp4Ko..."
+spec:
+  region: de/fra
+  cpuFamily: INTEL_XEON
+  orchestrator:
+    numberOfCores: 4
+    memoryMb: 8192
+    diskType: HDD
+    diskSizeGb: 15
+  nodes:
+    main:
+      numberOfNodes: 1
+      numberOfCores: 2
+      memoryMb: 8192
+      diskType: HDD 
+      diskSizeGb: 15
+    worker:
+      numberOfNodes: 4
+      numberOfCores: 4
+      memoryMb: 8192
+      diskType: HDD 
+      diskSizeGb: 15
+services:
+  spark-primary: |
+    apiVersion: spark.stackable.tech/v1
+    kind: SparkCluster
+    metadata:
+      name: spark-primary
+    spec:
+      master:
+        selectors:
+          - nodeName: "main-1.stackable.demo"
+            instances: 1
+            masterPort: 9999
+            masterWebUiPort: 11111
+      worker:
+        selectors:
+          - nodeName: "worker-1.stackable.demo"
+            instances: 1
+            cores: 1
+            memory: "1g"
+      historyServer:
+        selectors:
+          - nodeName: "worker-3.stackable.demo"
+            instances: 1
+      version: "3.0.1"
+      maxPortRetries: 0
+  spark-secondary: |
+    apiVersion: spark.stackable.tech/v1
+    kind: SparkCluster
+    metadata:
+      name: spark-secondary
+    spec:
+      master:
+        selectors:
+          - nodeName: "main-1.stackable.demo"
+            instances: 1
+            masterPort: 9998
+            masterWebUiPort: 11112
+      worker:
+        selectors:
+          - nodeName: "worker-2.stackable.demo"
+            instances: 1
+            cores: 1
+            memory: "1g"
+      historyServer:
+        selectors:
+          - nodeName: "worker-4.stackable.demo"
+            instances: 1
+      version: "3.0.1"
+      maxPortRetries: 0        
+----
+
+[options="header"]
+|=======
+|key |description
+|apiVersion |always `t2.stackable.tech/v1`
+|kind |always `Infra`
+|template |one of `demo-debian-10` or `demo-centos-7` depending on the desired OS
+|metadata.name |name of the cluster
+|metadata.description |description of the cluster
+|domain |domain for DNS inside the cluster or when accessing through VPN
+|publicKeys |list of SSH public keys to allow access to cluster nodes
+|spec.region |one of the regions that the cloud vendor provides
+|spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values.
+|spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
+|spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have
+|spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have
+|spec.orchestrator.diskType |(optional) type of disk the orchestrator should have
+|spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator
+|spec.nodes |map of node types with their specification
+|spec.nodes.<type>.numberOfNodes |# of nodes of the given type
+|spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have
+|spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have
+|spec.nodes.<type>.diskType | type of disk each node of the given type should have
+|spec.nodes.<type>.diskSizeGb |size of the disk of the given node
+|services |map of service descriptions as embedded YAMLs
+|=======
+
+The service descriptions depend on the used services. Please refer to the documentation of the operator for the product: 
+
+* https://github.com/stackabletech/spark-operator[Apache Spark]
+* https://github.com/stackabletech/zookeeper-operator[Apache ZooKeeper]
+* https://github.com/stackabletech/kafka-operator[Apache Kafka]
+
+== The T2 client script
+
+If you want to automate your Stackable cluster generation (e.g. in a CI/CD pipeline), you can use a https://raw.githubusercontent.com/stackabletech/t2/client-script/client/t2.py[Python script^] that we provide with T2. This section describes the usage of this script.
+
+=== How the script works
+
+Roughly, this is what the script does:
+
+* Launch
+** Create a folder `.cluster/` where the temporary files go
+** Generate an SSH keypair
+** Make a copy of your provided cluster definition file and add the public key to the `publicKeys` section. (If you do not plan to provide any SSH key on your own, please provide that section as an empty list!)
+** Call T2 to launch a new cluster
+** Wait until the cluster is up and running
+** Download the Stackable client script (see <<client_script>>) into your current folder to easily access the built cluster.
+* Terminate
+** Call T2 to tear the cluster down
+** Wait until the cluster is terminated
+
+=== The launch command
+
+The `launch` command needs as params:
+
+. the T2 token to authenticate
+. the base URL of the T2 REST API
+. the path to a valid cluster definition file
+
+Example:
+
+[source,bash]
+----
+python3 t2.py launch my-secret-token https://t2.stackable.tech path/to/my/cluster.yaml
+----
+
+
+=== The terminate command
+
+The `terminate` command needs as params:
+
+. the T2 token to authenticate
+. the base URL of the T2 REST API
+
+Example:
+
+[source,bash]
+----
+python3 t2.py terminate my-secret-token https://t2.stackable.tech 
+----
+
