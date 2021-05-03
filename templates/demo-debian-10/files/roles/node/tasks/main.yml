@@ -38,6 +38,7 @@
   apt:
     name: stackable-agent
     state: present
+  when: stackable_agent | bool
 
 - name: Start stackable agent
   systemd:
@@ -45,5 +46,6 @@
     state: started
     enabled: yes
     daemon_reload: yes
+  when: stackable_agent | bool
 
 

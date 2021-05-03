@@ -82,6 +82,13 @@ spec:
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
+    testdriver:
+      numberOfNodes: 1
+      numberOfCores: 4
+      memoryMb: 8192
+      diskType: HDD 
+      diskSizeGb: 15
+      agent: false
 services:
   spark-demo: |
     apiVersion: spark.stackable.tech/v1
@@ -113,7 +120,7 @@ services:
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/cd082b2c-006a-4e1e-bf28-eefedec605b8
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/9c8459e5-0775-4de5-bc2c-803cc786a394
 t2-token: {{t2-token}}
 
 

@@ -229,6 +229,7 @@ resource "local_file" "ansible-inventory" {
     {
       nodetypes = [ [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]"[#sep] , [/#list] ]
       nodes = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : ionoscloud_server.[= node_type ][#sep] , [/#list] }
+      nodetype_is_agent = { [#list clusterDefinition.spec.nodes as node_type, node_spec]"[= node_type ]" : "[#if node_spec.agent??][= node_spec.agent?c][#else]true[/#if]"[#sep] , [/#list] }
       nat = ionoscloud_server.nat
       nat_public_ip = ionoscloud_server.nat.primary_ip
       nat_internal_ip = ionoscloud_nic.nat_internal.ips[0]
