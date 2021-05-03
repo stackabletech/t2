@@ -18,6 +18,7 @@ ${node.name} ansible_host=${node.primary_ip}
 ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q root@${nat_public_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=root
+stackable_agent=${nodetype_is_agent[nodetype]}
 
 %{ endfor ~}
 

@@ -103,6 +103,13 @@ spec:
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
+    testdriver:
+      numberOfNodes: 1
+      numberOfCores: 2
+      memoryMb: 2048
+      diskType: HDD 
+      diskSizeGb: 15
+      agent: false
 services:
   spark-primary: |
     apiVersion: spark.stackable.tech/v1
@@ -177,6 +184,7 @@ services:
 |spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have
 |spec.nodes.<type>.diskType | type of disk each node of the given type should have
 |spec.nodes.<type>.diskSizeGb |size of the disk of the given node
+|spec.nodes.<type>.agent |(boolean, optional, defaults to `true`) Should a Stackable agent be run on this node?
 |services |map of service descriptions as embedded YAMLs
 |=======
 
