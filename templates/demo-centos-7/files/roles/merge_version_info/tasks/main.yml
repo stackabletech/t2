@@ -1,0 +1,6 @@
+---
+- name: Merge version information from all Servers
+  run_once: yes
+  delegate_to: localhost
+  shell: "cat temp/stackable-versions/*.txt > resources/stackable-versions.txt"
+
