@@ -18,3 +18,6 @@
   roles:
   - orchestrator_finalized
   - services
+- hosts: nat
+  roles:
+  - merge_version_info
