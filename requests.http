@@ -23,7 +23,7 @@ t2-token: {{t2-token}}
 ###
 
 # UUID exists (please paste existing UUID)
-{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/c521ed20-3865-4583-9545-c7a1c42f1ad4
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/4fe50f34-aacd-4152-9904-21afeb8328a3
 t2-token: {{t2-token}}
 
 ###
@@ -41,7 +41,7 @@ t2-token: {{t2-token}}
 ###
 
 # get logs
-{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/660a4545-e3e8-4897-ae0e-06f112869894/log
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/0ee9f135-5503-450f-940d-15d48591d3d4/log
 t2-token: {{t2-token}}
 
 ###
@@ -77,18 +77,11 @@ spec:
       diskType: HDD 
       diskSizeGb: 15
     worker:
-      numberOfNodes: 2
-      numberOfCores: 4
-      memoryMb: 8192
-      diskType: HDD 
-      diskSizeGb: 15
-    testdriver:
       numberOfNodes: 1
       numberOfCores: 4
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
-      agent: false
 services:
   spark-demo: |
     apiVersion: spark.stackable.tech/v1
@@ -120,7 +113,7 @@ services:
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/9c8459e5-0775-4de5-bc2c-803cc786a394
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/4fe50f34-aacd-4152-9904-21afeb8328a3
 t2-token: {{t2-token}}
 
 
