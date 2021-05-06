@@ -115,11 +115,29 @@ public class ClusterController {
         if (cluster == null) {
             throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
         }
-        String wireguardClientConfig = this.clusterService.getClientScript(id);
-        if (wireguardClientConfig == null) {
+        String clientScript = this.clusterService.getClientScript(id);
+        if (clientScript == null) {
             throw new ClusterNotFoundException(String.format("No Stackable client script found for cluster with id '%s'.", id));
         }
-        return wireguardClientConfig;
+        return clientScript;
+    }
+
+    @GetMapping("{id}/stackable-versions")
+    @ResponseBody
+    @Operation(summary = "read Stackable version information document", description = "Reads a text document which contains version information on installed Stackable components")
+    public String getStackableVersions(
+            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
+            @RequestHeader(name = "t2-token", required = false) String token) {
+        checkToken(token);
+        Cluster cluster = clusterService.getCluster(id);
+        if (cluster == null) {
+            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
+        }
+        String stackableVersions = this.clusterService.getVersionInformation(id);
+        if (stackableVersions == null) {
+            throw new ClusterNotFoundException(String.format("No Stackable version information document found for cluster with id '%s'.", id));
+        }
+        return stackableVersions;
     }
 
     @GetMapping("{id}/log")

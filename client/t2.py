@@ -81,6 +81,21 @@ def launch(args):
         f.close()
     os.chmod("stackable.sh", 0o755)
 
+    print("Downloading Stackable version information sheet for cluster")
+
+    stackable_versions = get_version_information_sheet(args.t2_url, args.t2_token, cluster['id'])
+    with open ("stackable-versions.txt", "w") as f:
+        f.write(stackable_versions)
+        f.close()
+    print("")        
+    print("Stackable version information sheet:")        
+    print("------------------------------------------------------------------------------------")        
+    print(stackable_versions)
+    print("------------------------------------------------------------------------------------")        
+    print("")        
+    print("")        
+
+
 
 def terminate(args):
     """Terminates the cluster identified by the data in the .cluster/ folder.
@@ -164,6 +179,18 @@ def get_client_script(t2_url, t2_token, id):
     response = requests.get(f"{t2_url}/api/clusters/{id}/stackable-client-script", headers={ "t2-token": t2_token })
     if(response.status_code != 200):
         print(f"API call to get Stackable client script returned error code {response.status_code}")
+        return None
+    return response.text
+
+def get_version_information_sheet(t2_url, t2_token, id):
+    """Downloads the Stackable version information sheet using T2 REST API
+
+    Returns:
+    - JSON representing terminated cluster (REST response)
+    """
+    response = requests.get(f"{t2_url}/api/clusters/{id}/stackable-versions", headers={ "t2-token": t2_token })
+    if(response.status_code != 200):
+        print(f"API call to get Stackable version information sheet returned error code {response.status_code}")
         return None
     return response.text
 
