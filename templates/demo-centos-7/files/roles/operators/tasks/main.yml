@@ -1,48 +1,21 @@
 ---
-- name: Install Zookeeper operator
+- name: Install operator
   yum:
-    name: stackable-zookeeper-operator-server.x86_64
+    name: "{{ item.name }}"
     state: present
-  notify: restart zookeeper operator
+  loop: "{{ operators }}"
+  notify: restart operators
 
-- name: Install Spark operator
-  yum:
-    name: stackable-spark-operator-server.x86_64
-    state: present
-  notify: restart spark operator
+- name: Download CRDs for the operators
+  shell: "curl {{ item.crd_url }} > /tmp/{{ item.name }}.crd.yaml"
+  loop: "{{ operators }}"
+  notify: restart operators
 
-- name: Install Kafka operator
-  yum:
-    name: stackable-kafka-operator-server.x86_64
-    state: present
-  notify: restart kafka operator
-
-- name: Download Zookeeper CRD
-  shell: "curl https://raw.githubusercontent.com/stackabletech/zookeeper-operator/main/crd/zookeepercluster.crd.yaml > /tmp/zookeeper.crd.yaml"
-  notify: restart zookeeper operator
-
-- name: Download Spark CRD
-  shell: "curl https://raw.githubusercontent.com/stackabletech/spark-operator/main/crd/sparkcluster.crd.yaml > /tmp/spark.crd.yaml"
-  notify: restart spark operator
-
-- name: Download kafka CRD
-  shell: "curl https://raw.githubusercontent.com/stackabletech/kafka-operator/main/crd/kafkaclusters.crd.yaml > /tmp/kafka.crd.yaml"
-  notify: restart kafka operator
-
-- name: Apply Zookeeper CRD to Kubernetes
-  shell: "kubectl apply -f /tmp/zookeeper.crd.yaml"
+- name: Apply CRDs
+  shell: "kubectl apply -f /tmp/{{ item.name }}.crd.yaml"
   args:
     warn: no
-
-- name: Apply Spark CRD to Kubernetes
-  shell: "kubectl apply -f /tmp/spark.crd.yaml"
-  args:
-    warn: no
-
-- name: Apply Kafka CRD to Kubernetes
-  shell: "kubectl apply -f /tmp/kafka.crd.yaml"
-  args:
-    warn: no
+  loop: "{{ operators }}"
 
 - name: Copy script to collect versions to server
   copy:
