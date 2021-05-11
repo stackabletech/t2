@@ -29,13 +29,20 @@ t2-token: {{t2-token}}
 ###
 
 # get wireguard config
-{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/660a4545-e3e8-4897-ae0e-06f112869894/wireguard-config/1
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/a2c376b7-9c32-415b-9b77-20feaa9a9813/wireguard-config/1
+t2-token: {{t2-token}}
+
+
+###
+
+# get stackable Version information sheet
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/a2c376b7-9c32-415b-9b77-20feaa9a9813/stackable-versions
 t2-token: {{t2-token}}
 
 ###
 
 # get stackable client script
-{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/660a4545-e3e8-4897-ae0e-06f112869894/stackable-client-script
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/a2c376b7-9c32-415b-9b77-20feaa9a9813/stackable-client-script
 t2-token: {{t2-token}}
 
 ###
@@ -63,7 +70,7 @@ kind: Infra
 template: demo-debian-10
 metadata: 
   name: stackable-demo
-  description: "This is the cluster I want!"
+  description: "Hackathon"
 domain: stackable.demo
 publicKeys:
   - "{{t2-ssh-key}}"
@@ -77,17 +84,21 @@ spec:
       diskType: HDD 
       diskSizeGb: 15
     worker:
-      numberOfNodes: 1
+      numberOfNodes: 3
       numberOfCores: 4
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
+
+###
+
+
 services:
   spark-demo: |
     apiVersion: spark.stackable.tech/v1
     kind: SparkCluster
     metadata:
-      name: spark-primary
+      name: spark-demo
     spec:
       master:
         selectors:
@@ -100,11 +111,15 @@ services:
           - nodeName: "worker-1.stackable.demo"
             instances: 1
             cores: 1
-            memory: "4g"
+            memory: "2g"
           - nodeName: "worker-2.stackable.demo"
             instances: 1
             cores: 1
-            memory: "4g"
+            memory: "2g"
+          - nodeName: "worker-3.stackable.demo"
+            instances: 1
+            cores: 1
+            memory: "2g"
       version: "3.0.1"
       maxPortRetries: 0
 
@@ -113,7 +128,7 @@ services:
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/4fe50f34-aacd-4152-9904-21afeb8328a3
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/9d043800-ace8-4fa8-827c-3348a2cc2b89
 t2-token: {{t2-token}}
 
 
