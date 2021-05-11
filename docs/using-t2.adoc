@@ -3,7 +3,7 @@
 = Using T2
 :toc:
 :toc-placement: preamble
-:toclevels: 2
+:toclevels: 3
 :showtitle:
 :base-repo: https://github.com/stackabletech/t2
 :imagesdir: diagrams
@@ -26,6 +26,14 @@ To see in more detail what T2 is doing to create your cluster, you can https://t
 Once the cluster is up and running, you can download a script https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClientScriptUsingGET[here, window="_blank"] which provides you with a convenient way to access the nodes of the cluster (see <<client_script>> below).
 
 To check which versions of the Stackable components (agent, operators) are running in your cluster, you can get an overview https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[here, window="_blank"]. (requires token as well)
+
+==== VPN (Wireguard)
+
+A very convenient way to work with a running cluster is to put your machine in the provided VPN. Using http://t2.stackable.tech/swagger-ui/#/cluster-controller/getWireguardConfigUsingGET[this endpoint, window="_blank"] you can download a Wireguard config file which is ready to be used. Please refer to the Wireguard docs for your system to find out how to use this.
+
+Once you are in the same network with the cluster, you can http://t2.stackable.tech/swagger-ui/#/cluster-controller/getKubeconfigUsingGET[download a kubeconfig file, window="_blank"] to interact with the Kubernetes system via *kubectl*, *k9s* or the like.
+
+
 
 === Create a cluster in your infrastructure
 

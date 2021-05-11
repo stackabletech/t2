@@ -251,6 +251,20 @@ public class TerraformAnsibleClusterService {
         }
     }
 
+    public String getKubeconfigFile(UUID id) {
+        Cluster cluster = this.clusters.get(id);
+        if (cluster == null) {
+            return null;
+        }
+        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
+        try {
+            return FileUtils.readFileToString(clusterBaseFolder.resolve("resources/kubeconfig").toFile(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            LOGGER.warn("Kubeconfig could not be read", e);
+            return null;
+        }
+    }
+
     public String getLogs(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
