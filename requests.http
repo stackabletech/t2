@@ -70,11 +70,15 @@ kind: Infra
 template: demo-debian-10
 metadata: 
   name: stackable-demo
-  description: "Hackathon"
+  description: "Issue63"
 domain: stackable.demo
 publicKeys:
   - "{{t2-ssh-key}}"
 spec:
+  versions:
+    stackable-agent: "0.1.0-nightly"
+    stackable-spark-operator-server: "0.1.0-nightly"
+    stackable-kafka-operator-server: "0.1.0-nightly"
   region: de/fra
   nodes:
     main:

@@ -1,7 +1,7 @@
 ---
 - name: Install operator
   yum:
-    name: "{{ item.name }}"
+    name: "{{ item.name }}={{ stackable_versions[item.name] | default( stackable_default_versions[item.name]) | default('*') }}"
     state: present
   loop: "{{ operators }}"
   notify: restart operators

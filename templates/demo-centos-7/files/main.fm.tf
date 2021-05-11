@@ -51,10 +51,22 @@ provider "ionoscloud" {
 
 variable "ssh_client_keys" {
   default = [ 
-    [#list clusterDefinition.publicKeys as ssh_key]"[= ssh_key ]"[#sep],
-    [/#list] 
+[#list clusterDefinition.publicKeys as ssh_key]    "[= ssh_key ]"[#sep],
+[/#list] 
 
   ]
+}
+
+variable "stackable_versions" {
+  type = map(string)
+
+  default = {
+[#if clusterDefinition.spec.versions??]
+[#list clusterDefinition.spec.versions as package,version]    [= package ] = "[= version ]"[#sep]
+[/#list] 
+
+[/#if]
+  }
 }
 
 variable "wireguard_client_public_keys" {
@@ -81,6 +93,12 @@ variable "wireguard_nat_private_key" {
   default = "[= wireguard_nat_private_key ]"
 }
 
+# default Stackable default versions
+resource "local_file" "ansible-default-versions" {
+  filename = "${path.module}/inventory/group_vars/all/default_versions.yml"
+  content = file("${path.module}/default_versions.yml")
+  file_permission = "0440"
+} 
 
 resource "ionoscloud_datacenter" "datacenter" {
   name = var.ionos_datacenter
@@ -247,6 +265,7 @@ resource "local_file" "ansible-variables" {
   content = templatefile("${path.module}/templates/ansible-variables.tpl",
     {
       ssh_client_keys = var.ssh_client_keys
+      stackable_versions = var.stackable_versions
     }
   )
   file_permission = "0440"
