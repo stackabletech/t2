@@ -1,9 +1,7 @@
 ---
-- name: restart zookeeper operator
-  service: name=stackable-zookeeper-operator-server state=restarted enabled=yes
-
-- name: restart spark operator
-  service: name=stackable-spark-operator-server state=restarted enabled=yes
-
-- name: restart kafka operator
-  service: name=stackable-kafka-operator-server state=restarted enabled=yes
+- name: restart operators
+  service: 
+    name: "{{ item.name }}"
+    state: restarted 
+    enabled: yes
+  loop: "{{ operators }}"
