@@ -3,7 +3,7 @@
 = Using T2
 :toc:
 :toc-placement: preamble
-:toclevels: 2
+:toclevels: 3
 :showtitle:
 :base-repo: https://github.com/stackabletech/t2
 :imagesdir: diagrams
