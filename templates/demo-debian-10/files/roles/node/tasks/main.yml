@@ -21,7 +21,7 @@
 
 - name: copy the kubeconfig to all nodes
   copy:
-    src: "temp/kubeconfig"
+    src: "resources/kubeconfig"
     dest: "/root/.kube/config"
 
 - name: Add key for Stackable repository

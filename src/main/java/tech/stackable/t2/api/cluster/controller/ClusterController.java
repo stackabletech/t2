@@ -140,6 +140,24 @@ public class ClusterController {
         return stackableVersions;
     }
 
+    @GetMapping("{id}/kubeconfig")
+    @ResponseBody
+    @Operation(summary = "read Kubeconfig", description = "Reads a Kubeconfig file to work with the cluster while working with VPN")
+    public String getKubeconfig(
+            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
+            @RequestHeader(name = "t2-token", required = false) String token) {
+        checkToken(token);
+        Cluster cluster = clusterService.getCluster(id);
+        if (cluster == null) {
+            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
+        }
+        String kubeconfig = this.clusterService.getKubeconfigFile(id);
+        if (kubeconfig == null) {
+            throw new ClusterNotFoundException(String.format("No Kubeconfig found for cluster with id '%s'.", id));
+        }
+        return kubeconfig;
+    }
+
     @GetMapping("{id}/log")
     @ResponseBody
     @Operation(summary = "read logs", description = "Reads the logs for the given cluster")

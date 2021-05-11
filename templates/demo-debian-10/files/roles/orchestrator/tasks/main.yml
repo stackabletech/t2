@@ -21,10 +21,10 @@
 - name: provide kubeconfig at common location
   shell: "mkdir -p /root/.kube/ && cp /etc/rancher/k3s/k3s.yaml /root/.kube/config"
 
-- name: Fetch the kubeconfig to distribute it to the nodes later
+- name: Fetch the kubeconfig to (1) provide it to the user and (2) distribute it to the nodes later
   fetch: 
     src: "/tmp/kubeconfig"
-    dest: "temp/kubeconfig"
+    dest: "resources/kubeconfig"
     flat: yes
 
 - name: Ensure Kubernetes configs are present on orchestrator
