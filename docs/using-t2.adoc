@@ -95,6 +95,10 @@ publicKeys:
 spec:
   region: de/fra
   cpuFamily: INTEL_XEON
+  versions:
+    stackable-agent: "1.2.3"
+    stackable-spark-operator-server: "2.0.0"
+    stackable-kafka-operator-server: "0.0.1-alpha"
   orchestrator:
     numberOfCores: 4
     memoryMb: 8192
@@ -183,6 +187,7 @@ services:
 |publicKeys |list of SSH public keys to allow access to cluster nodes
 |spec.region |one of the regions that the cloud vendor provides
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values.
+|spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components.
 |spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
 |spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have
 |spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have
@@ -195,14 +200,32 @@ services:
 |spec.nodes.<type>.diskType | type of disk each node of the given type should have
 |spec.nodes.<type>.diskSizeGb |size of the disk of the given node
 |spec.nodes.<type>.agent |(boolean, optional, defaults to `true`) Should a Stackable agent be run on this node?
-|services |map of service descriptions as embedded YAMLs
+|services |Map of service descriptions as embedded YAMLs. See below for available services.
 |=======
+
+=== Stackable components
+
+These are components that a Stackable cluster is made of. You can specify their versions with the `spec.versions` section in the cluster definition (see above)
+
+[options="header"]
+|=======
+|Name |key
+|https://github.com/stackabletech/agent[Stackable Agent] | `stackable-agent`
+|https://github.com/stackabletech/spark-operator[Stackable Spark Operator] |`stackable-spark-operator-server`
+|https://github.com/stackabletech/zookeeper-operator[Stackable Zookeeper Operator] |`stackable-zookeeper-operator-server`
+|https://github.com/stackabletech/kafka-operator[Stackable Kafka Operator] |`stackable-kafka-operator-server`
+|https://github.com/stackabletech/nifi-operator[Stackable NiFi Operator] |`stackable-nifi-operator-server`
+|=======
+
+
+=== Service descriptions
 
 The service descriptions depend on the used services. Please refer to the documentation of the operator for the product: 
 
 * https://github.com/stackabletech/spark-operator[Apache Spark]
 * https://github.com/stackabletech/zookeeper-operator[Apache ZooKeeper]
 * https://github.com/stackabletech/kafka-operator[Apache Kafka]
+* https://github.com/stackabletech/nifi-operator[Apache NiFi]
 
 == The T2 client script
 

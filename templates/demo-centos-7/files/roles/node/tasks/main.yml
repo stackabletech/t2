@@ -33,7 +33,7 @@
 
 - name: Ensure stackable agent is installed
   yum:
-    name: stackable-agent.x86_64
+    name: stackable-agent-{{ stackable_versions['stackable-agent'] | default( stackable_default_versions['stackable-agent']) | default('*') }}.x86_64
     state: present
   when: stackable_agent | bool
 

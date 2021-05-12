@@ -1,0 +1,7 @@
+---
+stackable_default_versions:
+    stackable-agent: "*"
+    stackable-spark-operator-server: "*"
+    stackable-zookeeper-operator-server: "*"
+    stackable-kafka-operator-server: "*"
+    stackable-nifi-operator-server: "*"

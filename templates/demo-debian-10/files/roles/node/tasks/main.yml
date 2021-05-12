@@ -36,7 +36,7 @@
 
 - name: Ensure stackable agent is installed
   apt:
-    name: stackable-agent
+    name: stackable-agent={{ stackable_versions['stackable-agent'] | default( stackable_default_versions['stackable-agent']) | default('*') }}
     state: present
   when: stackable_agent | bool
 
