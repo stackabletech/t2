@@ -1,7 +1,7 @@
 ---
 stackable_default_versions:
-    stackable-agent: "0.1.0-nightly"
-    stackable-spark-operator-server: "0.1.0-nightly"
-    stackable-zookeeper-operator-server: "0.1.0-nightly"
-    stackable-kafka-operator-server: "0.1.0-nightly"
-    stackable-nifi-operator-server: "0.1.0-nightly"
+    stackable-agent: "*"
+    stackable-spark-operator-server: "*"
+    stackable-zookeeper-operator-server: "*"
+    stackable-kafka-operator-server: "*"
+    stackable-nifi-operator-server: "*"
