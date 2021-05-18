@@ -51,9 +51,13 @@
 
 - name: Add Stackable repository
   yum_repository:
-    name: Stackable
-    description: Stackable YUM repo
-    baseurl: https://repo.stackable.tech/repository/rpm-nightly/el7/
+    name: stackable-{{item}}
+    description: Stackable YUM repo {{item}}
+    baseurl: https://repo.stackable.tech/repository/{{item}}/el7/
     gpgcheck: no
     repo_gpgcheck: no
+  with_items: 
+    - "rpm-dev"
+    - "rpm-release"
+    - "rpm-nightly"
     
