@@ -56,6 +56,8 @@
 
 - name: Add Stackable repository
   apt_repository:
-    repo: deb https://repo.stackable.tech/repository/deb-nightly buster main
+    repo: deb https://repo.stackable.tech/repository/{{item}} buster main
     state: present
-
+  with_items: 
+    - "deb-nightly"
+    - "deb-release"
