@@ -1,0 +1,107 @@
+= Install components
+
+This document describes how to install/uninstall Stackable components in a running cluster.
+
+It's more a cheat sheet for us than part of the official docs.
+
+== CentOS (7)
+
+List all available versions for all Stackable components:
+
+```
+yum list available --showduplicates | grep "stackable-" | sort -u
+```
+
+List installed versions of Stackable components:
+
+```
+yum list installed | grep "stackable-"
+```
+
+Install version `0.1.0-0.nightly.el7` of the `stackable-agent` component.
+
+```
+yum install stackable-agent-0.1.0-0.nightly.el7.x86_64 --nogpgcheck
+```
+
+Remove the `stackable-agent` component.
+
+```
+yum remove stackable-agent
+```
+
+Install version `0.1.0-0.nightly.el7` of the `stackable-agent` component (as a downgrade).
+
+```
+yum downgrade stackable-agent-0.1.0-0.nightly.el7.x86_64 --nogpgcheck
+```
+
+The Stackable repos should already be installed. Just in case they aren't, here are the commands to add them:
+
+```
+yum-config-manager --add-repo=https://repo.stackable.tech/repository/rpm-dev/el7/
+yum-config-manager --add-repo=https://repo.stackable.tech/repository/rpm-release/el7/
+yum-config-manager --add-repo=https://repo.stackable.tech/repository/rpm-nightly/el7/
+```
+
+On each `yum` command, you can limit the set of repos to use with the `--enablerepo` or `--disablerepo` option. (E.g. to prevent dev packages from being used.)
+
+=== Links
+
+* https://en.wikipedia.org/wiki/RPM_Package_Manager#Package_filename_and_label
+* https://blog.jasonantman.com/2014/07/how-yum-and-rpm-compare-versions/
+* https://www.thegeekdiary.com/understanding-rpm-versions-and-naming-schemes/
+
+== Debian (10)
+
+To update for all repos:
+
+```
+apt update
+```
+
+List all available and/or installed versions:
+
+```
+apt list -a stackable-*
+```
+
+List all installed Stackable components
+
+```
+apt list --installed stackable-*
+```
+
+Install a Stackable component
+
+```
+apt install stackable-agent
+```
+
+with a distinct version
+
+```
+apt install stackable-agent=0.1.0
+```
+
+install the latest non-nightly version: 
+
+```
+apt install stackable-agent="[0-9]*\.[0-9]*\.[0-9]"
+```
+
+The Stackable repos should already be installed (at least release and nightly). Just in case they aren't, to add the repos you can write the file `/etc/apt/sources.list.d/stackable.list` 
+
+```
+deb https://repo.stackable.tech/repository/deb-dev buster main
+deb https://repo.stackable.tech/repository/deb-release buster main
+deb https://repo.stackable.tech/repository/deb-nightly buster main
+```
+
+then
+
+```
+apt install gnupg
+apt-key adv --keyserver keyserver.ubuntu.com --recv 16dd12f5c7a6d76a
+apt update
+```

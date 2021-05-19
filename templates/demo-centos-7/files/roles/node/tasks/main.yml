@@ -25,16 +25,22 @@
 
 - name: Add Stackable repository
   yum_repository:
-    name: Stackable
-    description: Stackable YUM repo
-    baseurl: https://repo.stackable.tech/repository/rpm-nightly/el7/
+    name: stackable-{{item}}
+    description: Stackable YUM repo {{item}}
+    baseurl: https://repo.stackable.tech/repository/{{item}}/el7/
     gpgcheck: no
     repo_gpgcheck: no
+  with_items: 
+    - "rpm-dev"
+    - "rpm-release"
+    - "rpm-nightly"
 
 - name: Ensure stackable agent is installed
   yum:
     name: stackable-agent-{{ stackable_versions['stackable-agent'] | default( stackable_default_versions['stackable-agent']) | default('*') }}.x86_64
     state: present
+    disablerepo: 
+      - stackable-rpm-dev
   when: stackable_agent | bool
 
 - name: Start stackable agent
