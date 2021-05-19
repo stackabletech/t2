@@ -1,6 +1,6 @@
 ---
 stackable_default_versions:
-    stackable-agent: "*"
+    stackable-agent: "*0.el7"
     stackable-spark-operator-server: "*"
     stackable-zookeeper-operator-server: "*"
     stackable-kafka-operator-server: "*"
