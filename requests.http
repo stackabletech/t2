@@ -145,10 +145,10 @@ Content-Type: application/yaml
 ---
 apiVersion: t2.stackable.tech/v1
 kind: Infra
-template: demo-debian-10
+template: demo-centos-7
 metadata: 
   name: stackable-demo
-  description: "This is the cluster I want!"
+  description: "demo centos"
 domain: stackable.demo
 publicKeys:
   - "{{t2-ssh-key}}"
@@ -162,11 +162,15 @@ spec:
       diskType: HDD 
       diskSizeGb: 15
     worker:
-      numberOfNodes: 4
-      numberOfCores: 4
+      numberOfNodes: 1
+      numberOfCores: 2
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
+
+
+###
+
 services:
   spark-primary: |
     apiVersion: spark.stackable.tech/v1

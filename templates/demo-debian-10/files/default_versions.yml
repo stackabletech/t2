@@ -5,3 +5,5 @@ stackable_default_versions:
     stackable-zookeeper-operator-server: "*"
     stackable-kafka-operator-server: "*"
     stackable-nifi-operator-server: "*"
+    stackable-opa-operator-server: "*"
+    stackable-regorule-operator-server: "*"

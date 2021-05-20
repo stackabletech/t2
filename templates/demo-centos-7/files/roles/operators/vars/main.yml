@@ -8,3 +8,7 @@ operators:
     crd_url: https://raw.githubusercontent.com/stackabletech/kafka-operator/main/crd/kafkaclusters.crd.yaml
   - name: stackable-nifi-operator-server
     crd_url: https://raw.githubusercontent.com/stackabletech/nifi-operator/main/deploy/crd/server.nifi.crd.yaml
+  - name: stackable-opa-operator-server
+    crd_url: https://raw.githubusercontent.com/stackabletech/opa-operator/main/deploy/crd/server.opa.crd.yaml
+  - name: stackable-regorule-operator-server
+    crd_url: https://raw.githubusercontent.com/stackabletech/regorule-operator/main/deploy/crd/regorule.crd.yaml
