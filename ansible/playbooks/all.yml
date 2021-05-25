@@ -1,7 +1,7 @@
 ---
 - hosts: all
   roles:
-    - ansible
+    - software
     - wireguard
     - firewalld
     - caddy

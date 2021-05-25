@@ -7,3 +7,7 @@
   yum:
     name: ansible
     state: latest
+- name: ensure OpenJDK 11 is installed
+  yum:
+    name: java-11-openjdk
+    state: latest
