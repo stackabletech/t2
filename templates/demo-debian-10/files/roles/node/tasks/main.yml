@@ -34,7 +34,7 @@
     repo: deb https://repo.stackable.tech/repository/{{item}} buster main
     state: present
   with_items: 
-    - "deb-nightly"
+    - "deb-dev"
     - "deb-release"
 
 - name: Ensure stackable agent is installed

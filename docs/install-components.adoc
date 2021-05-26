@@ -41,7 +41,6 @@ The Stackable repos should already be installed. Just in case they aren't, here 
 ```
 yum-config-manager --add-repo=https://repo.stackable.tech/repository/rpm-dev/el7/
 yum-config-manager --add-repo=https://repo.stackable.tech/repository/rpm-release/el7/
-yum-config-manager --add-repo=https://repo.stackable.tech/repository/rpm-nightly/el7/
 ```
 
 On each `yum` command, you can limit the set of repos to use with the `--enablerepo` or `--disablerepo` option. (E.g. to prevent dev packages from being used.)
@@ -95,7 +94,6 @@ The Stackable repos should already be installed (at least release and nightly). 
 ```
 deb https://repo.stackable.tech/repository/deb-dev buster main
 deb https://repo.stackable.tech/repository/deb-release buster main
-deb https://repo.stackable.tech/repository/deb-nightly buster main
 ```
 
 then

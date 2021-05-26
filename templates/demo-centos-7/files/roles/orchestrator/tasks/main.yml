@@ -59,5 +59,4 @@
   with_items: 
     - "rpm-dev"
     - "rpm-release"
-    - "rpm-nightly"
     

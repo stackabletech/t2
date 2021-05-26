@@ -3,8 +3,6 @@
   yum:
     name: "{{ item.name }}-{{ stackable_versions[item.name] | default( stackable_default_versions[item.name]) | default('*') }}"
     state: present
-    disablerepo: 
-      - stackable-rpm-dev
   loop: "{{ operators }}"
   notify: restart operators
 
