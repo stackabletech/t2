@@ -33,14 +33,11 @@
   with_items: 
     - "rpm-dev"
     - "rpm-release"
-    - "rpm-nightly"
 
 - name: Ensure stackable agent is installed
   yum:
     name: stackable-agent-{{ stackable_versions['stackable-agent'] | default( stackable_default_versions['stackable-agent']) | default('*') }}.x86_64
     state: present
-    disablerepo: 
-      - stackable-rpm-dev
   when: stackable_agent | bool
 
 - name: Start stackable agent
