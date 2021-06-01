@@ -65,7 +65,7 @@ public class ClusterController {
     @Operation(summary = "Creates a new cluster", description = "Creates a new cluster and starts it")
     public Cluster createCluster(
             @RequestHeader(name = "t2-token", required = false) String token,
-            @RequestBody(required = false) String clusterDefinition) {
+            @RequestBody(required = true) String clusterDefinition) {
 
         checkToken(token);
         return clusterService.createCluster(clusterDefinition(clusterDefinition));

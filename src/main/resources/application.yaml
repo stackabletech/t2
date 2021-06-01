@@ -13,7 +13,6 @@ t2:
     directory: /tmp/t2-workspace/
   templates:
     directory: templates/
-    default: demo-debian-10
   cluster-count-limit: 5
   security:
     token:

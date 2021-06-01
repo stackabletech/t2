@@ -100,7 +100,7 @@ public class TerraformAnsibleClusterService {
             Path workingDirectory = this.templateService.createWorkingDirectory(workspaceDirectory.resolve(cluster.getId().toString()), clusterDefinition);
             cluster.setStatus(Status.WORKING_DIR_CREATED);
             clusters.put(cluster.getId(), cluster);
-
+            
             // This thread must be started if the cluster launch fails after terraform apply has started as there may be created resources
             // which have to be torn down...
             Thread tearDownOnFailure = new Thread(() -> {

@@ -29,7 +29,7 @@ public class DiyClusterController {
             "application/yaml" }, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
     @Operation(summary = "Get DIY cluster package", description = "Creates a DIY cluster package (ZIP)")
-    public byte[] createCluster(@RequestBody(required = false) String clusterDefinition) {
+    public byte[] createCluster(@RequestBody(required = true) String clusterDefinition) {
         return clusterService.createDiyCluster(clusterDefinition(clusterDefinition));
     }
 

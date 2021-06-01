@@ -1,0 +1,34 @@
+---
+- hosts: all
+  roles:
+  - distribute_ssh_keys
+- hosts: nat
+  roles:
+  - nat_iptables_debian
+  - nat_dns_debian
+  - nat_wireguard_debian
+- hosts: protected
+  roles:
+  - protected_node_common_debian
+  - protected_node_configure_network
+  - protected_node_mutual_access
+  - protected_node_software_debian
+  - protected_node_chrony
+  - k9s
+  - stackable_repo_debian
+- hosts: orchestrators  
+  roles:
+  - wait
+  - stackable_k3s  
+  - stackable_operators
+- hosts: nodes
+  roles:
+  - stackable_kubeconfig
+  - stackable_agent
+- hosts: orchestrators  
+  roles:
+  - stackable_approve_agents
+  - stackable_deploy_services
+- hosts: nat
+  roles:
+  - merge_version_info

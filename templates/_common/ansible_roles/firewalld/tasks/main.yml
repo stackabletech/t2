@@ -1,0 +1,6 @@
+---
+- name: Disable local firewall
+  service:
+    name: firewalld
+    state: stopped
+    enabled: false

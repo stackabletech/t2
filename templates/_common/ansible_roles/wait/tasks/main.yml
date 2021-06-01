@@ -1,0 +1,4 @@
+---
+- name: Wait to prevent race conditions to hit us after reboot...
+  pause:
+    seconds: 5

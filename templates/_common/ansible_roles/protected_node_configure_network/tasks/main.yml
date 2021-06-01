@@ -1,0 +1,27 @@
+---
+- name: Create resolv.conf
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+
+- name: Create network config script
+  template:
+    src: networkconf.sh.j2
+    dest: /root/networkconf.sh
+    mode: 0755
+
+- name: execute network config script
+  shell: /root/networkconf.sh
+
+- name: Create action to run after network comes up and add default route
+  template:
+    src: configure_network.service.j2
+    dest: /etc/systemd/system/configure_network.service
+
+- name: Create route for internet access
+  systemd:
+    name: configure_network
+    state: started
+    enabled: yes
+    daemon_reload: yes
+

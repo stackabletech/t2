@@ -1,0 +1,19 @@
+- name: Ensure system is up to date
+  apt:
+    name: "*"
+    state: latest
+
+- name: Ensure important and useful packages are installed
+  apt:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - chrony
+      - curl
+      - dnsutils
+      - man-db
+      - tmux
+      - openjdk-11-jdk
+      - gnupg
+      - sudo
