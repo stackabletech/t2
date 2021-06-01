@@ -137,7 +137,7 @@ kind: Infra
 template: demo-centos-7
 metadata: 
   name: stackable-demo
-  description: "demo centos"
+  description: "demo centos8"
 domain: stackable.demo
 publicKeys:
   - "{{t2-ssh-key}}"
