@@ -1,0 +1,16 @@
+---
+- name: Ensure kubectl is installed
+  package:
+    name: kubectl
+    state: present
+
+- name: Create directory for kubeconfig
+  file:
+    path: /root/.kube
+    state: directory
+
+- name: copy the kubeconfig to all nodes
+  copy:
+    src: "resources/kubeconfig"
+    dest: "/root/.kube/config"
+

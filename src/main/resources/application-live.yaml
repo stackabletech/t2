@@ -6,7 +6,6 @@ t2:
     directory: /var/t2/workspace/  
   templates:
     directory: /var/t2/templates/
-    default: demo-debian-10 
   security:
     token:
       source: file  # options: file | static

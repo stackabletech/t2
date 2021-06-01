@@ -1,0 +1,45 @@
+---
+- name: Install operator (YUM)
+  yum:
+    name: "{{ stackable_package_versions[item.name] | default(item.name) }}"
+    state: present
+  loop: "{{ operators }}"
+  notify: restart operators
+  when: 
+    - ansible_distribution == "CentOS"
+
+- name: Install operator (APT)
+  apt:
+    name: "{{ stackable_package_versions[item.name] | default(item.name) }}"
+    state: present
+    force: yes
+  loop: "{{ operators }}"
+  notify: restart operators
+  when: 
+    - ansible_distribution == "Debian"
+
+- name: Download CRDs for the operators
+  shell: "curl {{ item.crd_url }} > /tmp/{{ item.name }}.crd.yaml"
+  loop: "{{ operators }}"
+  notify: restart operators
+
+- name: Apply CRDs
+  shell: "kubectl apply -f /tmp/{{ item.name }}.crd.yaml"
+  args:
+    warn: no
+  loop: "{{ operators }}"
+
+- name: Copy script to collect versions to server
+  copy:
+    src: "collect-stackable-versions.sh"
+    dest: "/tmp/collect-stackable-versions.sh"
+    mode: 0700
+
+- name: Collect version info into file on server
+  shell: "/tmp/collect-stackable-versions.sh"
+
+- name: Fetch version info file to Ansible localhost
+  fetch: 
+    src: "/tmp/stackable-versions.txt"
+    dest: "temp/stackable-versions/{{ inventory_hostname }}.txt"
+    flat: yes

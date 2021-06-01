@@ -1,0 +1,19 @@
+- name: Ensure system is up to date
+  yum:
+    name: "*"
+    state: latest
+
+- name: Ensure important and useful packages are installed
+  yum:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - chrony
+      - libselinux-python
+      - man
+      - tmux
+      - vim-enhanced
+      - wget
+      - java-11-openjdk-devel
+      - gnupg

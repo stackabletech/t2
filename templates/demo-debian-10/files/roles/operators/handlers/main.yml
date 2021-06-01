@@ -1,7 +1,0 @@
----
-- name: restart operators
-  service: 
-    name: "{{ item.name }}"
-    state: restarted 
-    enabled: yes
-  loop: "{{ operators }}"

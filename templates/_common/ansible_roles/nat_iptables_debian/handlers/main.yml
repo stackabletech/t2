@@ -1,0 +1,3 @@
+---
+- name: restart iptables
+  shell: "iptables-restore /etc/iptables/rules.v4"

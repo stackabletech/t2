@@ -53,12 +53,6 @@ t2-token: {{t2-token}}
 
 ###
 
-# create new cluster (default stuff)
-POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
-t2-token: {{t2-token}}
-
-###
-
 # create new cluster (provided YAML)
 POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
 t2-token: {{t2-token}}
@@ -70,15 +64,11 @@ kind: Infra
 template: demo-debian-10
 metadata: 
   name: stackable-demo
-  description: "Issue63"
+  description: "test new structure"
 domain: stackable.demo
 publicKeys:
   - "{{t2-ssh-key}}"
 spec:
-  versions:
-    stackable-agent: "0.1.0-nightly"
-    stackable-spark-operator-server: "0.1.0-nightly"
-    stackable-kafka-operator-server: "0.1.0-nightly"
   region: de/fra
   nodes:
     main:
@@ -88,14 +78,13 @@ spec:
       diskType: HDD 
       diskSizeGb: 15
     worker:
-      numberOfNodes: 3
+      numberOfNodes: 1
       numberOfCores: 4
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
 
 ###
-
 
 services:
   spark-demo: |
@@ -132,7 +121,7 @@ services:
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/9d043800-ace8-4fa8-827c-3348a2cc2b89
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/c95bcc1d-9fcf-4222-a6db-50015efe6aaa
 t2-token: {{t2-token}}
 
 

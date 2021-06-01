@@ -3,6 +3,7 @@ package tech.stackable.t2.wireguard;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ public class WireguardService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WireguardService.class);
 
-    public String generatePrivateKey() {
+    private String generatePrivateKey() {
         try {
             Process process = new ProcessBuilder().command("sh", "-c", "wg genkey").redirectErrorStream(true).start();
             int exitCode = process.waitFor();
@@ -28,7 +29,7 @@ public class WireguardService {
         }
     }
 
-    public String generatePublicKey(String privateKey) {
+    private String generatePublicKey(String privateKey) {
         try {
             Process process = new ProcessBuilder().command("sh", "-c", "echo \"" + privateKey + "\" | wg pubkey").redirectErrorStream(true).start();
             int exitCode = process.waitFor();
@@ -40,6 +41,30 @@ public class WireguardService {
             LOGGER.error("Error while calling wireguard pubkey", e);
             throw new RuntimeException("Error while calling wireguard pubkey", e);
         }
+    }
+    
+    public Keypair keypair() {
+    	String privateKey = this.generatePrivateKey();
+    	return new Keypair(privateKey, this.generatePublicKey(privateKey));
+    }
+    
+    public Stream<Keypair> keypairs(int count) {
+    	return Stream.generate(this::keypair).limit(count);
+    }
+    
+    public static class Keypair {
+    	private String privateKey;
+    	private String publicKey;
+    	private Keypair(String privateKey, String publicKey) {
+    		this.privateKey = privateKey;
+    		this.publicKey = publicKey;
+    	}
+		public String getPrivateKey() {
+			return privateKey;
+		}
+		public String getPublicKey() {
+			return publicKey;
+		}
     }
 
 }
