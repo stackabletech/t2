@@ -1,0 +1,8 @@
+---
+stackable-agent: "*0.el8.x86_64"
+stackable-spark-operator-server: "*"
+stackable-zookeeper-operator-server: "*"
+stackable-kafka-operator-server: "*"
+stackable-nifi-operator-server: "*"
+stackable-opa-operator-server: "*"
+stackable-regorule-operator-server: "*"

@@ -1,0 +1,20 @@
+---
+- name: Add Stackable repository
+  yum_repository:
+    name: stackable-{{item}}
+    description: Stackable YUM repo {{item}}
+    baseurl: https://repo.stackable.tech/repository/{{item}}/el8/
+    gpgcheck: no
+    repo_gpgcheck: no
+  with_items: 
+    - "rpm-dev"
+    - "rpm-release"
+    
+- name: Add Kubernetes repository
+  yum_repository:
+    name: Kubernetes
+    description: Kubernetes YUM repo
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgcheck: yes
+    repo_gpgcheck: yes
+    gpgkey: "https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"
