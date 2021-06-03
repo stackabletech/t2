@@ -1,0 +1,23 @@
+---
+- name: Ensure agent is installed
+  yum:
+    name: "stackable-agent-{{ version }}"
+    state: present
+    allow_downgrade: yes
+  when: 
+    - ansible_distribution == "CentOS"
+
+- name: Ensure agent is installed
+  apt:
+    name: "stackable-agent={{ version }}"
+    state: present
+    force: yes
+  when: 
+    - ansible_distribution == "Debian"
+
+- name: Restart operator
+  systemd:
+    name: "stackable-agent"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

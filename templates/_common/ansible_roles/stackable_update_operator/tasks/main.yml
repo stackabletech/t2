@@ -1,0 +1,23 @@
+---
+- name: Ensure operator is installed
+  yum:
+    name: "stackable-{{ operator }}-operator-server-{{ version }}"
+    state: present
+    allow_downgrade: yes
+  when: 
+    - ansible_distribution == "CentOS"
+
+- name: Ensure operator is installed
+  apt:
+    name: "stackable-{{ operator }}-operator-server={{ version }}"
+    state: present
+    force: yes
+  when: 
+    - ansible_distribution == "Debian"
+
+- name: Restart operator
+  systemd:
+    name: "stackable-{{ operator }}-operator-server"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

@@ -44,7 +44,7 @@ Ansible
 
 If the creation of Terraform resources was successful, you can execute the provided Ansible playbook:
 
-* run 'ansible-playbook playbook.yml'
+* run 'ansible-playbook launch.yml'
 
 The explanation of all the steps Ansible performs here would go way beyond the scope of this readme.
 Please feel free to have a look into the files and find out yourselves ;-)
