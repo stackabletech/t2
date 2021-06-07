@@ -58,7 +58,12 @@ public class SecurityConfiguration {
 
     @Bean(name = "credentials")
     public Properties credentials(@Value("${t2.security.credential-file:}") String credentialFile) {
-        Path path = Path.of(StringUtils.replace(credentialFile, "~", System.getProperty("user.home")));
+
+        Path path = Path.of(credentialFile); 
+        if(credentialFile.startsWith("~")) {
+        	path = Path.of(StringUtils.replace(credentialFile, "~", System.getProperty("user.home"), 1));
+        }
+    	
         Properties credentials = new Properties();
         if (!Files.exists(path) || !Files.isRegularFile(path) || !Files.isReadable(path)) {
             LOGGER.info("No credentials read, as the path {} does not exist.", path);

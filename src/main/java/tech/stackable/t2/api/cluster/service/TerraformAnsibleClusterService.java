@@ -152,13 +152,6 @@ public class TerraformAnsibleClusterService {
 
                 cluster.setStatus(Status.ANSIBLE_PROVISIONING);
                 
-                // TODO use kind of a retry mechanism instead of waiting stupidly
-                try {
-                    Thread.sleep(60_000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
                 AnsibleResult ansibleResult = this.ansibleService.run(workingDirectory);
                 if (ansibleResult == AnsibleResult.ERROR) {
                     cluster.setStatus(Status.ANSIBLE_FAILED);
