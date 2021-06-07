@@ -8,6 +8,7 @@ import static java.nio.file.Files.isWritable;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
@@ -60,7 +61,10 @@ public class T2ServerApplication {
 
         LOGGER.info("Configure template directory...");
 
-        Path path = Path.of(templateDirectory);
+        Path path = Path.of(templateDirectory); 
+        if(templateDirectory.startsWith("~")) {
+        	path = Path.of(StringUtils.replace(templateDirectory, "~", System.getProperty("user.home"), 1));
+        }
 
         if (exists(path) && isDirectory(path)) {
             if (!isWritable(path)) {
