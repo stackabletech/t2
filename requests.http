@@ -78,7 +78,7 @@ spec:
       diskType: HDD 
       diskSizeGb: 15
     worker:
-      numberOfNodes: 1
+      numberOfNodes: 2
       numberOfCores: 4
       memoryMb: 8192
       diskType: HDD 
@@ -121,7 +121,7 @@ services:
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/c95bcc1d-9fcf-4222-a6db-50015efe6aaa
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/bbd6c9c1-952f-4567-8e2f-f694fdd24067
 t2-token: {{t2-token}}
 
 

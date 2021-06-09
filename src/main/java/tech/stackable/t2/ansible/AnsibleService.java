@@ -29,7 +29,7 @@ public class AnsibleService {
     private int callAnsible(Path workingDirectory) {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder()
-                    .command("sh", "-c", "ansible-playbook playbook.yml")
+                    .command("sh", "-c", "ansible-playbook launch.yml")
                     .directory(workingDirectory.toFile());
             Process process = processBuilder.redirectErrorStream(true).start();
             ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), workingDirectory.resolve("cluster.log"), "ansible");

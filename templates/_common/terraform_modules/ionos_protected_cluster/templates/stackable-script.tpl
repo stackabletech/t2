@@ -47,6 +47,10 @@ fi
 
 %{ endfor ~}
 
+if [ "nodes" = "$host" ]; then
+    ip="${nodes[0].primary_ip}"
+fi
+
 if [ "orchestrator" = "$host" ]; then
     ip="${orchestrator.primary_ip}"
 fi
