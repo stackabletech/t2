@@ -49,6 +49,17 @@ If the creation of Terraform resources was successful, you can execute the provi
 The explanation of all the steps Ansible performs here would go way beyond the scope of this readme.
 Please feel free to have a look into the files and find out yourselves ;-)
 
+Update the Stackable components in the cluster
+
+The scripts update_agent.sh and update_operator.sh help you to update (or downgrade) the Stackable components
+in the cluster. 
+
+* The script update_agent.sh shows you the available and installed versions of the agent and prompts you to 
+  type the version you like to install. Then an Ansible playbook is started and does the actual up- or downgrade.
+* The script update_operator.sh shows you the available operators and lets you choose the operator to up- or downgrade.
+  Then it shows you the available and installed versions of the chosen operator and prompts you to 
+  type the version you like to install. Then an Ansible playbook is started and does the actual up- or downgrade.
+
 Access the cluster (without VPN)
 
 To use the cluster without a VPN, you can use the 'Stackable client script' to interact with the cluster

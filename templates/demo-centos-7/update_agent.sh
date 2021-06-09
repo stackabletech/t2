@@ -3,10 +3,10 @@
 echo
 echo "Reading installed version for stackable-agent.x86_64..."
 echo
-sh resources/stackable.sh nodes "yum list installed | grep 'stackable-agent.x86_64'"
+sh resources/stackable.sh nodes "yum list installed 2> /dev/null | grep 'stackable-agent.x86_64'"
 echo
 echo "Available versions: "
-sh resources/stackable.sh nodes "yum list available --showduplicates | grep 'stackable-agent.x86_64'" | awk '{print $2}' | sort -u
+sh resources/stackable.sh nodes "yum list available --showduplicates 2> /dev/null | grep 'stackable-agent.x86_64'" | awk '{print $2}' | sort -u
 echo
 
 read -p "Which version do you want to update to? " version
