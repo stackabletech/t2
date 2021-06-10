@@ -8,6 +8,7 @@
   - nat_dns_debian
   - role: nat_wireguard_debian
     when: wireguard|bool
+  - reboot
 - hosts: protected
   roles:
   - protected_node_common_debian
