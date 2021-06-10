@@ -206,6 +206,7 @@ resource "local_file" "ansible-inventory" {
       nat_internal_ip = ionoscloud_nic.nat_internal.ips[0]
       orchestrator = ionoscloud_server.orchestrator
       ssh_key_private_path = var.cluster_private_key_filename
+      wireguard = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? yamldecode(file("cluster.yaml"))["spec"]["wireguard"] : false
     }
   )
   file_permission = "0440"
@@ -272,6 +273,7 @@ resource "local_file" "stackable-client" {
 } 
 
 module "wireguard" {
+  count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 0  
   source                    = "../wireguard"
   server_config_filename    = "ansible_roles/files/wireguard_server.conf"
   client_config_base_path   = "resources/wireguard-client-config"

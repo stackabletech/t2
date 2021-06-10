@@ -95,6 +95,7 @@ publicKeys:
 spec:
   region: de/fra
   cpuFamily: INTEL_XEON
+  wireguard: true
   versions:
     stackable-agent: "1.2.3"
     stackable-spark-operator-server: "2.0.0"
@@ -187,6 +188,7 @@ services:
 |publicKeys |list of SSH public keys to allow access to cluster nodes
 |spec.region |one of the regions that the cloud vendor provides
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values.
+|spec.wireguard |(boolean, optional, defaults to `true`) Should a wireguard server be started on the bastion host? Switching wireguard off when you don't need it can speed up the start of the cluster.
 |spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components.
 |spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
 |spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have

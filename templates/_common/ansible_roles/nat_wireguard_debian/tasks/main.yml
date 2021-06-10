@@ -40,9 +40,6 @@
     owner: root
     group: root
     mode: 0600
-  notify:
-    - reboot
-    - restart wireguard
 
 - name: Ensure WireGuard is started and enabled
   service:
