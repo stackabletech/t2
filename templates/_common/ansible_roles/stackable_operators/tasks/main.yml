@@ -18,13 +18,16 @@
   when: 
     - ansible_distribution == "Debian"
 
-- name: Download CRDs for the operators
-  shell: "curl {{ item.crd_url }} > /tmp/{{ item.name }}.crd.yaml"
+- name: Download source repos of the orchestrators and extract CRDs
+  shell: |
+    mkdir -p /tmp/crds/
+    curl {{ item.repo_archive_url }} > /tmp/crds/{{ item.name }}.zip
+    unzip /tmp/crds/{{ item.name }}.zip -d /tmp/crds/
   loop: "{{ operators }}"
   notify: restart operators
 
 - name: Apply CRDs
-  shell: "kubectl apply -f /tmp/{{ item.name }}.crd.yaml"
+  shell: "kubectl apply -f /tmp/crds/{{ item.crd_folder_in_archive }}/deploy/crd/"
   args:
     warn: no
   loop: "{{ operators }}"
