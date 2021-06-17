@@ -22,7 +22,7 @@
   register: service_definitions
 
 - name: Apply service definitions 
-  shell: "kubectl apply -f {{ item.path }}"
+  shell: "/usr/local/bin/kubectl apply -f {{ item.path }}"
   args:
     warn: no
   with_items: "{{ service_definitions.files }}"

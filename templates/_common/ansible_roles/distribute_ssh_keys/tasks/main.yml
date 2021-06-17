@@ -1,7 +1,7 @@
 ---
 - name: Distribute SSH public keys to server
   authorized_key:
-    user: root
+    user: "{{ansible_user}}"
     state: present
     key: "{{ item }}"
   with_items: "{{ ssh_client_keys if ssh_client_keys is iterable else [] }}"

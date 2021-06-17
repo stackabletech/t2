@@ -23,8 +23,8 @@ variable "ionos_password" {
   sensitive   = true
 }
 
-variable "ionos_datacenter" {
-  description = "Name of the datacenter in the IONOS cloud - set using environment variable TF_VAR_ionos_datacenter"
+variable "cluster_name" {
+  description = "Name of the cluster"
   type        = string
 }
 
@@ -44,7 +44,7 @@ module "stackable_package_versions_debian" {
 
 module "ionos_protected_cluster" {
   source                        = "./terraform_modules/ionos_protected_cluster"
-  datacenter_name               = var.ionos_datacenter
+  datacenter_name               = var.cluster_name
   os_name                       = "Debian"
   os_version                    = "10-server"
   cluster_public_key_filename   = "${path.module}/cluster_key.pub"

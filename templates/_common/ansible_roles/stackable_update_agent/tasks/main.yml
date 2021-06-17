@@ -5,7 +5,7 @@
     state: present
     allow_downgrade: yes
   when: 
-    - ansible_distribution == "CentOS"
+    - (ansible_distribution == "CentOS") or (ansible_distribution == "RedHat")
 
 - name: Ensure agent is installed
   apt:

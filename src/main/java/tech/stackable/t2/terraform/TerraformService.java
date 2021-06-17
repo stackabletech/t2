@@ -27,15 +27,15 @@ public class TerraformService {
     @Qualifier("credentials")
     private Properties credentials;
 
-    public TerraformResult init(Path workingDirectory, String datacenter) {
+    public TerraformResult init(Path workingDirectory, String clusterName) {
         LOGGER.info("Running Terraform init on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, datacenter, "init", "-input=false");
+        int result = this.callTerraform(workingDirectory, clusterName, "init", "-input=false");
         return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
     }
 
-    public TerraformResult plan(Path workingDirectory, String datacenter) {
+    public TerraformResult plan(Path workingDirectory, String clusterName) {
         LOGGER.info("Running Terraform plan on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, datacenter, "plan", "-detailed-exitcode -input=false");
+        int result = this.callTerraform(workingDirectory, clusterName, "plan", "-detailed-exitcode -input=false");
         switch (result) {
         case 0:
             return TerraformResult.SUCCESS;
@@ -46,15 +46,15 @@ public class TerraformService {
         }
     }
 
-    public TerraformResult apply(Path workingDirectory, String datacenter) {
+    public TerraformResult apply(Path workingDirectory, String clusterName) {
         LOGGER.info("Running Terraform apply on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, datacenter, "apply", "-auto-approve -input=false");
+        int result = this.callTerraform(workingDirectory, clusterName, "apply", "-auto-approve -input=false");
         return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
     }
 
-    public TerraformResult destroy(Path workingDirectory, String datacenter) {
+    public TerraformResult destroy(Path workingDirectory, String clusterName) {
         LOGGER.info("Running Terraform destroy on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, datacenter, "destroy", "-auto-approve");
+        int result = this.callTerraform(workingDirectory, clusterName, "destroy", "-auto-approve");
         return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
     }
 
@@ -67,7 +67,7 @@ public class TerraformService {
         }
     }
 
-    private int callTerraform(Path workingDirectory, String datacenter, String command, String params) {
+    private int callTerraform(Path workingDirectory, String clusterName, String command, String params) {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder()
                     .command("sh", "-c", String.format("terraform %s %s -no-color", command, params))
@@ -75,7 +75,7 @@ public class TerraformService {
             this.credentials.forEach((key, value) -> {
                 processBuilder.environment().put(String.format("TF_VAR_%s", key), value.toString());
             });
-            processBuilder.environment().put("TF_VAR_ionos_datacenter", datacenter);
+            processBuilder.environment().put("TF_VAR_cluster_name", clusterName);
             Process process = processBuilder.redirectErrorStream(true).start();
             ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), workingDirectory.resolve("cluster.log"), MessageFormat.format("terraform-{0}", command));
             int exitCode = process.waitFor();

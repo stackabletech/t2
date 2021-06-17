@@ -9,6 +9,7 @@
     state: latest
   vars:
     packages:
+      - unzip
       - chrony
       - python3-libselinux
       - man
