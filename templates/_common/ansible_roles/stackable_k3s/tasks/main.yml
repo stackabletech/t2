@@ -21,7 +21,7 @@
 - name: provide kubeconfig at common location
   shell: "mkdir -p /root/.kube/ && cp /etc/rancher/k3s/k3s.yaml /root/.kube/config"
 
-- name: Fetch the kubeconfig to (1) provide it to the user and (2) distribute it to the nodes later
+- name: Fetch the kubeconfig to (1) distribute it to the other nodes later and (2) provide it to the cluster users
   fetch: 
     src: "/tmp/kubeconfig"
     dest: "resources/kubeconfig"

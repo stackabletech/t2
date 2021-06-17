@@ -5,7 +5,8 @@
     state: present
   when: 
     - stackable_agent | bool
-    - ansible_distribution == "CentOS"
+    - (ansible_distribution == "CentOS") or (ansible_distribution == "RedHat")
+  notify: restart agent
 
 - name: Ensure stackable agent is installed (APT)
   apt:
@@ -15,13 +16,19 @@
   when: 
     - stackable_agent | bool
     - ansible_distribution == "Debian"
+  notify: restart agent
 
-- name: Start stackable agent
-  systemd:
-    name: stackable-agent
-    state: started
-    enabled: yes
-    daemon_reload: yes
+- name: Create directory for drop-in file for operator service
+  file:
+    path: /lib/systemd/system/stackable-agent.service.d/
+    state: directory
+  when: stackable_agent | bool
+
+- name: Add drop-in file for agent service
+  template: 
+    src: service-drop-in.j2 
+    dest: /lib/systemd/system/stackable-agent.service.d/service.conf
+  notify: restart agent
   when: stackable_agent | bool
 
 - name: Copy script to collect versions to server

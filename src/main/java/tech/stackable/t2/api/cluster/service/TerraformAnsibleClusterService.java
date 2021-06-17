@@ -107,7 +107,7 @@ public class TerraformAnsibleClusterService {
                 if(this.dnsService.isPresent() && StringUtils.isNotEmpty(cluster.getHostname())) {
                     this.dnsService.get().removeSubdomain(cluster.getShortId());
                 }
-                this.terraformService.destroy(workingDirectory, datacenterName(cluster.getId()));
+                this.terraformService.destroy(workingDirectory, clusterName(cluster));
             });
             
             new Thread(() -> {
@@ -115,27 +115,29 @@ public class TerraformAnsibleClusterService {
                 TerraformResult terraformResult = null;
 
                 cluster.setStatus(Status.TERRAFORM_INIT);
-                terraformResult = this.terraformService.init(workingDirectory, datacenterName(cluster.getId()));
+                terraformResult = this.terraformService.init(workingDirectory, clusterName(cluster));
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_INIT_FAILED);
                     return;
                 }
 
                 cluster.setStatus(Status.TERRAFORM_PLAN);
-                terraformResult = this.terraformService.plan(workingDirectory, datacenterName(cluster.getId()));
+                terraformResult = this.terraformService.plan(workingDirectory, clusterName(cluster));
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_PLAN_FAILED);
                     return;
                 }
 
                 cluster.setStatus(Status.TERRAFORM_APPLY);
-                terraformResult = this.terraformService.apply(workingDirectory, datacenterName(cluster.getId()));
+                terraformResult = this.terraformService.apply(workingDirectory, clusterName(cluster));
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_APPLY_FAILED);
                     tearDownOnFailure.start();
                     return;
                 }
 
+                if(1==1)return;
+                
                 cluster.setIpV4Address(this.terraformService.getIpV4(workingDirectory));
 
                 if(this.dnsService.isPresent()) {
@@ -189,7 +191,7 @@ public class TerraformAnsibleClusterService {
                 Path terraformFolder = workspaceDirectory.resolve(cluster.getId().toString());
 
                 cluster.setStatus(Status.TERRAFORM_DESTROY);
-                TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, datacenterName(cluster.getId()));
+                TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, clusterName(cluster));
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_DESTROY_FAILED);
                     return;
@@ -331,13 +333,15 @@ public class TerraformAnsibleClusterService {
     }
     
     /**
-     * Datacenter name for the given cluster
+     * Name of the given cluster in the cloud provider.
+     * 
+     * This name is used as 'datacenter name', 'vpc id' or the like.
      * 
      * @param clusterId Cluster ID
-     * @return datacenter name for the given cluster
+     * @return cluster name for the given cluster
      */
-    private String datacenterName(UUID clusterId) {
-        return String.format("t2-%s", clusterId);
+    private String clusterName(Cluster cluster) {
+        return String.format("t2-%s", cluster.getShortId());
     }
 
 }

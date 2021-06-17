@@ -47,16 +47,6 @@ locals {
   ])
 }
 
-# list of all the service definitions
-locals {
-  service_definitions = can(yamldecode(file("cluster.yaml"))["services"]) ? [
-    for n, c in yamldecode(file("cluster.yaml"))["services"]: {
-      name = n
-      content = c 
-    }
-  ] : []
-}
-
 data "ionoscloud_image" "os_image" {
   name     = var.os_name
   version  = var.os_version
@@ -212,14 +202,6 @@ resource "local_file" "ansible-inventory" {
   file_permission = "0440"
 } 
 
-# service definition files
-resource "local_file" "service-definition" {
-  count = length(local.service_definitions)
-  filename = "ansible_roles/files/services/${local.service_definitions[count.index].name}.yaml"
-  file_permission = "0440"
-  content = local.service_definitions[count.index].content
-}
-
 # script to ssh into nat node
 resource "local_file" "nat-ssh-script" {
   filename = "ssh-nat.sh"
@@ -271,6 +253,10 @@ resource "local_file" "stackable-client" {
   )
   file_permission = "0550"
 } 
+
+module "stackable_service_definitions" {
+  source = "../stackable_service_definitions"
+}
 
 module "wireguard" {
   count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 1 

@@ -1,0 +1,5 @@
+Host *
+  CheckHostIP no
+  StrictHostKeyChecking no
+  User ec2-user
+  

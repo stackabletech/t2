@@ -25,7 +25,7 @@ To run the Terraform scripts you need to provide the following variables
 
 * ionos_username
 * ionos_password
-* ionos_datacenter
+* cluster_name
 
 You can either just type them when prompted to do so or put them into an environment variable beforehand. 
 If doing the latter, remember to add the prefix 'TF_VAR_' to the variable name.

@@ -6,7 +6,7 @@
   loop: "{{ operators }}"
   notify: restart operators
   when: 
-    - ansible_distribution == "CentOS"
+    - (ansible_distribution == "CentOS") or (ansible_distribution == "RedHat")
 
 - name: Install operator (APT)
   apt:
@@ -18,9 +18,18 @@
   when: 
     - ansible_distribution == "Debian"
 
+- name: Remove older CRD directory if present
+  file:
+    path: /tmp/crds/
+    state: absent
+
+- name: Create CRD directory
+  file:
+    path: /tmp/crds/
+    state: directory
+
 - name: Download source repos of the orchestrators and extract CRDs
   shell: |
-    mkdir -p /tmp/crds/
     curl {{ item.repo_archive_url }} > /tmp/crds/{{ item.name }}.zip
     unzip /tmp/crds/{{ item.name }}.zip -d /tmp/crds/
   loop: "{{ operators }}"

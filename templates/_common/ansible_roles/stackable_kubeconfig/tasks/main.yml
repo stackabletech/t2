@@ -4,13 +4,23 @@
     name: kubectl
     state: present
 
-- name: Create directory for kubeconfig
+- name: kubeconfig for the root user - create directory
   file:
     path: /root/.kube
     state: directory
 
-- name: copy the kubeconfig to all nodes
+- name: kubeconfig for the root user - copy file
   copy:
     src: "resources/kubeconfig"
     dest: "/root/.kube/config"
 
+- name: kubeconfig for the Stackable components - create directory
+  file:
+    path: /opt/stackable/
+    state: directory
+
+- name: kubeconfig for the Stackable components - copy file
+  copy:
+    src: "resources/kubeconfig"
+    dest: "/opt/stackable/kubeconfig"
+    mode: 0444

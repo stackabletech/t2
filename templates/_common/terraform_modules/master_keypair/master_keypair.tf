@@ -22,3 +22,8 @@ resource "local_file" "cluster_public_key" {
   content = tls_private_key.cluster_key.public_key_openssh
   file_permission = "0440"
 }
+
+output "public_key_openssh" {
+  value = tls_private_key.cluster_key.public_key_openssh
+  sensitive = true
+}

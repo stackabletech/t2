@@ -1,0 +1,35 @@
+---
+- name: create keypair on each node
+  openssh_keypair:
+    path: ~/.ssh/id_rsa
+  vars:
+    ansible_become: false
+
+- name: Fetch the keyfiles from all the nodes
+  fetch: 
+    src: "~/.ssh/id_rsa.pub"
+    dest: "temp/keys/{{ansible_hostname}}-id_rsa.pub"
+    flat: yes
+  vars:
+    ansible_become: false
+
+- name: copy the keyfiles to all other nodes
+  copy:
+    src: "temp/keys/{{item}}-id_rsa.pub"
+    dest: "/tmp/"
+    
+  when: "item != ansible_hostname"
+  with_items: "{{groups['protected']}}"
+
+- name: add the public key to authorized_key in all other nodes
+  shell: "cat /tmp/{{item}}-id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys"
+  when: "item != ansible_hostname"
+  with_items: "{{groups['protected']}}"
+
+- name: copy the ssh config
+  copy:
+    src: ssh_config
+    dest: "~/.ssh/config"
+    mode: 0600
+  vars:
+    ansible_become: false
