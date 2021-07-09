@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 0.15"
+  required_version = ">= 0.15"
 }
 
 # variable file for Ansible containing packages/versions of Stackable components
