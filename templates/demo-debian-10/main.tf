@@ -46,7 +46,7 @@ module "ionos_protected_cluster" {
   source                        = "./terraform_modules/ionos_protected_cluster"
   datacenter_name               = var.ionos_datacenter
   os_name                       = "Debian"
-  os_version                    = "10"
+  os_version                    = "10-server"
   cluster_public_key_filename   = "${path.module}/cluster_key.pub"
   cluster_private_key_filename  = "${path.module}/cluster_key"
 }
