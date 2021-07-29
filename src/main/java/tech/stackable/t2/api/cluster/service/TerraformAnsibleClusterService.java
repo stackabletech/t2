@@ -274,16 +274,27 @@ public class TerraformAnsibleClusterService {
         }
     }
     
+    @SuppressWarnings("unchecked")
     public byte[] createDiyCluster(Map<String, Object> clusterDefinition) {
+        Path tempDirectory;
         Path workingDirectory;
         try {
-            workingDirectory = Files.createTempDirectory("t2-diy-");
+            tempDirectory = Files.createTempDirectory("t2-diy-");
         } catch (IOException e) {
             throw new RuntimeException("Internal error creating temp folder.", e);
         }
+        if(clusterDefinition.containsKey("metadata") && clusterDefinition.get("metadata") instanceof Map && ((Map<String,Object>)clusterDefinition.get("metadata")).containsKey("name")) {
+            try {
+                workingDirectory = Files.createDirectory(tempDirectory.resolve((String)((Map<String,Object>)clusterDefinition.get("metadata")).get("name")));
+            } catch (IOException e) {
+                throw new RuntimeException("Internal error creating temp folder.", e);
+            }
+        } else {
+            workingDirectory = tempDirectory;
+        }
         this.templateService.createWorkingDirectory(workingDirectory, clusterDefinition);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ZipUtil.pack(workingDirectory.toFile(), bos);
+        ZipUtil.pack(tempDirectory.toFile(), bos);
         return bos.toByteArray();
     }
     
