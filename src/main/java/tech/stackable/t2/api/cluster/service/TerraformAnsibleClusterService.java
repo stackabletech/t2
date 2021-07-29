@@ -136,8 +136,6 @@ public class TerraformAnsibleClusterService {
                     return;
                 }
 
-                if(1==1)return;
-                
                 cluster.setIpV4Address(this.terraformService.getIpV4(workingDirectory));
 
                 if(this.dnsService.isPresent()) {
