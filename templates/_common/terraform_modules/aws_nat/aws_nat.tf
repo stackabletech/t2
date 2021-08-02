@@ -41,7 +41,11 @@ resource "aws_route_table" "internet_gateway_route_table" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.internet_gateway.id
   }
+  tags = {
+    "Name" = "${var.name_prefix}-internet-gateway-route-table"
+  }
 }
+
 resource "aws_route_table_association" "internet_gateway_route_table" {
   subnet_id = aws_subnet.nat.id
   route_table_id = aws_route_table.internet_gateway_route_table.id
@@ -50,6 +54,9 @@ resource "aws_route_table_association" "internet_gateway_route_table" {
 # public IP address for NAT gateway
 resource "aws_eip" "nat_gateway" {
   vpc = true
+  tags = {
+    "Name" = "${var.name_prefix}-nat-ip"
+  }
 }
 
 # the NAT gateway to be used by the nodes in the private network
@@ -99,6 +106,9 @@ resource "aws_instance" "bastion_host" {
   ebs_optimized = false
   root_block_device {
     volume_size = "25"
+    tags = {
+      "Name" = "${var.name_prefix}-bastion-host-disk"
+    }
   }
   tags = {
     "Name" = "${var.name_prefix}-bastion-host"
@@ -109,6 +119,9 @@ resource "aws_instance" "bastion_host" {
 resource "aws_eip" "bastion_host" {
   instance = aws_instance.bastion_host.id
   vpc = true
+  tags = {
+    "Name" = "${var.name_prefix}-bastion-host-ip"
+  }
 }
 
 # file containing IP address of bastion host.
