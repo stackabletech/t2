@@ -16,6 +16,7 @@
 - hosts: orchestrators  
   roles:
   - wait
+  - nm_cloud_setup_disabled
   - stackable_k3s_non_root  
   - stackable_operators_non_root
 - hosts: nodes
