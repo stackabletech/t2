@@ -86,6 +86,39 @@ spec:
 
 ###
 
+# create new cluster (provided YAML, AWS)
+POST {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
+t2-token: {{t2-token}}
+Content-Type: application/yaml
+
+---
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: aws-centos-8
+metadata: 
+  name: stackable-demo
+  description: "test new structure"
+domain: stackable.demo
+publicKeys:
+  - "{{t2-ssh-key}}"
+spec:
+  region: eu-central-1
+  nodes:
+    main:
+      numberOfNodes: 1
+      numberOfCores: 2
+      memoryMb: 8192
+      diskType: HDD 
+      diskSizeGb: 15
+    worker:
+      numberOfNodes: 2
+      numberOfCores: 4
+      memoryMb: 8192
+      diskType: HDD 
+      diskSizeGb: 15
+
+###
+
 services:
   spark-demo: |
     apiVersion: spark.stackable.tech/v1
@@ -156,23 +189,6 @@ spec:
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
-services:
-  zk-simple: |
-    apiVersion: zookeeper.stackable.tech/v1alpha1
-    kind: ZookeeperCluster
-    metadata:
-      name: simple
-    spec:
-      version: 3.5.8
-      servers:
-        roleGroups:
-          default:
-            selector:
-              matchLabels:
-                kubernetes.io/arch: stackable-linux
-            config:
-              adminPort: 12000
-              metricsPort: 9505
 
 
 ###
