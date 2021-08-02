@@ -76,7 +76,7 @@ module "stackable_service_definitions" {
 }
 
 module "wireguard" {
-  count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 1 
+  count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 0 
   source                    = "./terraform_modules/wireguard"
   server_config_filename    = "ansible_roles/files/wireguard_server.conf"
   client_config_base_path   = "resources/wireguard-client-config"
