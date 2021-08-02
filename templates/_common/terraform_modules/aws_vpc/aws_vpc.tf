@@ -13,9 +13,11 @@ resource "aws_vpc" "vpc" {
 
 resource "aws_route53_zone" "private" {
   name = "stackable.demo"
-
   vpc {
     vpc_id = aws_vpc.vpc.id
+  }
+  tags = {
+    "Name" = "${var.name}-dns-zone"
   }
 }
 

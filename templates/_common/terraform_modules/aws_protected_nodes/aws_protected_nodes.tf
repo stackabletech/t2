@@ -61,6 +61,9 @@ resource "aws_route_table" "protected_nodes_route_table" {
     cidr_block = "0.0.0.0/0"
     nat_gateway_id = var.nat_gateway.id
   }
+  tags = {
+    "Name" = "${var.name_prefix}-nat-gateway-route-table"
+  }
 }
 
 resource "aws_route_table_association" "protected_nodes_route_table" {
@@ -100,6 +103,9 @@ resource "aws_instance" "orchestrator" {
   ebs_optimized = false
   root_block_device {
     volume_size = "50"
+    tags = {
+      "Name" = "${var.name_prefix}-orchestrator-disk"
+    }
   }
   tags = {
     "Name" = "${var.name_prefix}-orchestrator"
@@ -138,6 +144,9 @@ resource "aws_instance" "node" {
   ebs_optimized = false
   root_block_device {
     volume_size = "50"
+    tags = {
+      "Name" = "${var.name_prefix}-${local.nodes[count.index].name}-disk"
+    }
   }
   tags = {
     "Name" = "${var.name_prefix}-${local.nodes[count.index].name}"
