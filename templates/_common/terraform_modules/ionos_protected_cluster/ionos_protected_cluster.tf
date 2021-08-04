@@ -241,18 +241,15 @@ resource "local_file" "node-ssh-script" {
   )
 }
 
-# stackable client script
-resource "local_file" "stackable-client" {
-  filename = "resources/stackable.sh"
-  content = templatefile("${path.module}/templates/stackable-script.tpl",
-    {
-      nodes = ionoscloud_server.node
-      orchestrator = ionoscloud_server.orchestrator
-      nat_public_ip = ionoscloud_server.nat.primary_ip
-    }
-  )
-  file_permission = "0550"
-} 
+module "stackable_client_script" {
+  source                        = "../stackable_client_script"
+  nodes                         = [for node in ionoscloud_server.node : 
+    { name = node.name, ip = node.primary_ip }
+  ]
+  orchestrator_ip               = ionoscloud_server.orchestrator.primary_ip
+  cluster_ip                    = ionoscloud_server.nat.primary_ip
+  ssh-username                  = "root"
+}
 
 module "stackable_service_definitions" {
   source = "../stackable_service_definitions"
