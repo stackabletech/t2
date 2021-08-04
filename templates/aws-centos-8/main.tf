@@ -67,6 +67,17 @@ module "aws_ansible_inventory" {
   cluster_ip                    = module.aws_nat.cluster_ip
 }
 
+
+module "stackable_client_script" {
+  source                        = "./terraform_modules/stackable_client_script"
+  nodes                         = [for node in module.aws_protected_nodes.nodes : 
+    { name = node.tags["hostname"], ip = node.private_ip }
+  ]
+  orchestrator_ip               = module.aws_protected_nodes.orchestrator.private_ip
+  cluster_ip                    = module.aws_nat.cluster_ip
+  ssh-username                  = "ec2-user"
+}
+
 module "stackable_package_versions_centos" {
   source = "./terraform_modules/stackable_package_versions_centos"
 }
