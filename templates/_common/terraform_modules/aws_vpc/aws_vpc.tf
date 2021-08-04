@@ -12,7 +12,7 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_route53_zone" "private" {
-  name = "stackable.demo"
+  name = yamldecode(file("cluster.yaml"))["domain"]
   vpc {
     vpc_id = aws_vpc.vpc.id
   }
