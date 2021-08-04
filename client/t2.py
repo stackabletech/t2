@@ -191,7 +191,7 @@ def get_version_information_sheet(t2_url, t2_token, id):
     response = requests.get(f"{t2_url}/api/clusters/{id}/stackable-versions", headers={ "t2-token": t2_token })
     if(response.status_code != 200):
         print(f"API call to get Stackable version information sheet returned error code {response.status_code}")
-        return None
+        return "No Stackable version information available."
     return response.text
 
 if __name__ == "__main__":
