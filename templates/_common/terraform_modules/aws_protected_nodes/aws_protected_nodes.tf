@@ -32,10 +32,9 @@ locals {
     for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
       for i in range(1, definition.numberOfNodes + 1): {
         name = "${type}-${i}" 
-        numberOfCores = definition.numberOfCores
-        memoryMb = definition.memoryMb
-        diskType = definition.diskType
-        diskSizeGb = definition.diskSizeGb
+        diskType = can(definition.diskType) ? definition.diskType : "gp2"
+        diskSizeGb = can(definition.diskSizeGb) ? definition.diskSizeGb : 50
+        awsInstanceType = can(definition.awsInstanceType) ? definition.awsInstanceType : "t2.medium"
         agent = can(definition.agent) ? definition.agent : true
       }
     ]
@@ -94,7 +93,7 @@ resource "aws_security_group" "protected_nodes" {
 }
 
 resource "aws_instance" "orchestrator" {
-  instance_type = "t2.xlarge"
+  instance_type = can(yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["awsInstanceType"]) ? yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["awsInstanceType"] : "t2.xlarge"
   ami = "ami-06ec8443c2a35b0ba"
   subnet_id = aws_subnet.protected.id
   security_groups = [aws_security_group.protected_nodes.id]
@@ -102,7 +101,8 @@ resource "aws_instance" "orchestrator" {
   disable_api_termination = false
   ebs_optimized = false
   root_block_device {
-    volume_size = "50"
+    volume_size = can(yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["diskSizeGb"]) ? yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["diskSizeGb"] : 50
+    volume_type = can(yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["diskType"]) ? yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["diskType"] : "gp2"
     tags = {
       "Name" = "${var.name_prefix}-orchestrator-disk"
     }
@@ -135,7 +135,7 @@ resource "local_file" "orchestrator-ssh-script" {
 
 resource "aws_instance" "node" {
   count = length(local.nodes)
-  instance_type = "t2.medium"
+  instance_type = local.nodes[count.index].awsInstanceType
   ami = "ami-06ec8443c2a35b0ba"
   subnet_id = aws_subnet.protected.id
   security_groups = [aws_security_group.protected_nodes.id]
@@ -143,7 +143,8 @@ resource "aws_instance" "node" {
   disable_api_termination = false
   ebs_optimized = false
   root_block_device {
-    volume_size = "50"
+    volume_size = local.nodes[count.index].diskSizeGb
+    volume_type = local.nodes[count.index].diskType
     tags = {
       "Name" = "${var.name_prefix}-${local.nodes[count.index].name}-disk"
     }
