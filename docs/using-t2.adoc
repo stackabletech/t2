@@ -78,7 +78,9 @@ or, with path to key:
 [[yaml]]
 == The Stackable cluster definition YAML
 
-In either way you choose to use T2, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. As of now, this Stackable cluster definition format is work in progress and the only documentation is the following example and the following table:
+In either way you choose to use T2, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. This section describes the cluster definition.
+
+This is an example cluster definition, please find detailed specification of the structure below.
 
 [source,yaml]
 ----
@@ -176,34 +178,60 @@ services:
       maxPortRetries: 0        
 ----
 
+The following sections describe the fields of the cluster definition in more detail:
+
+=== Templates
+
+The most important choice you have to make in a cluster definition is right in line #3: the template. By choosing a template, you decide which cloud provider will host your cluster and which Linux distribution will be used.
+
+The following table lists the currently available templates:
+
 [options="header"]
 |=======
-|key |description
-|apiVersion |always `t2.stackable.tech/v1`
-|kind |always `Infra`
-|template |one of `demo-debian-10` or `demo-centos-7` depending on the desired OS
-|metadata.name |name of the cluster
-|metadata.description |description of the cluster
-|domain |domain for DNS inside the cluster or when accessing through VPN
-|publicKeys |list of SSH public keys to allow access to cluster nodes
-|spec.region |one of the regions that the cloud vendor provides
-|spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values.
-|spec.wireguard |(boolean, optional, defaults to `true`) Should a wireguard server be started on the bastion host? Switching wireguard off when you don't need it can speed up the start of the cluster.
-|spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components.
-|spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
-|spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have
-|spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have
-|spec.orchestrator.diskType |(optional) type of disk the orchestrator should have
-|spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator
-|spec.nodes |map of node types with their specification
-|spec.nodes.<type>.numberOfNodes |# of nodes of the given type
-|spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have
-|spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have
-|spec.nodes.<type>.diskType | type of disk each node of the given type should have
-|spec.nodes.<type>.diskSizeGb |size of the disk of the given node
-|spec.nodes.<type>.agent |(boolean, optional, defaults to `true`) Should a Stackable agent be run on this node?
-|services |Map of service descriptions as embedded YAMLs. See below for available services.
+|key |Cloud provider| Linux distribution
+|demo-centos-7 | IONOS Cloud | CentOS 7
+|demo-centos-8 | IONOS Cloud | CentOS 8
+|demo-debian-10 | IONOS Cloud | Debian 10
+|aws-centos-8 | Amazon EC2 | CentOS 8
 |=======
+
+=== Configuration options
+
+[options="header"]
+|=======
+|key |description |IONOS Cloud |Amazon EC2
+|apiVersion |always `t2.stackable.tech/v1` 2+| 
+|kind |always `Infra` 2+| 
+|template |see section above 2+| 
+|metadata.name |name of the cluster 2+| 
+|metadata.description |description of the cluster 2+| 
+|domain |domain for DNS inside the cluster or when accessing through VPN 2+| 
+|publicKeys |list of SSH public keys to allow access to cluster nodes 2+| 
+|spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1`
+|spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` | not available
+|spec.wireguard |(boolean, optional, defaults to `true`) Should a wireguard server be started on the bastion host? Switching wireguard off when you don't need it can speed up the start of the cluster. | | not available
+|spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 2+|
+|spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details. 2+|
+|spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have | default: `4` | not available
+|spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have in MB | default: `8192` | not available
+|spec.orchestrator.diskType |(optional) type of disk the orchestrator should have | default: `HDD` | default: `gp2` (general purpose SSD), see links below
+|spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator in GB | default: `50` | default: `50`
+|spec.orchestrator.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below
+|spec.nodes |map of node types with their specification 2+|
+|spec.nodes.<type>.numberOfNodes |# of nodes of the given type 2+|
+|spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have | e.g. `8` | not available
+|spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have in MB | e.g. `8192` | not available
+|spec.nodes.<type>.diskType | type of disk each node of the given type should have | e.g.: `SSD` | default: `gp2` (general purpose SSD), see links below
+|spec.nodes.<type>.diskSizeGb |size of the disk of the given node in GB | e.g. `500` | default: `50`
+|spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below
+|spec.nodes.<type>.agent |(boolean, optional, defaults to `true`) Should a Stackable agent be run on this node? 2+|
+|services |Map of service descriptions as embedded YAMLs. See below for available services. 2+|
+|=======
+
+==== Links
+
+* https://aws.amazon.com/de/ec2/instance-types/[AWS EC2 instance types]
+* https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html[AWS EC2 volume types]
 
 === Stackable components
 
@@ -217,6 +245,8 @@ These are components that a Stackable cluster is made of. You can specify their 
 |https://github.com/stackabletech/zookeeper-operator[Stackable Zookeeper Operator] |`stackable-zookeeper-operator-server`
 |https://github.com/stackabletech/kafka-operator[Stackable Kafka Operator] |`stackable-kafka-operator-server`
 |https://github.com/stackabletech/nifi-operator[Stackable NiFi Operator] |`stackable-nifi-operator-server`
+|https://github.com/stackabletech/opa-operator[Stackable OPA Operator] |`stackable-nifi-operator-server`
+|https://github.com/stackabletech/regorule-operator[Stackable Regorule Operator] |`stackable-nifi-operator-server`
 |=======
 
 
@@ -228,6 +258,8 @@ The service descriptions depend on the used services. Please refer to the docume
 * https://github.com/stackabletech/zookeeper-operator[Apache ZooKeeper]
 * https://github.com/stackabletech/kafka-operator[Apache Kafka]
 * https://github.com/stackabletech/nifi-operator[Apache NiFi]
+* https://github.com/stackabletech/opa-operator[Open Policy Agent (OPA)]
+* https://github.com/stackabletech/regorule-operator[Regorule (Policies for OPA)]
 
 == The T2 client script
 
