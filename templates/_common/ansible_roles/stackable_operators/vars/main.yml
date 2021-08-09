@@ -18,3 +18,6 @@ operators:
   - name: stackable-regorule-operator-server
     repo_archive_url: https://codeload.github.com/stackabletech/regorule-operator/zip/refs/heads/main
     crd_folder_in_archive: regorule-operator-main
+  - name: stackable-monitoring-operator-server
+    repo_archive_url: https://codeload.github.com/stackabletech/monitoring-operator/zip/refs/heads/main
+    crd_folder_in_archive: monitoring-operator-main
