@@ -21,6 +21,7 @@ resource "aws_subnet" "nat" {
   availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block = "10.0.2.0/24"
   vpc_id = var.vpc.id
+  map_public_ip_on_launch = true
   tags = {
     "Name" = "${var.name_prefix}-nat"
   }
@@ -115,19 +116,10 @@ resource "aws_instance" "bastion_host" {
   }
 }
 
-# public IP address for the bastion host
-resource "aws_eip" "bastion_host" {
-  instance = aws_instance.bastion_host.id
-  vpc = true
-  tags = {
-    "Name" = "${var.name_prefix}-bastion-host-ip"
-  }
-}
-
 # file containing IP address of bastion host.
 resource "local_file" "ipv4_file" {
   filename = "ipv4"
-  content = aws_eip.bastion_host.public_ip
+  content = aws_instance.bastion_host.public_ip
   file_permission = "0440"
 }
 
@@ -137,15 +129,13 @@ resource "local_file" "bastion-host-ssh-script" {
   file_permission = "0550"
   content = templatefile("${path.module}/templates/ssh-bastion-host-script.tpl",
     {
-      node_ip = aws_eip.bastion_host.public_ip
+      node_ip = aws_instance.bastion_host.public_ip
       ssh_key_private_path = var.cluster_private_key_filename
     }
   )
 }
 
-
-
 # cluster IP address
 output "cluster_ip" {
-  value = aws_eip.bastion_host.public_ip
+  value = aws_instance.bastion_host.public_ip
 }
