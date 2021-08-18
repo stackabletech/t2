@@ -1,0 +1,20 @@
+= Certificates in K3s
+
+This document contains some notes regarding K3s and certificates. 
+
+It's more a cheat sheet for us than part of the official docs.
+
+== K3s certificate dir
+
+We found the directory `/var/lib/rancher/k3s/server/tls/` which contains 20+ certificates and/or keys that were generated with the installation of K3s.
+
+== K3s kubeconfig
+
+The kubeconfig generated with the installation of K3s contains everything we need to access the K8s cluster API as an admin user. We expose this kubeconfig to the users in T2, that's why we are so interested in their content.
+
+By decoding the base64 encoded certificates we found out that the following certificates of the aforementioned directory are woven into the kubeconfig:
+
+* `clusters.cluster[0].certificate-authority-data` equals `server-ca.crt`
+* `users.user[0].client-certificate-data` equals `client-admin.crt`
+** The latter contains two certificates, the second one of which is equal to `client-ca.crt`
+* `users.user[0].client-key-data` equals `client-admin.key`
