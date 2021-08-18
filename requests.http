@@ -266,3 +266,16 @@ spec:
       numberOfNodes: 1
     worker:
       numberOfNodes: 1
+
+###
+
+# get DIY cluster (AWS EKS)
+GET {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/diy-cluster
+Content-Type: application/yaml
+
+---
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: aws-eks-demo
+metadata: 
+  name: stackable-eks-demo

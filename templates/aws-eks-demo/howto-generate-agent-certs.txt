@@ -1,0 +1,27 @@
+The certificates used in the agent (ansible/roles/agent/files/agent.*) were generated in a Docker container like this:
+
+Start container
+
+docker run -it --rm centos
+
+Run this stuff
+
+alias ll='ls -la'
+yum install -y openssl 
+curl -L https://github.com/OpenVPN/easy-rsa/releases/download/v3.0.8/EasyRSA-3.0.8.tgz > EasyRSA-3.0.8.tgz
+tar xf EasyRSA-3.0.8.tgz 
+cd EasyRSA-3.0.8
+./easyrsa init-pki
+./easyrsa build-ca 
+    (passphrase, common name: 'stackable.de')
+./easyrsa gen-req stackable-agent 
+    (passphrase, common name: 'agent.stackable.de')
+./easyrsa import-req pki/reqs/stackable-agent.req stackable-agent-req
+./easyrsa sign-req serverClient stackable-agent-req
+    (passphrase, confirm)
+openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in pki/private/stackable-agent.key -out stackable-agent.key
+    (passphrase)
+cat stackable-agent.key 
+    (this is agent.key)
+cat pki/issued/stackable-agent-req.crt 
+    (contains agent.crt at the end)
