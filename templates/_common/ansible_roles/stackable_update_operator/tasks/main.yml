@@ -1,5 +1,5 @@
 ---
-- name: Ensure operator is installed
+- name: Ensure operator is installed (YUM)
   yum:
     name: "stackable-{{ operator }}-operator-server-{{ version }}"
     state: present
@@ -7,7 +7,7 @@
   when: 
     - (ansible_distribution == "CentOS") or (ansible_distribution == "RedHat")
 
-- name: Ensure operator is installed
+- name: Ensure operator is installed (APT)
   apt:
     name: "stackable-{{ operator }}-operator-server={{ version }}"
     state: present

@@ -1,5 +1,5 @@
 ---
-- name: Ensure agent is installed
+- name: Ensure agent is installed (YUM)
   yum:
     name: "stackable-agent-{{ version }}"
     state: present
@@ -7,7 +7,7 @@
   when: 
     - (ansible_distribution == "CentOS") or (ansible_distribution == "RedHat")
 
-- name: Ensure agent is installed
+- name: Ensure agent is installed (APT)
   apt:
     name: "stackable-agent={{ version }}"
     state: present
@@ -15,7 +15,7 @@
   when: 
     - ansible_distribution == "Debian"
 
-- name: Restart operator
+- name: Restart agent
   systemd:
     name: "stackable-agent"
     state: restarted
