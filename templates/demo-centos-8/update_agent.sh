@@ -3,6 +3,7 @@
 echo
 echo "Reading installed version for stackable-agent.x86_64..."
 echo
+sh resources/stackable.sh nodes "yum clean all 1>/dev/null 2>&1"
 sh resources/stackable.sh nodes "yum list installed 2> /dev/null | grep 'stackable-agent.x86_64'"
 echo
 echo "Available versions: "

@@ -3,6 +3,7 @@
 echo
 echo "List of available operators"
 echo
+sh resources/stackable.sh orchestrator "yum clean all 1>/dev/null 2>&1"
 { 
     echo "`sh resources/stackable.sh orchestrator "yum list installed 2> /dev/null | grep 'stackable'" | grep 'operator-server' | sed 's/stackable-//' | sed 's/-operator-server.x86_64.*//'`" ;
     echo "`sh resources/stackable.sh orchestrator "yum list available 2> /dev/null | grep 'stackable'" | grep 'operator-server' | sed 's/stackable-//' | sed 's/-operator-server.x86_64.*//'`" ; 

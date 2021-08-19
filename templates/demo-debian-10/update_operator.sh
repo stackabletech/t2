@@ -3,6 +3,8 @@
 echo
 echo "List of available operators"
 echo
+sh resources/stackable.sh orchestrator "apt update"
+echo
 sh resources/stackable.sh orchestrator "apt list stackable-* 2> /dev/null" | grep 'operator-server' | sed 's/stackable-//' | sed 's/-operator-server.*//'
 echo
 echo
