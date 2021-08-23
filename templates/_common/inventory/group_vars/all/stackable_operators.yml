@@ -1,0 +1,23 @@
+---
+stackable_operators:
+  - name: spark-operator
+    folder: /opt/stackable/spark-operator
+    binary: stackable-spark-operator-server
+  - name: zookeeper-operator
+    folder: /opt/stackable/zookeeper-operator
+    binary: stackable-zookeeper-operator-server   
+  - name: nifi-operator
+    folder: /opt/stackable/nifi-operator
+    binary: stackable-nifi-operator-server   
+  - name: kafka-operator
+    folder: /opt/stackable/kafka-operator
+    binary: stackable-kafka-operator-server   
+  - name: opa-operator
+    folder: /opt/stackable/opa-operator
+    binary: stackable-opa-operator-server   
+  - name: regorule-operator
+    folder: /opt/stackable/stackable-regorule-operator-server
+    binary: stackable-regorule-operator-server   
+  - name: monitoring-operator
+    folder: /opt/stackable/monitoring-operator
+    binary: stackable-monitoring-operator-server   

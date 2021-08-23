@@ -1,0 +1,22 @@
+---
+- name: Create file to collect operator versions in
+  shell: |
+    echo 'Operator version information for host {{ inventory_hostname }}:' > /tmp/stackable-operators-version-information.txt
+    echo '----------------------------------------------------------------------------------' >> /tmp/stackable-operators-version-information.txt
+    echo '' >> /tmp/stackable-operators-version-information.txt
+
+- name: Collect version info into file on server
+  shell: |
+    echo '{{ item.name }}:' >> /tmp/stackable-operators-version-information.txt
+    echo '' >> /tmp/stackable-operators-version-information.txt
+    {{ item.folder }}/{{ item.binary }} --version >> /tmp/stackable-operators-version-information.txt
+    echo '' >> /tmp/stackable-operators-version-information.txt
+    echo '' >> /tmp/stackable-operators-version-information.txt
+  loop: "{{ stackable_operators }}"
+  ignore_errors: True
+
+- name: Fetch version info file to Ansible localhost
+  fetch: 
+    src: /tmp/stackable-operators-version-information.txt
+    dest: "temp/stackable-versions/{{ inventory_hostname }}-operators.txt"
+    flat: yes
