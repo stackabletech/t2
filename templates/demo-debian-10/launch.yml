@@ -23,10 +23,12 @@
   - wait
   - stackable_k3s  
   - stackable_operators
+  - stackable_collect_versions_operators
 - hosts: nodes
   roles:
   - stackable_kubeconfig
   - stackable_agent
+  - stackable_collect_versions_agent_debian
 - hosts: orchestrators  
   roles:
   - stackable_approve_agents

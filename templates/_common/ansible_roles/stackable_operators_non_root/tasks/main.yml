@@ -53,18 +53,3 @@
   args:
     warn: no
   loop: "{{ operators }}"
-
-- name: Copy script to collect versions to server
-  copy:
-    src: "collect-stackable-versions.sh"
-    dest: "/tmp/collect-stackable-versions.sh"
-    mode: 0700
-
-- name: Collect version info into file on server
-  shell: "/tmp/collect-stackable-versions.sh"
-
-- name: Fetch version info file to Ansible localhost
-  fetch: 
-    src: "/tmp/stackable-versions.txt"
-    dest: "temp/stackable-versions/{{ inventory_hostname }}.txt"
-    flat: yes
