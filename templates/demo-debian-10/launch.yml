@@ -33,6 +33,6 @@
   roles:
   - stackable_approve_agents
   - stackable_deploy_services
-- hosts: nat
+- hosts: localhost
   roles:
   - merge_version_info
