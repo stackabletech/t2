@@ -1,55 +1,38 @@
 ---
 - name: Install operator (YUM)
   yum:
-    name: "{{ stackable_package_versions[item.name] | default(item.name) }}"
+    name: "{{ stackable_package_versions[item.name] | default(item.service) }}"
     state: present
-  loop: "{{ operators }}"
+  loop: "{{ stackable_operators }}"
   notify: restart operators
   when: 
     - (ansible_distribution == "CentOS") or (ansible_distribution == "RedHat")
 
 - name: Install operator (APT)
   apt:
-    name: "{{ stackable_package_versions[item.name] | default(item.name) }}"
+    name: "{{ stackable_package_versions[item.name] | default(item.service) }}"
     state: present
     force: yes
-  loop: "{{ operators }}"
+  loop: "{{ stackable_operators }}"
   notify: restart operators
   when: 
     - ansible_distribution == "Debian"
 
 - name: Create directory for drop-in file for operator service
   file:
-    path: /lib/systemd/system/{{ item.name }}.service.d/
+    path: /lib/systemd/system/{{ item.service }}.service.d/
     state: directory
-  loop: "{{ operators }}"
+  loop: "{{ stackable_operators }}"
 
 - name: Add drop-in file for operator service to run under stackable-user
   template:
     src: service-user.j2
-    dest: /lib/systemd/system/{{ item.name }}.service.d/service-user.conf
-  loop: "{{ operators }}"
-  notify: restart operators
-
-- name: Remove older CRD directory if present
-  file:
-    path: /tmp/crds/
-    state: absent
-
-- name: Create CRD directory
-  file:
-    path: /tmp/crds/
-    state: directory
-
-- name: Download source repos of the orchestrators and extract CRDs
-  shell: |
-    curl {{ item.repo_archive_url }} > /tmp/crds/{{ item.name }}.zip
-    unzip /tmp/crds/{{ item.name }}.zip -d /tmp/crds/
-  loop: "{{ operators }}"
+    dest: /lib/systemd/system/{{ item.service }}.service.d/service-user.conf
+  loop: "{{ stackable_operators }}"
   notify: restart operators
 
 - name: Apply CRDs
-  shell: "/usr/local/bin/kubectl apply -f /tmp/crds/{{ item.crd_folder_in_archive }}/deploy/crd/"
+  shell: "{{ item.crd_command }}"
   args:
     warn: no
-  loop: "{{ operators }}"
+  loop: "{{ stackable_operators }}"
