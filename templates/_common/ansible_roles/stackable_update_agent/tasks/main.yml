@@ -4,6 +4,7 @@
     name: "stackable-agent-{{ version }}"
     state: present
     allow_downgrade: yes
+    update_cache: yes
   when: 
     - (ansible_distribution == "CentOS") or (ansible_distribution == "RedHat")
 
@@ -12,6 +13,7 @@
     name: "stackable-agent={{ version }}"
     state: present
     force: yes
+    update_cache: yes
   when: 
     - ansible_distribution == "Debian"
 
