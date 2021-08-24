@@ -154,7 +154,7 @@ services:
 ###
 
 # delete cluster
-DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/bbd6c9c1-952f-4567-8e2f-f694fdd24067
+DELETE {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/e7a50b8d-5e83-4541-8d59-8c69154c1b85
 t2-token: {{t2-token}}
 
 
@@ -169,7 +169,7 @@ apiVersion: t2.stackable.tech/v1
 kind: Infra
 template: demo-centos-7
 metadata: 
-  name: stackable-demo
+  name: cli-demo-centos-7
   description: "demo centos8"
 domain: stackable.demo
 publicKeys:
@@ -189,6 +189,31 @@ spec:
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
+
+
+###
+
+# get DIY cluster AWS (provided YAML)
+GET {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/diy-cluster
+Content-Type: application/yaml
+
+---
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: aws-centos-8
+metadata: 
+  name: cli-aws-centos-8
+  description: "demo centos8"
+domain: stackable.demo
+publicKeys:
+  - "{{t2-ssh-key}}"
+spec:
+  region: eu-central-1
+  nodes:
+    main:
+      numberOfNodes: 1
+    worker:
+      numberOfNodes: 1
 
 
 ###

@@ -1,23 +1,40 @@
 ---
 stackable_operators:
   - name: spark-operator
+    service: stackable-spark-operator-server
     folder: /opt/stackable/spark-operator
     binary: stackable-spark-operator-server
+    crd_command: "{ /opt/stackable/spark-operator/stackable-spark-operator-server crd restart --print && /opt/stackable/spark-operator/stackable-spark-operator-server crd stop --print && /opt/stackable/spark-operator/stackable-spark-operator-server crd start --print && /opt/stackable/spark-operator/stackable-spark-operator-server crd sparkcluster --print ; } | grep -v 'INFO' | /usr/local/bin/kubectl apply -f -"
   - name: zookeeper-operator
+    service: stackable-zookeeper-operator-server   
     folder: /opt/stackable/zookeeper-operator
     binary: stackable-zookeeper-operator-server   
+    crd_command: "{ /opt/stackable/zookeeper-operator/stackable-zookeeper-operator-server crd zookeepercluster --print ; } | grep -v 'INFO' | /usr/local/bin/kubectl apply -f -"
   - name: nifi-operator
+    service: stackable-nifi-operator-server   
     folder: /opt/stackable/nifi-operator
     binary: stackable-nifi-operator-server   
+    crd_command: "curl https://raw.githubusercontent.com/stackabletech/nifi-operator/main/deploy/crd/nificluster.crd.yaml | /usr/local/bin/kubectl apply -f -"
   - name: kafka-operator
+    service: stackable-kafka-operator-server   
     folder: /opt/stackable/kafka-operator
     binary: stackable-kafka-operator-server   
+    crd_command: "{ /opt/stackable/kafka-operator/stackable-kafka-operator-server crd kafkacluster --print ; } | grep -v 'INFO' | /usr/local/bin/kubectl apply -f -"
   - name: opa-operator
-    folder: /opt/stackable/opa-operator
+    service: stackable-opa-operator-server   
+    folder: /opt/stackable/opa-operator 
     binary: stackable-opa-operator-server   
+    crd_command: "{ /opt/stackable/opa-operator/stackable-opa-operator-server crd openpolicyagent --print ; } | grep -v 'INFO' | /usr/local/bin/kubectl apply -f -"
   - name: regorule-operator
+    service: stackable-regorule-operator-server   
     folder: /opt/stackable/stackable-regorule-operator-server
     binary: stackable-regorule-operator-server   
+    crd_command: "curl https://raw.githubusercontent.com/stackabletech/regorule-operator/main/deploy/crd/regorule.crd.yaml | /usr/local/bin/kubectl apply -f -"
   - name: monitoring-operator
+    service: stackable-monitoring-operator-server   
     folder: /opt/stackable/monitoring-operator
     binary: stackable-monitoring-operator-server   
+    crd_command: "curl https://raw.githubusercontent.com/stackabletech/monitoring-operator/main/deploy/crd/monitoringcluster.crd.yaml | /usr/local/bin/kubectl apply -f -"
+
+
+
