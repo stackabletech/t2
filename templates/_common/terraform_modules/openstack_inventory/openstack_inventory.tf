@@ -20,6 +20,11 @@ variable "cluster_ip" {
   description = "Public IP of cluster"
 }
 
+variable "bastion_host_internal_ip" {
+  type = string
+  description = "internal IP of bastion host"
+}
+
 variable "stackable_user" {
   type = string
   description = "non-root user for Stackable"
@@ -48,6 +53,7 @@ resource "local_file" "ansible-inventory" {
       domain = yamldecode(file("cluster.yaml"))["domain"]
       nodes = var.nodes
       cluster_ip = var.cluster_ip
+      bastion_host_internal_ip = var.bastion_host_internal_ip
       orchestrator = var.orchestrator
       ssh_key_private_path = var.cluster_private_key_filename
       wireguard = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? yamldecode(file("cluster.yaml"))["spec"]["wireguard"] : false

@@ -86,6 +86,7 @@ module "openstack_inventory" {
   nodes                         = module.openstack_protected_nodes.nodes
   cluster_private_key_filename  = "${path.module}/cluster_key"
   cluster_ip                    = module.openstack_network.cluster_ip
+  bastion_host_internal_ip       = module.openstack_nat.bastion_host_internal_ip
   stackable_user                = "centos"
 }
 

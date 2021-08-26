@@ -76,3 +76,7 @@ resource "local_file" "bastion-host-ssh-script" {
     }
   )
 }
+
+output "bastion_host_internal_ip" {
+  value = openstack_compute_instance_v2.nat.access_ip_v4
+}
