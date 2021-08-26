@@ -10,13 +10,13 @@
 #    when: wireguard|bool
 - hosts: protected
   roles:
-  - protected_node_dns
   - protected_node_common_centos
-#  - protected_node_mutual_access                TODO for non-root users!!!
+  - protected_node_dns
+  - protected_node_mutual_access_non_root
   - protected_node_software_centos_8
   - protected_node_chrony
-  - k9s
-  - stackable_repo_centos_8
+#  - k9s
+#  - stackable_repo_centos_8
 #- hosts: orchestrators  
 #  roles:
 #  - wait
