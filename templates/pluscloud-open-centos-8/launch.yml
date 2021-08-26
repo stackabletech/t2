@@ -1,0 +1,39 @@
+---
+- hosts: all
+  roles:
+  - distribute_ssh_keys
+  - firewalld
+- hosts: nat
+  roles: 
+  - centos_epel_8
+  - nat_iptables_centos
+  - nat_dns_centos
+  - role: nat_wireguard_centos_8
+    when: wireguard|bool
+- hosts: protected
+  roles:
+  - protected_node_common_centos
+  - protected_node_configure_network
+  - protected_node_mutual_access
+  - protected_node_software_centos_8
+  - protected_node_chrony
+  - k9s
+  - stackable_repo_centos_8
+- hosts: orchestrators  
+  roles:
+  - wait
+  - stackable_k3s  
+  - stackable_operators
+  - stackable_collect_versions_operators
+- hosts: nodes
+  roles:
+  - stackable_kubeconfig
+  - stackable_agent
+  - stackable_collect_versions_agent_centos
+- hosts: orchestrators  
+  roles:
+  - stackable_approve_agents
+  - stackable_deploy_services
+- hosts: localhost
+  roles:
+  - merge_version_info
