@@ -64,14 +64,19 @@ module "openstack_nat" {
   cluster_ip                    = module.openstack_network.cluster_ip
   network_name                  = module.openstack_network.network_name
   keypair_name                  = openstack_compute_keypair_v2.master_keypair.name
+  cluster_private_key_filename  = "${path.module}/cluster_key"
+  stackable_user                = "centos"
   network_ready_flag            = module.openstack_network.network_ready_flag
 }
 
 module "openstack_protected_nodes" {
   source                        = "./terraform_modules/openstack_protected_nodes"
   cluster_name                  = var.cluster_name
+  cluster_ip                    = module.openstack_network.cluster_ip
   network_name                  = module.openstack_network.network_name
   keypair_name                  = openstack_compute_keypair_v2.master_keypair.name
+  cluster_private_key_filename  = "${path.module}/cluster_key"
+  stackable_user                = "centos"
   network_ready_flag            = module.openstack_network.network_ready_flag
 }
 

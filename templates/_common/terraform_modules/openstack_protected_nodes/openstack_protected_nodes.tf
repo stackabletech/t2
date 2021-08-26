@@ -16,6 +16,11 @@ variable "cluster_name" {
   description = "name of the cluster"
 }
 
+variable "cluster_ip" {
+  type = string
+  description = "public IP of the cluster"
+}
+
 variable "network_name" {
   type = string
   description = "name of the cluster's network"
@@ -24,6 +29,16 @@ variable "network_name" {
 variable "keypair_name" {
   type = string
   description = "name of the keypair to be used to access the machine(s) created in this module"
+}
+
+variable "cluster_private_key_filename" {
+  type = string
+  description = "master keyfile"
+}
+
+variable "stackable_user" {
+  type = string
+  description = "non-root user for Stackable"
 }
 
 variable "network_ready_flag" {
@@ -74,6 +89,35 @@ resource "openstack_compute_instance_v2" "node" {
     "hostname" = local.nodes[count.index].name
     "has_agent" = local.nodes[count.index].agent
   }
+}
+
+# script to ssh into orchestrator via ssh proxy
+resource "local_file" "orchestrator-ssh-script" {
+  filename = "ssh-orchestrator.sh"
+  file_permission = "0550"
+  content = templatefile("${path.module}/templates/ssh-protected-node-script.tpl",
+    {
+      node_ip = openstack_compute_instance_v2.orchestrator.access_ip_v4
+      cluster_ip = var.cluster_ip
+      ssh_key_private_path = var.cluster_private_key_filename
+      stackable_user = var.stackable_user
+    }
+  )
+}
+
+# script to ssh into node via ssh proxy
+resource "local_file" "node-ssh-script" {
+  count = length(local.nodes)
+  filename = "ssh-${local.nodes[count.index].name}.sh"
+  file_permission = "0550"
+  content = templatefile("${path.module}/templates/ssh-protected-node-script.tpl",
+    {
+      node_ip = element(openstack_compute_instance_v2.node.*.access_ip_v4, count.index)
+      cluster_ip = var.cluster_ip
+      ssh_key_private_path = var.cluster_private_key_filename
+      stackable_user = var.stackable_user
+    }
+  )
 }
 
 output "orchestrator" {

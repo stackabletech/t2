@@ -26,9 +26,9 @@ ${node.metadata["hostname"]} ansible_host=${node.access_ip_v4} stackable_agent=$
 %{ endfor ~}
 
 [nodes:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q ec2-user@${cluster_ip}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
-ansible_user=ec2-user
+ansible_user=${stackable_user}
 ansible_become=yes
 
 [protected:children]

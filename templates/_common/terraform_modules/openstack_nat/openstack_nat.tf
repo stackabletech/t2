@@ -31,6 +31,16 @@ variable "keypair_name" {
   description = "name of the keypair to be used to access the machine(s) created in this module"
 }
 
+variable "cluster_private_key_filename" {
+  type = string
+  description = "master keyfile"
+}
+
+variable "stackable_user" {
+  type = string
+  description = "non-root user for Stackable"
+}
+
 variable "network_ready_flag" {
   description = "resource as a flag to indicate that the network is ready to be used"
 }
@@ -52,4 +62,17 @@ resource "openstack_compute_instance_v2" "nat" {
 resource "openstack_compute_floatingip_associate_v2" "cluster_ip_association_to_bastion_host" {
   floating_ip = var.cluster_ip
   instance_id = openstack_compute_instance_v2.nat.id
+}
+
+# script to ssh into bastion host
+resource "local_file" "bastion-host-ssh-script" {
+  filename = "ssh-bastion-host.sh"
+  file_permission = "0550"
+  content = templatefile("${path.module}/templates/ssh-bastion-host-script.tpl",
+    {
+      node_ip = var.cluster_ip
+      ssh_key_private_path = var.cluster_private_key_filename
+      stackable_user = var.stackable_user
+    }
+  )
 }
