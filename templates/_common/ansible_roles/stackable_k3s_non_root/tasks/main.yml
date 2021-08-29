@@ -7,38 +7,56 @@
   notify: restart k3s
 
 - name: generate config for other k8s nodes
-  shell: "cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig"
+  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig
 
-- name: copy config to be picked up for other users
-  shell: "cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig-user && chmod 444 /tmp/kubeconfig-user"
+- name: copy config to be picked up for other users on this host
+  shell: |
+    cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig-user 
+    chmod 444 /tmp/kubeconfig-user
 
 - name: provide kubeconfig at standard location
-  shell: "mkdir -p ~/.kube/ && cp /tmp/kubeconfig-user ~/.kube/config"
+  shell: |
+    mkdir -p /home/{{ stackable_user }}/.kube/
+    cp /tmp/kubeconfig-user /home/{{ stackable_user }}/.kube/config
+    chmod 660 /home/{{ stackable_user }}/.kube/config
+  vars:
+    ansible_become: false
+
+- name: set env variable to point to kubeconfig for Stackable user
+  lineinfile:
+    dest: /home/{{ stackable_user }}/.bashrc
+    line: |
+
+      # kubeconfig to be used by K9s, kubectl, ...
+      export KUBECONFIG=/home/{{ stackable_user }}/.kube/config
+    state: present
+    insertafter: EOF
   vars:
     ansible_become: false
 
 - name: Fetch the kubeconfig to (1) distribute it to the other nodes later and (2) provide it to the cluster users
   fetch: 
-    src: "/tmp/kubeconfig"
-    dest: "resources/kubeconfig"
+    src: /tmp/kubeconfig
+    dest: resources/kubeconfig
     flat: yes
 
 - name: Ensure Kubernetes configs are present on orchestrator
   copy:
     src: "{{ item }}"
-    dest: "/tmp/"
+    dest: /tmp/
     mode: 0444
   with_items: 
-    - "stackable-repositories.crd.yml"
-    - "stackablepublic-repo.yml"
+    - stackable-repositories.crd.yml
+    - stackablepublic-repo.yml
 
 - name: Force all notified handlers to run at this point, not waiting for normal sync points
   meta: flush_handlers
   
 - name: Apply Kubernetes configs
-  shell: "/usr/local/bin/kubectl apply -f /tmp/{{ item }}"
+  shell: |
+    /usr/local/bin/kubectl apply -f /tmp/{{ item }}
   args:
     warn: no
   with_items: 
-    - "stackable-repositories.crd.yml"
-    - "stackablepublic-repo.yml"
+    - stackable-repositories.crd.yml
+    - stackablepublic-repo.yml
