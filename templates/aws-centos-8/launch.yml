@@ -18,7 +18,7 @@
   roles:
   - wait
   - nm_cloud_setup_disabled
-  - stackable_k3s_non_root  
+  - stackable_k3s_aws  
   - stackable_operators_non_root
   - stackable_collect_versions_operators
 - hosts: nodes
