@@ -1,15 +1,18 @@
 ---
-- hosts: bastion_host
-  roles: 
-  - distribute_ssh_keys
-  - centos_epel_8
-  - role: nat_wireguard_centos_8
-    when: wireguard|bool
-- hosts: protected
+- hosts: all
   roles:
   - distribute_ssh_keys
+- hosts: bastion_host
+  roles: 
+  - centos_epel_8
+  - bind_centos
+#  - role: nat_wireguard_centos_8
+#    when: wireguard|bool
+- hosts: protected
+  roles:
   - protected_node_common_centos
-  - protected_node_mutual_access_aws
+  - protected_node_dns
+  - protected_node_mutual_access_non_root
   - protected_node_software_centos_8
   - protected_node_chrony
   - k9s
@@ -17,13 +20,12 @@
 - hosts: orchestrators  
   roles:
   - wait
-  - nm_cloud_setup_disabled
-  - stackable_k3s_aws  
+  - stackable_k3s_non_root  
   - stackable_operators_non_root
   - stackable_collect_versions_operators
 - hosts: nodes
   roles:
-  - stackable_kubeconfig_aws
+  - stackable_kubeconfig_non_root
   - stackable_agent
   - stackable_collect_versions_agent_centos
 - hosts: orchestrators  

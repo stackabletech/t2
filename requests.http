@@ -218,6 +218,32 @@ spec:
 
 ###
 
+# get DIY cluster Pluscloud open
+GET {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/diy-cluster
+Content-Type: application/yaml
+
+---
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: pluscloud-open-centos-8
+metadata: 
+  name: pluscloud-open-dev
+  description: "dev pluscloud open scs"
+domain: stackable.demo
+publicKeys:
+  - "{{t2-ssh-key}}"
+spec:
+  region: RegionOne
+  orchestrator:
+  nodes:
+    main:
+      numberOfNodes: 1
+    worker:
+      numberOfNodes: 2
+
+
+###
+
 services:
   spark-primary: |
     apiVersion: spark.stackable.tech/v1

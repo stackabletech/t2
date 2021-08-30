@@ -1,0 +1,47 @@
+---
+- name: create directory for keypair for mutual access
+  file:
+    path: temp/key_for_mutual_access/
+    state: directory
+  delegate_to: localhost
+  run_once: yes
+
+- name: create keypair for mutual access
+  openssh_keypair:
+    path: "temp/key_for_mutual_access/id_rsa"
+  delegate_to: localhost
+  run_once: yes
+
+- name: copy the private key to all nodes
+  copy:
+    src: "temp/key_for_mutual_access/id_rsa"
+    dest: "/home/{{ stackable_user }}/.ssh/id_rsa"
+    mode: 0600
+  vars:
+    ansible_become: false
+
+- name: copy the public key to all nodes
+  copy:
+    src: "temp/key_for_mutual_access/id_rsa.pub"
+    dest: "/home/{{ stackable_user }}/.ssh/id_rsa.pub"
+    mode: 0644
+  vars:
+    ansible_become: false
+
+- name: add the public key to authorized_key in all nodes
+  lineinfile:
+    dest: "/home/{{ stackable_user }}/.ssh/authorized_keys"
+    line: "{{ lookup('file', 'temp/key_for_mutual_access/id_rsa.pub') }}"
+    state: present
+  vars:
+    ansible_become: false
+
+- name: copy the ssh config
+  template:
+    src: ssh_config.j2
+    dest: "/home/{{ stackable_user }}/.ssh/config"
+    mode: 0600
+  vars:
+    ansible_become: false
+
+
