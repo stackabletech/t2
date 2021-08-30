@@ -218,7 +218,7 @@ The following table lists the currently available templates:
 |spec.orchestrator.diskType |(optional) type of disk the orchestrator should have | default: `HDD` | default: `gp2` (general purpose SSD), see links below | not available
 |spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator in GB | default: `50` | default: `50` | not available
 |spec.orchestrator.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below | not available
-|spec.orchestrator.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack | not available | not available | defaults to `8C-16GB-60GB`
+|spec.orchestrator.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `8C-16GB-60GB`
 |spec.nodes |map of node types with their specification 3+|
 |spec.nodes.<type>.numberOfNodes |# of nodes of the given type 3+|
 |spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have | e.g. `8` 2+| not available
@@ -226,7 +226,7 @@ The following table lists the currently available templates:
 |spec.nodes.<type>.diskType | type of disk each node of the given type should have | e.g.: `SSD` | default: `gp2` (general purpose SSD), see links below | not available
 |spec.nodes.<type>.diskSizeGb |size of the disk of the given node in GB | e.g. `500` | default: `50` | not available
 |spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below | not available
-|spec.nodes.<type>.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack | not available | not available | defaults to `2C-4GB-20GB`
+|spec.nodes.<type>.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `2C-4GB-20GB`
 |spec.nodes.<type>.agent |(boolean, optional, defaults to `true`) Should a Stackable agent be run on this node? 3+|
 |services |Map of service descriptions as embedded YAMLs. See below for available services. 3+|
 |=======
