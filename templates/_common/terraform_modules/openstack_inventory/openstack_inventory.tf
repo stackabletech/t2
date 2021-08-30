@@ -29,7 +29,12 @@ variable "bastion_host_internal_ip" {
 
 variable "stackable_user" {
   type = string
-  description = "non-root user for Stackable"
+  description = "User for Stackable stuff"
+}
+
+variable "stackable_user_home" {
+  type = string
+  description = "Home directory of Stackable user"
 }
 
 # variable file for Ansible
@@ -52,6 +57,7 @@ resource "local_file" "ansible-inventory" {
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
       stackable_user = var.stackable_user
+      stackable_user_home = var.stackable_user_home
       domain = yamldecode(file("cluster.yaml"))["domain"]
       nodes = var.nodes
       cluster_ip = var.cluster_ip

@@ -1,6 +1,7 @@
 [all:vars]
 domain=${domain}
 stackable_user=${stackable_user}
+stackable_user_home=${stackable_user_home}
 
 [bastion_host]
 bastion_host ansible_host=${cluster_ip}

@@ -79,7 +79,8 @@ provider "openstack" {
 }
 
 locals {
-  stackable_user_name = "centos"
+  stackable_user = "centos"
+  stackable_user_home = "/home/centos/"
 }
 
 # Keypair (as files on disk where Terraform is executed)
@@ -116,7 +117,7 @@ module "openstack_nat" {
   network_name                  = module.openstack_network.network_name
   keypair_name                  = openstack_compute_keypair_v2.master_keypair.name
   cluster_private_key_filename  = "${path.module}/cluster_key"
-  stackable_user                = local.stackable_user_name
+  stackable_user                = local.stackable_user
   network_ready_flag            = module.openstack_network.network_ready_flag
 }
 
@@ -128,7 +129,7 @@ module "openstack_protected_nodes" {
   network_name                  = module.openstack_network.network_name
   keypair_name                  = openstack_compute_keypair_v2.master_keypair.name
   cluster_private_key_filename  = "${path.module}/cluster_key"
-  stackable_user                = local.stackable_user_name
+  stackable_user                = local.stackable_user
   network_ready_flag            = module.openstack_network.network_ready_flag
 }
 
@@ -139,8 +140,9 @@ module "openstack_inventory" {
   nodes                         = module.openstack_protected_nodes.nodes
   cluster_private_key_filename  = "${path.module}/cluster_key"
   cluster_ip                    = module.openstack_network.cluster_ip
-  bastion_host_internal_ip       = module.openstack_nat.bastion_host_internal_ip
-  stackable_user                = local.stackable_user_name
+  bastion_host_internal_ip      = module.openstack_nat.bastion_host_internal_ip
+  stackable_user                = local.stackable_user
+  stackable_user_home           = local.stackable_user_home
 }
 
 # Creates the Stackable client script to access the cluster once it's up and running
@@ -151,5 +153,5 @@ module "stackable_client_script" {
   ]
   orchestrator_ip               = module.openstack_protected_nodes.orchestrator.access_ip_v4
   cluster_ip                    = module.openstack_network.cluster_ip
-  ssh-username                  = local.stackable_user_name
+  ssh-username                  = local.stackable_user
 }
