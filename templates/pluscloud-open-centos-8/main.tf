@@ -90,4 +90,13 @@ module "openstack_inventory" {
   stackable_user                = "centos"
 }
 
-
+# Creates the Stackable client script to access the cluster once it's up and running
+module "stackable_client_script" {
+  source                        = "./terraform_modules/stackable_client_script"
+  nodes                         = [for node in module.openstack_protected_nodes.nodes : 
+    { name = node.metadata["hostname"], ip = node.access_ip_v4 }
+  ]
+  orchestrator_ip               = module.openstack_protected_nodes.orchestrator.access_ip_v4
+  cluster_ip                    = module.openstack_network.cluster_ip
+  ssh-username                  = "centos"
+}
