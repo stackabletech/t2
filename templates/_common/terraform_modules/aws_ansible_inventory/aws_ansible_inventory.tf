@@ -20,6 +20,16 @@ variable "cluster_ip" {
   description = "Public IP of cluster"
 }
 
+variable "stackable_user" {
+  type = string
+  description = "User for Stackable stuff"
+}
+
+variable "stackable_user_home" {
+  type = string
+  description = "Home directory of Stackable user"
+}
+
 # variable file for Ansible
 resource "local_file" "ansible-variables" {
   filename = "inventory/group_vars/all/all.yml"
@@ -39,6 +49,8 @@ resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
+      stackable_user = var.stackable_user
+      stackable_user_home = var.stackable_user_home
       domain = yamldecode(file("cluster.yaml"))["domain"]
       nodes = var.nodes
       cluster_ip = var.cluster_ip
