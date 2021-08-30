@@ -53,7 +53,7 @@ locals {
     for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
       for i in range(1, definition.numberOfNodes + 1): {
         name = "${type}-${i}" 
-        # TODO performance attributes
+        flavorName = can(definition.openstackFlavorName) ? definition.openstackFlavorName : "2C-4GB-20GB"
         agent = can(definition.agent) ? definition.agent : true
       }
     ]
@@ -65,7 +65,7 @@ resource "openstack_compute_instance_v2" "orchestrator" {
   depends_on      = [ var.network_ready_flag ]
   name            = "${var.cluster_name}-orchestrator"
   image_id        = "3ecdee9c-241c-4913-acf0-12731f73d2b6"  # CentOS 8
-  flavor_name     = "8C-16GB-60GB"
+  flavor_name     = can(yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["openstackFlavorName"]) ? yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["openstackFlavorName"] : "8C-16GB-60GB"
   key_pair        = var.keypair_name
   security_groups = ["default"]
 
@@ -80,7 +80,7 @@ resource "openstack_compute_instance_v2" "node" {
   count           = length(local.nodes)
   name            = "${var.cluster_name}-${local.nodes[count.index].name}"
   image_id        = "3ecdee9c-241c-4913-acf0-12731f73d2b6"  # CentOS 8
-  flavor_name     = "2C-4GB-20GB"
+  flavor_name     = local.nodes[count.index].flavorName
   key_pair        = "${var.cluster_name}-master-key"
   security_groups = ["default"]
 
