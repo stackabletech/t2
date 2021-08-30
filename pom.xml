@@ -13,6 +13,12 @@
     <version>0.1.0-SNAPSHOT</version>
     
     <name>t2-server</name>
+    <licenses>
+      <license>
+        <name>Apache License, Version 2.0</name>
+        <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      </license>
+    </licenses>
     <description>T2 Server</description>
 
     <properties>
