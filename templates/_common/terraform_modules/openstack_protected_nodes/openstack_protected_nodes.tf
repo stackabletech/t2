@@ -1,3 +1,5 @@
+# Creates the protected nodes (= nodes not directly accessible from the outside world) of an OpenStack based Stackable cluster
+
 terraform {
   required_version = ">= 0.15, < 2.0.0"
 }
@@ -58,7 +60,7 @@ locals {
   ])
 }
 
-
+# Create the orchestrator compute instance
 resource "openstack_compute_instance_v2" "orchestrator" {
   depends_on      = [ var.network_ready_flag ]
   name            = "${var.cluster_name}-orchestrator"
@@ -72,6 +74,7 @@ resource "openstack_compute_instance_v2" "orchestrator" {
   }
 }
 
+# Create the cluster-specific nodes as compute instances
 resource "openstack_compute_instance_v2" "node" {
   depends_on      = [ var.network_ready_flag ]
   count           = length(local.nodes)
@@ -105,7 +108,7 @@ resource "local_file" "orchestrator-ssh-script" {
   )
 }
 
-# script to ssh into node via ssh proxy
+# script to ssh into nodes via ssh proxy
 resource "local_file" "node-ssh-script" {
   count = length(local.nodes)
   filename = "ssh-${local.nodes[count.index].name}.sh"
@@ -122,8 +125,10 @@ resource "local_file" "node-ssh-script" {
 
 output "orchestrator" {
   value = openstack_compute_instance_v2.orchestrator
+  description = "Orchestrator node as resource"
 }
 
 output "nodes" {
   value = openstack_compute_instance_v2.node
+  description = "Protected nodes as list of resources"
 }

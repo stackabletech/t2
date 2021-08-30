@@ -1,3 +1,5 @@
+# Creates a bastion host for an OpenStack cluster
+
 terraform {
   required_version = ">= 0.15, < 2.0.0"
 }
@@ -45,6 +47,7 @@ variable "network_ready_flag" {
   description = "resource as a flag to indicate that the network is ready to be used"
 }
 
+# bastion host compute instance
 resource "openstack_compute_instance_v2" "nat" {
   depends_on      = [ var.network_ready_flag ]
   name            = "${var.cluster_name}-nat"
@@ -53,12 +56,12 @@ resource "openstack_compute_instance_v2" "nat" {
   key_pair        = var.keypair_name
   security_groups = ["default"]
 
-
   network {
     name = var.network_name
   }
 }
 
+# associate public IP of the cluster to bastion host
 resource "openstack_compute_floatingip_associate_v2" "cluster_ip_association_to_bastion_host" {
   floating_ip = var.cluster_ip
   instance_id = openstack_compute_instance_v2.nat.id
@@ -79,4 +82,5 @@ resource "local_file" "bastion-host-ssh-script" {
 
 output "bastion_host_internal_ip" {
   value = openstack_compute_instance_v2.nat.access_ip_v4
+  description = "The internal IP of the bastion host"
 }
