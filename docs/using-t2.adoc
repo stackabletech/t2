@@ -193,39 +193,42 @@ The following table lists the currently available templates:
 |demo-centos-8 | IONOS Cloud | CentOS 8
 |demo-debian-10 | IONOS Cloud | Debian 10
 |aws-centos-8 | Amazon EC2 | CentOS 8
+|pluscloud-open-centos-8 | PlusCloud Open (Plusserver, SCS implementation, based on OpenStack) | CentOS 8
 |=======
 
 === Configuration options
 
 [options="header"]
 |=======
-|key |description |IONOS Cloud |Amazon EC2
-|apiVersion |always `t2.stackable.tech/v1` 2+| 
-|kind |always `Infra` 2+| 
-|template |see section above 2+| 
-|metadata.name |name of the cluster 2+| 
-|metadata.description |description of the cluster 2+| 
-|domain |domain for DNS inside the cluster or when accessing through VPN 2+| 
-|publicKeys |list of SSH public keys to allow access to cluster nodes 2+| 
-|spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1`
-|spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` | not available
-|spec.wireguard |(boolean, optional, defaults to `true`) Should a wireguard server be started on the bastion host? Switching wireguard off when you don't need it can speed up the start of the cluster. | | not available
-|spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 2+|
-|spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details. 2+|
-|spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have | default: `4` | not available
-|spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have in MB | default: `8192` | not available
-|spec.orchestrator.diskType |(optional) type of disk the orchestrator should have | default: `HDD` | default: `gp2` (general purpose SSD), see links below
-|spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator in GB | default: `50` | default: `50`
-|spec.orchestrator.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below
-|spec.nodes |map of node types with their specification 2+|
-|spec.nodes.<type>.numberOfNodes |# of nodes of the given type 2+|
-|spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have | e.g. `8` | not available
-|spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have in MB | e.g. `8192` | not available
-|spec.nodes.<type>.diskType | type of disk each node of the given type should have | e.g.: `SSD` | default: `gp2` (general purpose SSD), see links below
-|spec.nodes.<type>.diskSizeGb |size of the disk of the given node in GB | e.g. `500` | default: `50`
-|spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below
-|spec.nodes.<type>.agent |(boolean, optional, defaults to `true`) Should a Stackable agent be run on this node? 2+|
-|services |Map of service descriptions as embedded YAMLs. See below for available services. 2+|
+|key |description |IONOS Cloud |Amazon EC2| PlusCloud Open
+|apiVersion |always `t2.stackable.tech/v1` 3+| 
+|kind |always `Infra` 3+| 
+|template |see section above 3+| 
+|metadata.name |name of the cluster 3+| 
+|metadata.description |description of the cluster 3+| 
+|domain |domain for DNS inside the cluster or when accessing through VPN 3+| 
+|publicKeys |list of SSH public keys to allow access to cluster nodes 3+| 
+|spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1` | 
+|spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 2+| not available
+|spec.wireguard |(boolean, optional, defaults to `true`) Should a wireguard server be started on the bastion host? Switching wireguard off when you don't need it can speed up the start of the cluster. | | not available |
+|spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 3+|
+|spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details. 3+|
+|spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have | default: `4` 2+| not available
+|spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have in MB | default: `8192` 2+| not available
+|spec.orchestrator.diskType |(optional) type of disk the orchestrator should have | default: `HDD` | default: `gp2` (general purpose SSD), see links below | not available
+|spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator in GB | default: `50` | default: `50` | not available
+|spec.orchestrator.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below | not available
+|spec.orchestrator.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack | not available | not available | defaults to `8C-16GB-60GB`
+|spec.nodes |map of node types with their specification 3+|
+|spec.nodes.<type>.numberOfNodes |# of nodes of the given type 3+|
+|spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have | e.g. `8` 2+| not available
+|spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have in MB | e.g. `8192` 2+| not available
+|spec.nodes.<type>.diskType | type of disk each node of the given type should have | e.g.: `SSD` | default: `gp2` (general purpose SSD), see links below | not available
+|spec.nodes.<type>.diskSizeGb |size of the disk of the given node in GB | e.g. `500` | default: `50` | not available
+|spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below | not available
+|spec.nodes.<type>.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack | not available | not available | defaults to `2C-4GB-20GB`
+|spec.nodes.<type>.agent |(boolean, optional, defaults to `true`) Should a Stackable agent be run on this node? 3+|
+|services |Map of service descriptions as embedded YAMLs. See below for available services. 3+|
 |=======
 
 ==== Links
