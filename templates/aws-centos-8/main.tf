@@ -25,6 +25,11 @@ provider "aws" {
   secret_key  = var.aws_secret_access_key
 }
 
+locals {
+  stackable_user = "ec2-user"
+  stackable_user_home = "/home/ec2-user/"
+}
+
 module "master_keypair" {
   source      = "./terraform_modules/master_keypair"
   filename    = "${path.module}/cluster_key"
@@ -65,6 +70,8 @@ module "aws_ansible_inventory" {
   orchestrator                  = module.aws_protected_nodes.orchestrator
   cluster_private_key_filename  = "${path.module}/cluster_key"
   cluster_ip                    = module.aws_nat.cluster_ip
+  stackable_user                = local.stackable_user
+  stackable_user_home           = local.stackable_user_home
 }
 
 
@@ -75,7 +82,7 @@ module "stackable_client_script" {
   ]
   orchestrator_ip               = module.aws_protected_nodes.orchestrator.private_ip
   cluster_ip                    = module.aws_nat.cluster_ip
-  ssh-username                  = "ec2-user"
+  ssh-username                  = local.stackable_user
 }
 
 module "stackable_package_versions_centos" {
