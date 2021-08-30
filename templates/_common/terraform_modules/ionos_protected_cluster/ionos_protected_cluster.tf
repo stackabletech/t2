@@ -45,6 +45,8 @@ locals {
       }
     ]
   ])
+  stackable_user = "root"
+  stackable_user_home = "/root/"
 }
 
 data "ionoscloud_image" "os_image" {
@@ -189,6 +191,8 @@ resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
+      stackable_user = local.stackable_user
+      stackable_user_home = local.stackable_user_home
       domain = yamldecode(file("cluster.yaml"))["domain"]
       nodes = ionoscloud_server.node
       nodes_has_agent = [ for node in local.nodes : node.agent ]
