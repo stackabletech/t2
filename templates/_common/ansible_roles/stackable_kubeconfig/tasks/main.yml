@@ -4,15 +4,19 @@
     name: kubectl
     state: present
 
-- name: kubeconfig for the root user - create directory
+- name: kubeconfig for the user - create directory
   file:
-    path: /root/.kube
+    path: "{{ stackable_user_home }}.kube"
     state: directory
+  vars:
+    ansible_become: false
 
-- name: kubeconfig for the root user - copy file
+- name: kubeconfig for the Stackable user - copy file
   copy:
-    src: "resources/kubeconfig"
-    dest: "/root/.kube/config"
+    src: resources/kubeconfig
+    dest: "{{ stackable_user_home }}.kube/config"
+  vars:
+    ansible_become: false
 
 - name: kubeconfig for the Stackable components - create directory
   file:
@@ -23,4 +27,4 @@
   copy:
     src: "resources/kubeconfig"
     dest: "/opt/stackable/kubeconfig"
-    mode: 0444
+    mode: 0664
