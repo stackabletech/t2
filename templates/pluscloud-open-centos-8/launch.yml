@@ -25,7 +25,7 @@
   - stackable_collect_versions_operators
 - hosts: nodes
   roles:
-  - stackable_kubeconfig_non_root
+  - stackable_kubeconfig
   - stackable_agent
   - stackable_collect_versions_agent_centos
 - hosts: orchestrators  
