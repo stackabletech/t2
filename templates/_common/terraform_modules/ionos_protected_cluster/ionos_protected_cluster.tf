@@ -206,43 +206,34 @@ resource "local_file" "ansible-inventory" {
   file_permission = "0440"
 } 
 
-# script to ssh into nat node
-resource "local_file" "nat-ssh-script" {
-  filename = "ssh-nat.sh"
-  file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-nat-script.tpl",
-    {
-      nat_public_ip = ionoscloud_server.nat.primary_ip
-      ssh_key_private_path = var.cluster_private_key_filename
-    }
-  )
+# script to ssh into bastion host
+module "bastion_host_ssh_script" {
+  source                        = "../common_ssh_script_bastion_host"
+  ip                            = ionoscloud_server.nat.primary_ip
+  user                          = local.stackable_user
+  cluster_private_key_filename  = var.cluster_private_key_filename
+  filename                      = "ssh-nat.sh"
 }
 
-# script to ssh into orchestrator via ssh proxy
-resource "local_file" "orchestrator-ssh-script" {
-  filename = "ssh-orchestrator.sh"
-  file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-protected-node-script.tpl",
-    {
-      node_ip = ionoscloud_server.orchestrator.primary_ip
-      nat_public_ip = ionoscloud_server.nat.primary_ip
-      ssh_key_private_path = var.cluster_private_key_filename
-    }
-  )
+# script to ssh into orchestrator via ssh proxy (aka jump host)
+module "ssh_script_orchestrator" {
+  source                        = "../common_ssh_script_protected_node"
+  cluster_ip                    = ionoscloud_server.nat.primary_ip
+  node_ip                       = ionoscloud_server.orchestrator.primary_ip
+  user                          = local.stackable_user
+  cluster_private_key_filename  = var.cluster_private_key_filename
+  filename                      = "ssh-orchestrator.sh"
 }
 
-# script to ssh into node via ssh proxy
-resource "local_file" "node-ssh-script" {
-  count = length(local.nodes)
-  filename = "ssh-${local.nodes[count.index].name}.sh"
-  file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-protected-node-script.tpl",
-    {
-      node_ip = ionoscloud_server.node[count.index].primary_ip
-      nat_public_ip = ionoscloud_server.nat.primary_ip
-      ssh_key_private_path = var.cluster_private_key_filename
-    }
-  )
+# script to ssh into nodes via ssh proxy (aka jump host)
+module "ssh_script_nodes" {
+  count                         = length(local.nodes)
+  source                        = "../common_ssh_script_protected_node"
+  cluster_ip                    = ionoscloud_server.nat.primary_ip
+  node_ip                       = ionoscloud_server.node[count.index].primary_ip
+  user                          = local.stackable_user
+  cluster_private_key_filename  = var.cluster_private_key_filename
+  filename                      = "ssh-${local.nodes[count.index].name}.sh"
 }
 
 module "stackable_client_script" {
