@@ -14,6 +14,11 @@ variable "cluster_private_key_filename" {
   type = string
 }
 
+variable "stackable_user" {
+  type = string
+  description = "non-root user for Stackable"
+}
+
 data "aws_availability_zones" "available" {}
 
 # (public) subnet for the internet gateway, NAT and bastion host
@@ -124,15 +129,12 @@ resource "local_file" "ipv4_file" {
 }
 
 # script to ssh into bastion host
-resource "local_file" "bastion-host-ssh-script" {
-  filename = "ssh-bastion-host.sh"
-  file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-bastion-host-script.tpl",
-    {
-      node_ip = aws_instance.bastion_host.public_ip
-      ssh_key_private_path = var.cluster_private_key_filename
-    }
-  )
+module "bastion_host_ssh_script" {
+  source                        = "../common_ssh_script_bastion_host"
+  ip                            = aws_instance.bastion_host.public_ip
+  user                          = var.stackable_user
+  cluster_private_key_filename  = var.cluster_private_key_filename
+  filename                      = "ssh-bastion-host.sh"
 }
 
 # cluster IP address

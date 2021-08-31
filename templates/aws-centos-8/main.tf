@@ -51,6 +51,7 @@ module "aws_nat" {
   vpc                           = module.aws_vpc.vpc
   key_pair                      = aws_key_pair.master_keypair
   cluster_private_key_filename  = "${path.module}/cluster_key"
+  stackable_user                = local.stackable_user
 }
 
 module "aws_protected_nodes" {
@@ -62,6 +63,7 @@ module "aws_protected_nodes" {
   cluster_private_key_filename  = "${path.module}/cluster_key"
   cluster_ip                    = module.aws_nat.cluster_ip
   dns_zone                      = module.aws_vpc.dns_zone
+  stackable_user                = local.stackable_user
 }
 
 module "aws_ansible_inventory" {
