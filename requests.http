@@ -167,7 +167,7 @@ Content-Type: application/yaml
 ---
 apiVersion: t2.stackable.tech/v1
 kind: Infra
-template: demo-centos-7
+template: demo-centos-8
 metadata: 
   name: cli-demo-centos-7
   description: "demo centos8"
@@ -175,6 +175,7 @@ domain: stackable.demo
 publicKeys:
   - "{{t2-ssh-key}}"
 spec:
+  wireguard: false
   region: de/fra
   nodes:
     main:
