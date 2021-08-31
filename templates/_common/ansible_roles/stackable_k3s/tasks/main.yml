@@ -7,35 +7,56 @@
   notify: restart k3s
 
 - name: generate config for other k8s nodes
-  shell: "cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig"
+  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig
 
-- name: provide kubeconfig at common location
-  shell: "mkdir -p /root/.kube/ && cp /etc/rancher/k3s/k3s.yaml /root/.kube/config"
+- name: copy config to be picked up for other users on this host
+  shell: |
+    cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig-user 
+    chmod 444 /tmp/kubeconfig-user
+
+- name: provide kubeconfig at standard location
+  shell: |
+    mkdir -p {{ stackable_user_home }}.kube/
+    cp /tmp/kubeconfig-user {{ stackable_user_home }}.kube/config
+    chmod 660 {{ stackable_user_home }}.kube/config
+  vars:
+    ansible_become: false
+
+- name: set env variable to point to kubeconfig for Stackable user
+  lineinfile:
+    dest: "{{ stackable_user_home }}.bashrc"
+    line: |
+
+      # kubeconfig to be used by K9s, kubectl, ...
+      export KUBECONFIG={{ stackable_user_home }}.kube/config
+    state: present
+    insertafter: EOF
+  vars:
+    ansible_become: false
 
 - name: Fetch the kubeconfig to (1) distribute it to the other nodes later and (2) provide it to the cluster users
   fetch: 
-    src: "/tmp/kubeconfig"
-    dest: "resources/kubeconfig"
+    src: /tmp/kubeconfig
+    dest: resources/kubeconfig
     flat: yes
 
 - name: Ensure Kubernetes configs are present on orchestrator
   copy:
     src: "{{ item }}"
-    dest: "/tmp/"
-    owner: root
-    group: root
-    mode: 0400
+    dest: /tmp/
+    mode: 0444
   with_items: 
-    - "stackable-repositories.crd.yml"
-    - "stackablepublic-repo.yml"
+    - stackable-repositories.crd.yml
+    - stackablepublic-repo.yml
 
 - name: Force all notified handlers to run at this point, not waiting for normal sync points
   meta: flush_handlers
-
+  
 - name: Apply Kubernetes configs
-  shell: "kubectl apply -f /tmp/{{ item }}"
+  shell: |
+    /usr/local/bin/kubectl apply -f /tmp/{{ item }}
   args:
     warn: no
   with_items: 
-    - "stackable-repositories.crd.yml"
-    - "stackablepublic-repo.yml"
+    - stackable-repositories.crd.yml
+    - stackablepublic-repo.yml

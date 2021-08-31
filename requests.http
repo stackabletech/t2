@@ -169,7 +169,7 @@ apiVersion: t2.stackable.tech/v1
 kind: Infra
 template: demo-centos-8
 metadata: 
-  name: cli-demo-centos-7
+  name: test-demo-centos-8
   description: "demo centos8"
 domain: stackable.demo
 publicKeys:
@@ -203,7 +203,7 @@ apiVersion: t2.stackable.tech/v1
 kind: Infra
 template: aws-centos-8
 metadata: 
-  name: cli-aws-centos-8
+  name: test-aws-centos-8
   description: "demo centos8"
 domain: stackable.demo
 publicKeys:
