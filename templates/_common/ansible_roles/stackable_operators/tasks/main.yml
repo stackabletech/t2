@@ -18,6 +18,19 @@
   when: 
     - ansible_distribution == "Debian"
 
+- name: Create directory for drop-in file for operator service
+  file:
+    path: /lib/systemd/system/{{ item.service }}.service.d/
+    state: directory
+  loop: "{{ stackable_operators }}"
+
+- name: Add drop-in file for operator service to run under stackable-user
+  template:
+    src: service-user.j2
+    dest: /lib/systemd/system/{{ item.service }}.service.d/service-user.conf
+  loop: "{{ stackable_operators }}"
+  notify: restart operators
+
 - name: Apply CRDs
   shell: "{{ item.crd_command }}"
   args:
