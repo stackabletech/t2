@@ -94,33 +94,25 @@ resource "openstack_compute_instance_v2" "node" {
   }
 }
 
-# script to ssh into orchestrator via ssh proxy
-resource "local_file" "orchestrator-ssh-script" {
-  filename = "ssh-orchestrator.sh"
-  file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-protected-node-script.tpl",
-    {
-      node_ip = openstack_compute_instance_v2.orchestrator.access_ip_v4
-      cluster_ip = var.cluster_ip
-      ssh_key_private_path = var.cluster_private_key_filename
-      stackable_user = var.stackable_user
-    }
-  )
+# script to ssh into orchestrator via ssh proxy (aka jump host)
+module "ssh_script_orchestrator" {
+  source                        = "../common_ssh_script_protected_node"
+  cluster_ip                    = var.cluster_ip
+  node_ip                       = openstack_compute_instance_v2.orchestrator.access_ip_v4
+  user                          = var.stackable_user
+  cluster_private_key_filename  = var.cluster_private_key_filename
+  filename                      = "ssh-orchestrator.sh"
 }
 
-# script to ssh into nodes via ssh proxy
-resource "local_file" "node-ssh-script" {
-  count = length(local.nodes)
-  filename = "ssh-${local.nodes[count.index].name}.sh"
-  file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-protected-node-script.tpl",
-    {
-      node_ip = element(openstack_compute_instance_v2.node.*.access_ip_v4, count.index)
-      cluster_ip = var.cluster_ip
-      ssh_key_private_path = var.cluster_private_key_filename
-      stackable_user = var.stackable_user
-    }
-  )
+# script to ssh into nodes via ssh proxy (aka jump host)
+module "ssh_script_nodes" {
+  count                         = length(local.nodes)
+  source                        = "../common_ssh_script_protected_node"
+  cluster_ip                    = var.cluster_ip
+  node_ip                       = element(openstack_compute_instance_v2.node.*.access_ip_v4, count.index)
+  user                          = var.stackable_user
+  cluster_private_key_filename  = var.cluster_private_key_filename
+  filename                      = "ssh-${local.nodes[count.index].name}.sh"
 }
 
 output "orchestrator" {

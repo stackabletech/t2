@@ -26,6 +26,11 @@ variable "cluster_ip" {
   type = string
 }
 
+variable "stackable_user" {
+  type = string
+  description = "non-root user for Stackable"
+}
+
 # list of all the nodes of the different types
 locals {
   nodes = flatten([
@@ -120,17 +125,14 @@ resource "aws_route53_record" "orchestrator" {
   records = [aws_instance.orchestrator.private_ip]
 }
 
-# script to ssh into orchestrator via ssh proxy
-resource "local_file" "orchestrator-ssh-script" {
-  filename = "ssh-orchestrator.sh"
-  file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-protected-node-script.tpl",
-    {
-      node_ip = aws_instance.orchestrator.private_ip
-      cluster_ip = var.cluster_ip
-      ssh_key_private_path = var.cluster_private_key_filename
-    }
-  )
+# script to ssh into orchestrator via ssh proxy (aka jump host)
+module "ssh_script_orchestrator" {
+  source                        = "../common_ssh_script_protected_node"
+  cluster_ip                    = var.cluster_ip
+  node_ip                       = aws_instance.orchestrator.private_ip
+  user                          = var.stackable_user
+  cluster_private_key_filename  = var.cluster_private_key_filename
+  filename                      = "ssh-orchestrator.sh"
 }
 
 resource "aws_instance" "node" {
@@ -165,19 +167,15 @@ resource "aws_route53_record" "node" {
   records = [element(aws_instance.node.*.private_ip, count.index)]
 }
 
-
-# script to ssh into node via ssh proxy
-resource "local_file" "node-ssh-script" {
-  count = length(local.nodes)
-  filename = "ssh-${local.nodes[count.index].name}.sh"
-  file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-protected-node-script.tpl",
-    {
-      node_ip = element(aws_instance.node.*.private_ip, count.index)
-      cluster_ip = var.cluster_ip
-      ssh_key_private_path = var.cluster_private_key_filename
-    }
-  )
+# script to ssh into nodes via ssh proxy (aka jump host)
+module "ssh_script_nodes" {
+  count                         = length(local.nodes)
+  source                        = "../common_ssh_script_protected_node"
+  cluster_ip                    = var.cluster_ip
+  node_ip                       = element(aws_instance.node.*.private_ip, count.index)
+  user                          = var.stackable_user
+  cluster_private_key_filename  = var.cluster_private_key_filename
+  filename                      = "ssh-${local.nodes[count.index].name}.sh"
 }
 
 output "nodes" {
