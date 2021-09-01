@@ -1,3 +1,0 @@
-Host *
-  CheckHostIP no
-  StrictHostKeyChecking no

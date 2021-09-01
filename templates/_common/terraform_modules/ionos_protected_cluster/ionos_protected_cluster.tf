@@ -243,7 +243,7 @@ module "stackable_client_script" {
   ]
   orchestrator_ip               = ionoscloud_server.orchestrator.primary_ip
   cluster_ip                    = ionoscloud_server.nat.primary_ip
-  ssh-username                  = "root"
+  ssh-username                  = local.stackable_user
 }
 
 module "stackable_service_definitions" {

@@ -22,7 +22,7 @@
 - hosts: orchestrators  
   roles:
   - wait
-  - stackable_k3s  
+  - stackable_k3s
   - stackable_operators
   - stackable_collect_versions_operators
 - hosts: nodes
