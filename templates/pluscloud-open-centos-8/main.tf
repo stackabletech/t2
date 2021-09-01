@@ -101,6 +101,10 @@ module "stackable_package_versions_centos" {
   source      = "./terraform_modules/stackable_package_versions_centos"
 }
 
+module "stackable_service_definitions" {
+  source = "./terraform_modules/stackable_service_definitions"
+}
+
 # Creates the subnet for this cluster
 module "openstack_network" {
   source                        = "./terraform_modules/openstack_network"
