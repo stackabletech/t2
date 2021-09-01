@@ -210,7 +210,7 @@ The following table lists the currently available templates:
 |publicKeys |list of SSH public keys to allow access to cluster nodes 3+| 
 |spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1` | 
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 2+| not available
-|spec.wireguard |(boolean, optional, defaults to `true`) Should a wireguard server be started on the bastion host? Switching wireguard off when you don't need it can speed up the start of the cluster. | | not available |
+|spec.wireguard |(boolean, optional, defaults to `false`) Should a wireguard server be started on the bastion host? Leaving wireguard switched off when you don't need it speeds up the start of the cluster. | | not available |
 |spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 3+|
 |spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details. 3+|
 |spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have | default: `4` 2+| not available
