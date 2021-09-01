@@ -235,6 +235,7 @@ publicKeys:
   - "{{t2-ssh-key}}"
 spec:
   region: RegionOne
+  wireguard: true
   nodes:
     main:
       numberOfNodes: 1
