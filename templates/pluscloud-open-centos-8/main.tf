@@ -122,6 +122,7 @@ module "openstack_nat" {
   keypair_name                  = openstack_compute_keypair_v2.master_keypair.name
   cluster_private_key_filename  = "${path.module}/cluster_key"
   stackable_user                = local.stackable_user
+  security_groups               = [ module.openstack_network.secgroup_default.name, module.openstack_network.secgroup_wireguard.name ]
   network_ready_flag            = module.openstack_network.network_ready_flag
 }
 
@@ -134,6 +135,7 @@ module "openstack_protected_nodes" {
   keypair_name                  = openstack_compute_keypair_v2.master_keypair.name
   cluster_private_key_filename  = "${path.module}/cluster_key"
   stackable_user                = local.stackable_user
+  security_groups               = [ module.openstack_network.secgroup_default.name ]
   network_ready_flag            = module.openstack_network.network_ready_flag
 }
 

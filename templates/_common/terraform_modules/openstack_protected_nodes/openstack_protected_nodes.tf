@@ -43,6 +43,11 @@ variable "stackable_user" {
   description = "non-root user for Stackable"
 }
 
+variable "security_groups" {
+  type = list
+  description = "List of security groups for the bastion host"
+}
+
 variable "network_ready_flag" {
   description = "resource as a flag to indicate that the network is ready to be used"
 }
@@ -67,7 +72,7 @@ resource "openstack_compute_instance_v2" "orchestrator" {
   image_id        = "3ecdee9c-241c-4913-acf0-12731f73d2b6"  # CentOS 8
   flavor_name     = can(yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["openstackFlavorName"]) ? yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["openstackFlavorName"] : "8C-16GB-60GB"
   key_pair        = var.keypair_name
-  security_groups = ["default"]
+  security_groups = var.security_groups
 
   network {
     name = var.network_name
@@ -82,7 +87,7 @@ resource "openstack_compute_instance_v2" "node" {
   image_id        = "3ecdee9c-241c-4913-acf0-12731f73d2b6"  # CentOS 8
   flavor_name     = local.nodes[count.index].flavorName
   key_pair        = "${var.cluster_name}-master-key"
-  security_groups = ["default"]
+  security_groups = var.security_groups
 
   network {
     name = "${var.cluster_name}-network"
