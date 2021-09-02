@@ -60,13 +60,54 @@ resource "openstack_compute_floatingip_v2" "cluster_ip" {
   pool = var.ip_pool
 }
 
-# Unfortunately, we have to fight with some race conditions, so we
-# use this timer as a marker to indicate that the network is (= should be) up and running
-# This timer resource is exported as an output so that resources in other modules
-# (usually compute instances) can depend on it
-resource "time_sleep" "network_readiness_delay" {
-  depends_on = [ openstack_networking_router_interface_v2.router_interface ]
-  create_duration = "5s"
+# Security group needed for all the nodes
+resource "openstack_networking_secgroup_v2" "secgroup_default" {
+  name                    = "${var.cluster_name}-secgroup-default"
+  delete_default_rules    = true
+}
+
+# Any host which is also in the default group can access the node
+resource "openstack_networking_secgroup_rule_v2" "secgroup_default_rule_ingress_ipv4_from_within_okay" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  remote_group_id   = openstack_networking_secgroup_v2.secgroup_default.id
+  security_group_id = openstack_networking_secgroup_v2.secgroup_default.id
+}
+
+# Every host in the default group can access the outside world
+resource "openstack_networking_secgroup_rule_v2" "secgroup_default_rule_egress_ipv4_to_everywhere_okay" {
+  direction         = "egress"
+  ethertype         = "IPv4"
+  remote_ip_prefix  = "0.0.0.0/0"
+  security_group_id = openstack_networking_secgroup_v2.secgroup_default.id
+}
+
+# SSH allowed from everywhere
+resource "openstack_networking_secgroup_rule_v2" "secgroup_default_rule_ingress_for_ssh" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  remote_ip_prefix  = "0.0.0.0/0"
+  port_range_min    = "22"
+  port_range_max    = "22"
+  security_group_id = openstack_networking_secgroup_v2.secgroup_default.id
+}
+
+# Security group for the node offering wireguard service
+resource "openstack_networking_secgroup_v2" "secgroup_wireguard" {
+  name                    = "${var.cluster_name}-secgroup-wireguard"
+  delete_default_rules    = true
+}
+
+# UDP open on wireguard-port
+resource "openstack_networking_secgroup_rule_v2" "secgroup_wireguard_rule_ingress_for_ssh" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  remote_ip_prefix  = "0.0.0.0/0"
+  protocol          = "udp"
+  port_range_min    = "52888"
+  port_range_max    = "52888"
+  security_group_id = openstack_networking_secgroup_v2.secgroup_wireguard.id
 }
 
 output "cluster_ip" {
@@ -79,8 +120,16 @@ output "network_name" {
   description = "Name of the newly created network"
 }
 
+output "secgroup_default" {
+  value = openstack_networking_secgroup_v2.secgroup_default
+}
+
+output "secgroup_wireguard" {
+  value = openstack_networking_secgroup_v2.secgroup_wireguard
+}
+
 # This resource can be used to express the dependency on network_readiness
 output "network_ready_flag" {
-  value = time_sleep.network_readiness_delay
-  description = "Timer resource on which any subsequently created resources should depend on if they need an up-and-running network"
+  value = openstack_networking_router_interface_v2.router_interface
+  description = "Resource on which any subsequently created resources should depend on if they need an up-and-running network"
 }
