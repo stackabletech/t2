@@ -18,7 +18,7 @@ ${node.tags["hostname"]} ansible_host=${node.private_ip} stackable_agent=${node.
 %{ endfor ~}
 
 [nodes:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 ansible_become=yes
@@ -27,7 +27,7 @@ ansible_become=yes
 orchestrator ansible_host=${orchestrator.private_ip}
 
 [orchestrators:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 ansible_become=yes

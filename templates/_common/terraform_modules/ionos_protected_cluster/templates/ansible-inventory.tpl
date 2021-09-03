@@ -18,7 +18,7 @@ ${node.name} ansible_host=${node.primary_ip} stackable_agent=${nodes_has_agent[i
 %{ endfor ~}
 
 [nodes:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${nat_public_ip}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${nat_public_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 
@@ -26,7 +26,7 @@ ansible_user=${stackable_user}
 orchestrator ansible_host=${orchestrator.primary_ip}
 
 [orchestrators:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${nat_public_ip}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${nat_public_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 
