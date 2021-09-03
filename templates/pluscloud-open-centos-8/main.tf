@@ -161,3 +161,13 @@ module "stackable_client_script" {
   cluster_ip                    = module.openstack_network.cluster_ip
   ssh-username                  = local.stackable_user
 }
+
+# prepare files for wireguard installation/configuration
+module "wireguard" {
+  count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 0
+  source                    = "./terraform_modules/wireguard"
+  server_config_filename    = "ansible_roles/files/wireguard_server.conf"
+  client_config_base_path   = "resources/wireguard-client-config"
+  allowed_ips               = concat([ for node in module.openstack_protected_nodes.nodes: node.access_ip_v4 ], [module.openstack_protected_nodes.orchestrator.access_ip_v4])
+  endpoint_ip               = module.openstack_network.cluster_ip
+}

@@ -1,0 +1,14 @@
+---
+- name: restart iptables
+  service: 
+    name: iptables 
+    state: restarted  
+    enabled: yes
+
+- name: restart wireguard
+  service:
+    name: "wg-quick@wg"
+    state: restarted
+
+- name: reboot
+  reboot:    
