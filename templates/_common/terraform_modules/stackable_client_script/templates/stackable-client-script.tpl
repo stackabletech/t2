@@ -61,8 +61,8 @@ if [ -z "$ip" ]; then
 fi
 
 if [ -n "$private_key_file" ]; then
-    ssh ${username}@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -W %h:%p -q ${username}@${cluster_ip}' $command
+    ssh ${username}@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
 else 
-    ssh ${username}@"$ip" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %h:%p -q ${username}@${cluster_ip}' $command
+    ssh ${username}@"$ip" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
 fi
 

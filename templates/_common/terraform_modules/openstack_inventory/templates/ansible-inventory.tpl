@@ -17,7 +17,7 @@ internal_ip=${bastion_host_internal_ip}
 orchestrator ansible_host=${orchestrator.access_ip_v4}
 
 [orchestrators:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 ansible_become=yes
@@ -28,7 +28,7 @@ ${node.metadata["hostname"]} ansible_host=${node.access_ip_v4} stackable_agent=$
 %{ endfor ~}
 
 [nodes:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 ansible_become=yes
