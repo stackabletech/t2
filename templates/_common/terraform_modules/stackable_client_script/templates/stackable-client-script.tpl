@@ -55,14 +55,27 @@ if [ "orchestrator" = "$host" ]; then
     ip="${orchestrator_ip}"
 fi
 
+if [ "api-tunnel" = "$host" ]; then
+    ip="${orchestrator_ip}"
+fi
+
+
 if [ -z "$ip" ]; then
     echo "Host '$host' unknown in this Stackable cluster."
     exit 1
 fi
 
 if [ -n "$private_key_file" ]; then
-    ssh ${username}@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
+    if [ "api-tunnel" = "$host" ]; then
+        ssh -fNT -i $private_key_file -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L $command:$ip:$command ${username}@${cluster_ip}
+    else
+        ssh ${username}@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
+    fi        
 else 
-    ssh ${username}@"$ip" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
+    if [ "api-tunnel" = "$host" ]; then
+        ssh -fNT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L $command:$ip:$command ${username}@${cluster_ip}
+    else
+        ssh ${username}@"$ip" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
+    fi        
 fi
 
