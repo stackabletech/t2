@@ -10,9 +10,10 @@ import re
 CLUSTER_FOLDER = ".cluster/"
 PRIVATE_KEY_FILE = f"{CLUSTER_FOLDER}key"
 PUBLIC_KEY_FILE = f"{CLUSTER_FOLDER}key.pub"
-TIMEOUT_SECONDS = 1800
+TIMEOUT_SECONDS = 3600
 
 def prerequisites():
+    """ Checks the prerequisites of this script and fails if they are not satisfied. """
     if not 'T2_TOKEN' in os.environ:
         print("Error: Please supply T2_TOKEN as an environment variable.")
         exit(1)
@@ -40,15 +41,26 @@ def log(msg=""):
     f.close()    
 
 def is_dry_run():
+    """ Checks if the testdriver should be executed as a 'dry run', which means
+        that the cluster is not created.
+    """
     return 'DRY_RUN' in os.environ and os.environ['DRY_RUN']=='true'
+
+def is_interactive_mode():
+    """ Checks if the testdriver should be run in 'interactive mode', which means
+        that the cluster is created and after that, the script waits for the file
+        '/cluster_lock' to be deleted.
+    """
+    return 'INTERACTIVE_MODE' in os.environ and os.environ['INTERACTIVE_MODE']=='true'
 
 def run_test_script():
     if os.path.isfile("/test.sh"):
+        os.system('rm -rf /target/stackable-versions.txt || true')
         os.system('rm -rf /target/test_output.log || true')
         os.system('touch /target/test_output.log')
         os.system(f"chown {uid_gid_output} /target/test_output.log")
         os.system('chmod 664 /target/test_output.log')
-        os.system('/test.sh 2>&1 | tee /target/test_output.log')
+        os.system('sh /test.sh 2>&1 | tee /target/test_output.log')
     else:
         log("No test script supplied.")
 
@@ -59,7 +71,8 @@ def launch():
 
     In the cluster definition, the 'publicKeys' section is extended with a generated public key. The according
     private key is used to access the cluster later.
-    
+
+    If the cluster launch fails, this script exits. T2 takes care of the termination of partly created clusters.
     """
 
     os.mkdir(CLUSTER_FOLDER)
@@ -137,7 +150,7 @@ def terminate():
     start_time = time.time()        
     cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], uuid)    
     if(not cluster):
-        log("Failed to create cluster via API.")
+        log("Failed to terminate cluster via API.")
         exit(1)
 
     log(f"Started termination of cluster '{cluster['id']}'. Waiting for cluster to be terminated...")
@@ -281,18 +294,27 @@ if __name__ == "__main__":
     log("Starting T2 test driver...")
 
     dry_run = is_dry_run()
+    interactive_mode = is_interactive_mode()
 
-    if dry_run:
-        log('WARNING: This is a DRY RUN only!')
-        exit(0)
+    if not dry_run:
+        log(f"Creating a cluster using T2 at {os.environ['T2_URL']}...")
+        launch()
+        (_, api_port) = create_kubeconfig_for_ssh_tunnel("/kubeconfig", "/root/.kube/config")
+        establish_ssh_tunnel_to_api(api_port)
+    else:
+        log(f"DRY RUN: Not creating a cluster!")
 
-    log(f"Creating a cluster using T2 at {os.environ['T2_URL']}...")
-    launch()
-    (_, api_port) = create_kubeconfig_for_ssh_tunnel("/kubeconfig", "/root/.kube/config")
-    establish_ssh_tunnel_to_api(api_port)
-    log("Running test script...")
-    run_test_script()
-    log("Test script finished.")
-    log(f"Terminating the test cluster...")
-    terminate()
+    if not interactive_mode:    
+        log("Running test script...")
+        run_test_script()
+        log("Test script finished.")
+    else:
+        log("Interactive mode. The testdriver will be open for business until you stop it by creating a file /cluster_lock")
+        while not os.path.exists('/cluster_lock'):
+            time.sleep(5)
+
+    if not dry_run:
+        log(f"Terminating the test cluster...")
+        terminate()
+
     log("T2 test driver finished.")
