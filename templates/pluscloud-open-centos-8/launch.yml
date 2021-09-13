@@ -4,7 +4,7 @@
   - distribute_ssh_keys
 - hosts: bastion_host
   roles: 
-  - centos_epel_8
+  - centos_epel
   - bind_centos
   - role: nat_wireguard_openstack_centos_8
     when: wireguard|bool

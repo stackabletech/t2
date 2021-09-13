@@ -5,7 +5,7 @@
   - firewalld
 - hosts: nat
   roles: 
-  - centos_epel_8
+  - centos_epel
   - nat_iptables_centos
   - nat_dns_centos
   - role: nat_wireguard_centos_8

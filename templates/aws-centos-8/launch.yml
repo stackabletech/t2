@@ -2,7 +2,7 @@
 - hosts: bastion_host
   roles: 
   - distribute_ssh_keys
-  - centos_epel_8
+  - centos_epel
   - role: nat_wireguard_centos_8
     when: wireguard|bool
 - hosts: protected
