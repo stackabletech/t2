@@ -273,7 +273,46 @@ The version literals used in the `spec.versions` block of the cluster definition
 
 The service descriptions depend on the used services. Please refer to the documentation of the operator for the product. You find the links to the components in the table above.
 
-== The T2 client script
+== Docker image to use T2
+
+We provide the Docker image `docker.stackable.tech/t2-testdriver` to make the usage of T2 in CI pipelines and the like easier.
+
+The Container does the following:
+
+* Launch a cluster according to your cluster definition (if no dry run)
+* Execute the provided test script and record its output
+* Tear down the cluster after the test script has terminated
+
+=== Input
+
+[options="header"]
+|=======
+|Feature |How to use |Description
+|Target directory | Map as volume to `/target/` | The target directory for the output
+|Cluster definition | Map as file to `/cluster.yaml` | The cluster definition as described above
+|Test script | Map as file to `/test.sh` | The script containing the test to be run once the cluster is up and running
+|T2 URL | mandatory as environment variable `T2_URL` | The URL of T2 to use
+|T2 Token | mandatory as environment variable `T2_TOKEN` | The token to access T2
+|User/Group for target directory | optional as environment variable `UID_GID` (format `<UID>:<GID>`), defaults to `0:0` (root) | All stuff which is written into the target dir is owned by this user/group combination.
+|Dry run | optional as environment variable `DRY_RUN`, defaults to `false` | If set to `true`, the container does not create a cluster but starts with the test script right away.
+|Interactive mode | optional as environment variable `INTERACTIVE_MODE`, defaults to `false` | If set to `true`, the container does halt after the creation of the cluster and does *not* execute the test script. 
+The idea is that you can execute whatever you like interactively by `docker exec`-ing into the container. To allow the container to shut down the cluster properly, you should create a file `/cluster_lock` to notify the container to go ahead and terminate the cluster, otherwise you may end up with a dangling (and expensive) cluster...
+|=======
+
+=== Output files
+
+The following files are created in the directory mounted into `/target/`:
+
+[options="header"]
+|=======
+|File |Description
+|test_output.log |Output of the test script
+|testdriver.log | Log file of the testdriver container itself
+|stackable-versions.txt | Text file containing the versions of the installed Stackable components in the cluster
+|=======
+
+
+== The T2 client script (deprecated, please use Docker image, see section above)
 
 If you want to automate your Stackable cluster generation (e.g. in a CI/CD pipeline), you can use a https://raw.githubusercontent.com/stackabletech/t2/client-script/client/t2.py[Python script^] that we provide with T2. This section describes the usage of this script.
 
