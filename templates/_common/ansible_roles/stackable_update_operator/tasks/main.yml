@@ -1,7 +1,7 @@
 ---
 - name: Ensure operator is installed (YUM)
   yum:
-    name: "stackable-{{ operator }}-operator-server-{{ version }}"
+    name: "stackable-{{ operator }}-operator-{{ version }}"
     state: present
     allow_downgrade: yes
     update_cache: yes
@@ -10,7 +10,7 @@
 
 - name: Ensure operator is installed (APT)
   apt:
-    name: "stackable-{{ operator }}-operator-server={{ version }}"
+    name: "stackable-{{ operator }}-operator={{ version }}"
     state: present
     force: yes
     update_cache: yes
@@ -19,7 +19,7 @@
 
 - name: Restart operator
   systemd:
-    name: "stackable-{{ operator }}-operator-server"
+    name: "stackable-{{ operator }}-operator"
     state: restarted
     enabled: yes
     daemon_reload: yes

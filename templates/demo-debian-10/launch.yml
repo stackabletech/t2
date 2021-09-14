@@ -28,7 +28,7 @@
   roles:
   - stackable_kubeconfig
   - stackable_agent
-  - stackable_collect_versions_agent_debian
+  - stackable_collect_versions_agent
 - hosts: orchestrators  
   roles:
   - stackable_approve_agents

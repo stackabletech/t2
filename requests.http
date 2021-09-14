@@ -167,10 +167,10 @@ Content-Type: application/yaml
 ---
 apiVersion: t2.stackable.tech/v1
 kind: Infra
-template: demo-centos-8
+template: demo-debian-10
 metadata: 
-  name: test-demo-centos-8
-  description: "demo centos8"
+  name: rename-test-debian-10
+  description: "blah"
 domain: stackable.demo
 publicKeys:
   - "{{t2-ssh-key}}"

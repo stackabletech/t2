@@ -29,7 +29,7 @@
   roles:
   - stackable_kubeconfig
   - stackable_agent
-  - stackable_collect_versions_agent_centos
+  - stackable_collect_versions_agent
 - hosts: orchestrators  
   roles:
   - stackable_approve_agents
