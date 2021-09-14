@@ -99,9 +99,9 @@ spec:
   cpuFamily: INTEL_XEON
   wireguard: true
   versions:
-    stackable-agent: "1.2.3"
-    stackable-spark-operator-server: "2.0.0"
-    stackable-kafka-operator-server: "0.0.1-alpha"
+    stackable-agent: "0.6.1"
+    stackable-spark-operator: "0.2.0"
+    stackable-kafka-operator: "0.3.0"
   orchestrator:
     numberOfCores: 4
     memoryMb: 8192
@@ -244,25 +244,34 @@ These are components that a Stackable cluster is made of. You can specify their 
 |=======
 |Name |key
 |https://github.com/stackabletech/agent[Stackable Agent] | `stackable-agent`
-|https://github.com/stackabletech/spark-operator[Stackable Spark Operator] |`stackable-spark-operator-server`
-|https://github.com/stackabletech/zookeeper-operator[Stackable Zookeeper Operator] |`stackable-zookeeper-operator-server`
-|https://github.com/stackabletech/kafka-operator[Stackable Kafka Operator] |`stackable-kafka-operator-server`
-|https://github.com/stackabletech/nifi-operator[Stackable NiFi Operator] |`stackable-nifi-operator-server`
-|https://github.com/stackabletech/opa-operator[Stackable OPA Operator] |`stackable-nifi-operator-server`
-|https://github.com/stackabletech/regorule-operator[Stackable Regorule Operator] |`stackable-nifi-operator-server`
+|https://github.com/stackabletech/spark-operator[Stackable Operator for Apache Spark] |`stackable-spark-operator`
+|https://github.com/stackabletech/zookeeper-operator[Stackable Operator for Apache ZooKeeper] |`stackable-zookeeper-operator`
+|https://github.com/stackabletech/kafka-operator[Stackable Operator for Apache Kafka] |`stackable-kafka-operator`
+|https://github.com/stackabletech/nifi-operator[Stackable Operator for Apache NiFi] |`stackable-nifi-operator`
+|https://github.com/stackabletech/opa-operator[Stackable Operator for OpenPolicyAgent (OPA)] |`stackable-opa-operator`
+|https://github.com/stackabletech/regorule-operator[Stackable RegoRule Operator] |`stackable-regorule-operator`
+|https://github.com/stackabletech/monitoring-operator[Stackable Operator for Monitoring and Metrics] |`stackable-monitoring-operator`
+|=======
+
+==== Version literals
+
+The version literals used in the `spec.versions` block of the cluster definition depend on the underlying Linux distribution. The following table shows some examples:
+
+[options="header"]
+|=======
+|Distribution |example |description
+.2+|CentOS 7 |`0.6.1-0.el7` | Version 0.6.1
+|`0.1.0-0.mr404.el7` | Version 0.1.0, GitHub Pull Request #404
+.2+|CentOS 8 |`0.6.1-0.el8.x86_64` | Version 0.6.1
+|`0.1.0-0.mr404.el8.x86_64` | Version 0.1.0, GitHub Pull Request #404
+.2+|Debian 10 |`0.6.1` | Version 0.6.1
+|`0.1.0~mr404` | Version 0.1.0, GitHub Pull Request #404
 |=======
 
 
 === Service descriptions
 
-The service descriptions depend on the used services. Please refer to the documentation of the operator for the product: 
-
-* https://github.com/stackabletech/spark-operator[Apache Spark]
-* https://github.com/stackabletech/zookeeper-operator[Apache ZooKeeper]
-* https://github.com/stackabletech/kafka-operator[Apache Kafka]
-* https://github.com/stackabletech/nifi-operator[Apache NiFi]
-* https://github.com/stackabletech/opa-operator[Open Policy Agent (OPA)]
-* https://github.com/stackabletech/regorule-operator[Regorule (Policies for OPA)]
+The service descriptions depend on the used services. Please refer to the documentation of the operator for the product. You find the links to the components in the table above.
 
 == The T2 client script
 
