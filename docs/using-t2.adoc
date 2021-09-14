@@ -306,9 +306,9 @@ The following files are created in the directory mounted into `/target/`:
 [options="header"]
 |=======
 |File |Description
-|test_output.log |Output of the test script
-|testdriver.log | Log file of the testdriver container itself
-|stackable-versions.txt | Text file containing the versions of the installed Stackable components in the cluster
+|`test_output.log` |Output of the test script
+|`testdriver.log` | Log file of the testdriver container itself
+|`stackable-versions.txt` | Text file containing the versions of the installed Stackable components in the cluster
 |=======
 
 
