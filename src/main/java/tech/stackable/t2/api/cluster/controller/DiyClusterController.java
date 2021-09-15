@@ -5,7 +5,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,7 +25,7 @@ public class DiyClusterController {
     @Autowired
     private TerraformAnsibleClusterService clusterService;
 
-    @GetMapping(consumes = { "application/json",
+    @PostMapping(consumes = { "application/json",
             "application/yaml" }, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
     @Operation(summary = "Get DIY cluster package", description = "Creates a DIY cluster package (ZIP)")
