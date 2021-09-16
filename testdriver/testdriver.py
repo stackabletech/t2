@@ -57,10 +57,12 @@ def is_interactive_mode():
 def run_test_script():
     if os.path.isfile("/test.sh"):
         os.system('rm -rf /target/test_output.log || true')
+        os.system('rm -rf /target/test_exit_code || true')
         os.system('touch /target/test_output.log')
         os.system(f"chown {uid_gid_output} /target/test_output.log")
         os.system('chmod 664 /target/test_output.log')
-        os.system('sh /test.sh 2>&1 | tee /target/test_output.log')
+        os.system('(sh /test.sh 2>&1; echo $? > /target/test_exit_code) | tee /target/test_output.log')
+        os.system('chmod 664 /target/test_exit_code')
     else:
         log("No test script supplied.")
 
