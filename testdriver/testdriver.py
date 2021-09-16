@@ -57,14 +57,15 @@ def is_interactive_mode():
 def run_test_script():
     if os.path.isfile("/test.sh"):
         os.system('rm -rf /target/test_output.log || true')
-        os.system('rm -rf /target/test_exit_code || true')
         os.system('touch /target/test_output.log')
         os.system(f"chown {uid_gid_output} /target/test_output.log")
         os.system('chmod 664 /target/test_output.log')
-        os.system('(sh /test.sh 2>&1; echo $? > /target/test_exit_code) | tee /target/test_output.log')
-        os.system('chmod 664 /target/test_exit_code')
+        os.system('(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee /target/test_output.log')
+        with open ("/test_exit_code", "r") as f:
+            return int(f.read().strip())
     else:
         log("No test script supplied.")
+        return 0
 
 def launch(): 
     """Launch a cluster.
@@ -287,6 +288,8 @@ if __name__ == "__main__":
 
     prerequisites()
 
+    exit_code = 0
+
     uid_gid_output = "0:0"
     if 'UID_GID' in os.environ:
         uid_gid_output = os.environ['UID_GID']
@@ -308,7 +311,7 @@ if __name__ == "__main__":
 
     if not interactive_mode:    
         log("Running test script...")
-        run_test_script()
+        exit_code = run_test_script()
         log("Test script finished.")
     else:
         log("Interactive mode. The testdriver will be open for business until you stop it by creating a file /cluster_lock")
@@ -320,3 +323,5 @@ if __name__ == "__main__":
         terminate()
 
     log("T2 test driver finished.")
+
+    exit(exit_code)
