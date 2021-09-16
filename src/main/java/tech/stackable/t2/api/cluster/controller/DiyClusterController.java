@@ -3,6 +3,8 @@ package tech.stackable.t2.api.cluster.controller;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,8 @@ import tech.stackable.t2.api.cluster.service.TerraformAnsibleClusterService;
 @RestController
 @RequestMapping("api/diy-cluster")
 public class DiyClusterController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiyClusterController.class);
 
     @Autowired
     private TerraformAnsibleClusterService clusterService;
@@ -55,6 +59,7 @@ public class DiyClusterController {
             try {
                 clusterDefinitionMap = new ObjectMapper(new YAMLFactory()).readValue(clusterDefinition, Map.class);
             } catch (JsonProcessingException e) {
+                LOGGER.warn("The cluster definition does not contain valid YAML/JSON.", e);
                 throw new MalformedClusterDefinitionException(
                         "The cluster definition does not contain valid YAML/JSON.", e);
             }

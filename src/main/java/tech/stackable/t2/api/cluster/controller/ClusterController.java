@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,8 @@ import tech.stackable.t2.security.TokenRequiredException;
 @RestController
 @RequestMapping("api/clusters")
 public class ClusterController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClusterController.class);
 
     @Autowired
     private TerraformAnsibleClusterService clusterService;
@@ -207,6 +211,7 @@ public class ClusterController {
             try {
                 clusterDefinitionMap = new ObjectMapper(new YAMLFactory()).readValue(clusterDefinition, Map.class);
             } catch (JsonProcessingException e) {
+                LOGGER.warn("The cluster definition does not contain valid YAML/JSON.", e);
                 throw new MalformedClusterDefinitionException("The cluster definition does not contain valid YAML/JSON.", e);
             }
         }
