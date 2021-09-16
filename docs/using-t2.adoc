@@ -307,11 +307,13 @@ The following files are created in the directory mounted into `/target/`:
 |=======
 |File |Description
 |`test_output.log` |Output of the test script
-|`test_exit_code` |Exit code of the execution of the test script
 |`testdriver.log` | Log file of the testdriver container itself
 |`stackable-versions.txt` | Text file containing the versions of the installed Stackable components in the cluster
 |=======
 
+=== Return code
+
+The return code of the Docker container process is the return code of the test script!
 
 == The T2 client script (deprecated, please use Docker image, see section above)
 
