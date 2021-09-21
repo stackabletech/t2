@@ -1,0 +1,4 @@
+[stackable-dev]
+name=Stackable Development
+baseurl=https://repo.stackable.tech/repository/rpm-dev/el8/
+gpgcheck=0
