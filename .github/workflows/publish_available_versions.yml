@@ -5,7 +5,7 @@ on:
 
 jobs:
 
-  t2-testdriver:
+  t2-available-versions:
 
     runs-on: ubuntu-latest
     steps:
