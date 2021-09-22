@@ -99,7 +99,7 @@ def launch():
     cluster = create_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], yaml.dump(cluster_definition_yaml, default_flow_style=False))    
     if(not cluster):
         log("Error: Failed to create cluster via API.")
-        exit(1)
+        exit(0)
 
     log(f"Created cluster '{cluster['id']}'. Waiting for cluster to be up and running...")
 
@@ -110,11 +110,11 @@ def launch():
 
     if(cluster['status']['failed']):
         log("Cluster launch failed.")
-        exit(1)
+        exit(0)
 
     if(TIMEOUT_SECONDS <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
-        exit(1)
+        exit(0)
 
     log(f"Cluster '{cluster['id']}' is up and running.")
 
