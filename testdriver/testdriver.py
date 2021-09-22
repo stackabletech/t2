@@ -25,7 +25,8 @@ def prerequisites():
         exit(1)
          
 def init_log():
-    """ Inits (=clears) the log file """
+    """ Inits (=clears) the log files """
+    os.system('rm -rf /target/test_output.log || true')
     os.system('rm -rf /target/testdriver.log || true')
     os.system('rm -rf /target/stackable-versions.txt || true')
     os.system('touch /target/testdriver.log')
@@ -56,7 +57,6 @@ def is_interactive_mode():
 
 def run_test_script():
     if os.path.isfile("/test.sh"):
-        os.system('rm -rf /target/test_output.log || true')
         os.system('touch /target/test_output.log')
         os.system(f"chown {uid_gid_output} /target/test_output.log")
         os.system('chmod 664 /target/test_output.log')
@@ -99,7 +99,7 @@ def launch():
     cluster = create_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], yaml.dump(cluster_definition_yaml, default_flow_style=False))    
     if(not cluster):
         log("Error: Failed to create cluster via API.")
-        exit(1)
+        exit(0)
 
     log(f"Created cluster '{cluster['id']}'. Waiting for cluster to be up and running...")
 
@@ -110,11 +110,11 @@ def launch():
 
     if(cluster['status']['failed']):
         log("Cluster launch failed.")
-        exit(1)
+        exit(0)
 
     if(TIMEOUT_SECONDS <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
-        exit(1)
+        exit(0)
 
     log(f"Cluster '{cluster['id']}' is up and running.")
 
