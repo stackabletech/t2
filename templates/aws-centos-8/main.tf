@@ -87,8 +87,8 @@ module "stackable_client_script" {
   ssh-username                  = local.stackable_user
 }
 
-module "stackable_package_versions_centos" {
-  source = "./terraform_modules/stackable_package_versions_centos"
+module "stackable_package_versions_centos_8" {
+  source = "./terraform_modules/stackable_package_versions_centos_8"
 }
 
 module "stackable_service_definitions" {
