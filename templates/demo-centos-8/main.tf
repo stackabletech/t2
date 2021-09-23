@@ -38,8 +38,8 @@ module "master_keypair" {
   filename    = "${path.module}/cluster_key"
 }
 
-module "stackable_package_versions_centos" {
-  source      = "./terraform_modules/stackable_package_versions_centos"
+module "stackable_package_versions_centos_8" {
+  source = "./terraform_modules/stackable_package_versions_centos_8"
 }
 
 module "ionos_protected_cluster" {

@@ -255,17 +255,17 @@ These are components that a Stackable cluster is made of. You can specify their 
 
 ==== Version literals
 
-The version literals used in the `spec.versions` block of the cluster definition depend on the underlying Linux distribution. The following table shows some examples:
+As shown in the example `cluster.yaml`, you can specify the versions of the Stackable components in the `spec.versions` section. The following table shows the different ways to do so by example:
 
 [options="header"]
 |=======
-|Distribution |example |description
-.2+|CentOS 7 |`0.6.1-0.el7` | Version 0.6.1
-|`0.1.0-0.mr404.el7` | Version 0.1.0, GitHub Pull Request #404
-.2+|CentOS 8 |`0.6.1-0.el8.x86_64` | Version 0.6.1
-|`0.1.0-0.mr404.el8.x86_64` | Version 0.1.0, GitHub Pull Request #404
-.2+|Debian 10 |`0.6.1` | Version 0.6.1
-|`0.1.0~mr404` | Version 0.1.0, GitHub Pull Request #404
+|example |description
+|`NIGHTLY` | The newest nightly version which can be found in the Stackable binary repository
+| (no version specified) | same as `NIGHTLY`
+|`RELEASE` | The newest release version which can be found in the Stackable binary repository
+|`0.2.0-mr404` | latest build of version 0.2.0 from GitHub Pull Request #404
+|`0.3.0-nightly` | latest nightly build of version 0.3.0
+|`0.6.1` | realeased version 0.6.1
 |=======
 
 

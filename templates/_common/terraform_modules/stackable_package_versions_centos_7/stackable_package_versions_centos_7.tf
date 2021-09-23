@@ -21,7 +21,7 @@ locals {
       p.processed ? p :
       {
         name = p.name
-        version = p.version == "NIGHTLY" || p.version == "" ? "*" : p.version
+        version = p.version == "NIGHTLY" || p.version == "" ? "*.el7.x86_64" : p.version
         processed = p.version == "NIGHTLY" || p.version == ""
       }
   ]
@@ -31,23 +31,43 @@ locals {
       p.processed ? p :
       {
         name = p.name
-        version = p.version == "RELEASE" ? "[0-9]*\\.[0-9]*\\.[0-9]" : p.version
+        version = p.version == "RELEASE" ? "*-0.el7.x86_64" : p.version
         processed = p.version == "RELEASE"
       }
   ]
-  # all Versions not treated so far are formatted according to the target package management system
+  # filters the versions that already have a '-nightly' suffix
   stackable_package_versions_step_3 = [
     for p in local.stackable_package_versions_step_2: 
       p.processed ? p :
       {
         name = p.name
-        version = replace(p.version, "-mr", "~mr")
+        version = substr(p.version, -8, -1) == "-nightly" ? "${replace(p.version, "-nightly", "-0.nightly")}.el7.x86_64" : p.version
+        processed = substr(p.version, -8, -1) == "-nightly"
+      }
+  ]
+  # filters the versions that refer to a pull request
+  stackable_package_versions_step_4 = [
+    for p in local.stackable_package_versions_step_3: 
+      p.processed ? p :
+      {
+        name = p.name
+        version = replace(p.version, "-mr", "") != p.version ? "${replace(p.version, "-mr", "-0.mr")}.el7.x86_64" : p.version
+        processed = replace(p.version, "-mr", "") != p.version
+      }
+  ]
+  # all Versions not treated so far are formatted according to the target package management system
+  stackable_package_versions_step_5 = [
+    for p in local.stackable_package_versions_step_4: 
+      p.processed ? p :
+      {
+        name = p.name
+        version = "${p.version}-0.el7.x86_64"
       }
   ]
   stackable_package_versions = [
-    for v in local.stackable_package_versions_step_3: {
+    for v in local.stackable_package_versions_step_5: {
       name = v.name
-      name_with_version = yamlencode("${v.name}=${v.version}")
+      name_with_version = yamlencode("${v.name}-${v.version}")
     }
   ]
 }

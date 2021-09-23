@@ -97,8 +97,8 @@ resource "openstack_compute_keypair_v2" "master_keypair" {
 
 # Creates a file containing the desired (or default) versions of Stackable
 # components in the Ansible inventory
-module "stackable_package_versions_centos" {
-  source      = "./terraform_modules/stackable_package_versions_centos"
+module "stackable_package_versions_centos_8" {
+  source = "./terraform_modules/stackable_package_versions_centos_8"
 }
 
 module "stackable_service_definitions" {
