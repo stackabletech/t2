@@ -13,6 +13,7 @@
   template: src={{ item.src }} dest=/var/cache/bind/{{ item.dest }}
   with_items:
     - { src: "stackable.zone.j2", dest: "stackable.zone"}
+    - { src: "stackable-reverse.zone.j2", dest: "stackable-reverse.zone"}
   notify:
     - reboot
 

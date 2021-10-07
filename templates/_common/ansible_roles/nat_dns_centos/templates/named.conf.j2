@@ -8,3 +8,8 @@ zone "{{ domain }}" in {
        type master;
        file "stackable.zone";
 };
+
+zone "{{ hostvars[groups.nat[0]]['internal_ip'] | ansible.netcommon.ipaddr('revdns') | split('.')[1:] | join('.') }}" in {
+        type master;
+        file "stackable-reverse.zone";
+};
