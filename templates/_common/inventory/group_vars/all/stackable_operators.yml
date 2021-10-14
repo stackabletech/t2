@@ -4,34 +4,34 @@ stackable_operators:
     service: stackable-spark-operator
     folder: /opt/stackable/spark-operator
     binary: stackable-spark-operator
-    crd_command: "{ /opt/stackable/spark-operator/stackable-spark-operator crd restart --print && /opt/stackable/spark-operator/stackable-spark-operator crd stop --print && /opt/stackable/spark-operator/stackable-spark-operator crd start --print && /opt/stackable/spark-operator/stackable-spark-operator crd sparkcluster --print ; } | /usr/local/bin/kubectl apply -f -"
+    crd_command: "/usr/local/bin/kubectl apply -f /etc/stackable/spark-operator/crd/"
   - name: stackable-zookeeper-operator
     service: stackable-zookeeper-operator
     folder: /opt/stackable/zookeeper-operator
     binary: stackable-zookeeper-operator
-    crd_command: "/opt/stackable/zookeeper-operator/stackable-zookeeper-operator crd zookeepercluster --print | /usr/local/bin/kubectl apply -f -"
+    crd_command: "/usr/local/bin/kubectl apply -f /etc/stackable/zookeeper-operator/crd/"
   - name: stackable-nifi-operator
     service: stackable-nifi-operator
     folder: /opt/stackable/nifi-operator
     binary: stackable-nifi-operator
-    crd_command: "/opt/stackable/nifi-operator/stackable-nifi-operator crd nificluster --print | /usr/local/bin/kubectl apply -f -"
+    crd_command: "/usr/local/bin/kubectl apply -f /etc/stackable/nifi-operator/crd/"
   - name: stackable-kafka-operator
     service: stackable-kafka-operator
     folder: /opt/stackable/kafka-operator
     binary: stackable-kafka-operator
-    crd_command: "/opt/stackable/kafka-operator/stackable-kafka-operator crd kafkacluster --print | /usr/local/bin/kubectl apply -f -"
+    crd_command: "/usr/local/bin/kubectl apply -f /etc/stackable/kafka-operator/crd/"
   - name: stackable-opa-operator
     service: stackable-opa-operator
     folder: /opt/stackable/opa-operator
     binary: stackable-opa-operator
-    crd_command: "/opt/stackable/opa-operator/stackable-opa-operator crd openpolicyagent --print | /usr/local/bin/kubectl apply -f -"
+    crd_command: "/usr/local/bin/kubectl apply -f /etc/stackable/opa-operator/crd/"
   - name: stackable-regorule-operator
     service: stackable-regorule-operator
     folder: /opt/stackable/regorule-operator
     binary: stackable-regorule-operator
-    crd_command: "/opt/stackable/regorule-operator/stackable-regorule-operator crd regorule --print | /usr/local/bin/kubectl apply -f -"
+    crd_command: "/usr/local/bin/kubectl apply -f /etc/stackable/regorule-operator/crd/"
   - name: stackable-monitoring-operator
     service: stackable-monitoring-operator
     folder: /opt/stackable/monitoring-operator
     binary: stackable-monitoring-operator
-    crd_command: "/opt/stackable/monitoring-operator/stackable-monitoring-operator crd monitoringcluster --print | /usr/local/bin/kubectl apply -f -"
+    crd_command: "/usr/local/bin/kubectl apply -f /etc/stackable/monitoring-operator/crd/"
