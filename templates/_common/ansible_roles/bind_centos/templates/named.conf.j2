@@ -9,7 +9,8 @@ zone "{{ domain }}" in {
        file "stackable.zone";
 };
 
-zone "{{ hostvars[groups.nat[0]]['internal_ip'] | ansible.netcommon.ipaddr('revdns') | split('.')[1:] | join('.') }}" in {
+{% set reverse_dns_domain_of_bastion_host = internal_ip | ipaddr('revdns') %}
+zone "{{ reverse_dns_domain_of_bastion_host.split('.')[1:] | join('.') }}" in {
         type master;
         file "stackable-reverse.zone";
 };
