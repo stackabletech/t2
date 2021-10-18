@@ -1,6 +1,5 @@
 ; BIND db reverse file for {{ domain }}
 
-$ORIGIN {{ hostvars[groups.nat[0]]['internal_ip'] | ansible.netcommon.ipaddr('revdns') | split('.')[1:] | join('.') }}.
 $TTL 86400
 
 @       IN      SOA     nat.{{ domain }}.      info.stackable.de. (
@@ -13,6 +12,9 @@ $TTL 86400
 
 @       IN      NS      nat.{{ domain }}.
 
-{{ hostvars[groups.nat[0]]['internal_ip'] | ip_last_octet }}  IN      A    nat
-{% for host in groups['protected'] %}{{ hostvars[host]['ansible_host'] | ip_last_octet }}  IN      PTR       {{ host }}
+{% set reverse_dns_domain_of_bastion_host = hostvars[groups.nat[0]]['internal_ip'] | ipaddr('revdns') %}
+$ORIGIN {{ reverse_dns_domain_of_bastion_host.split('.')[1:] | join('.') }}
+
+{{ hostvars[groups.nat[0]]['internal_ip'].split('.')[-1] }}  IN      PTR    nat.{{ domain }}.
+{% for host in groups['protected'] %}{{ hostvars[host]['ansible_host'].split('.')[-1] }}  IN      PTR       {{ host }}.{{ domain }}.
 {% endfor %}
