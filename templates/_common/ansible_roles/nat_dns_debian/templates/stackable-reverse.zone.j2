@@ -1,4 +1,4 @@
-; BIND db file for {{ domain }}
+; BIND db reverse file for {{ domain }}
 
 $TTL 86400
 
@@ -12,9 +12,9 @@ $TTL 86400
 
 @       IN      NS      nat.{{ domain }}.
 
+{% set reverse_dns_domain_of_bastion_host = internal_ip | ipaddr('revdns') %}
+$ORIGIN {{ reverse_dns_domain_of_bastion_host.split('.')[1:] | join('.') }}
 
-$ORIGIN {{ domain }}.
-
-nat  IN      A    {{ internal_ip }}
-{% for host in groups['protected'] %}{{ host }}  IN      A       {{ hostvars[host]['ansible_host']}}
+{{ internal_ip.split('.')[-1] }}  IN      PTR    nat.{{ domain }}.
+{% for host in groups['protected'] %}{{ hostvars[host]['ansible_host'].split('.')[-1] }}  IN      PTR       {{ host }}.{{ domain }}.
 {% endfor %}

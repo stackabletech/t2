@@ -2,7 +2,7 @@
 
 $TTL 86400
 
-@       IN      SOA     dns.{{ domain }}.      soenke.liebau.opencore.com. (
+@       IN      SOA     dns.{{ domain }}.      info.stackable.de. (
                         2020063001	; serial number YYMMDDNN
                         28800           ; Refresh
                         7200            ; Retry
@@ -10,7 +10,7 @@ $TTL 86400
                         86400           ; Min TTL
 			)
 
-                NS      dns.{{ domain }}.
+@       IN      NS      dns.{{ domain }}.
 
 
 $ORIGIN {{ domain }}.

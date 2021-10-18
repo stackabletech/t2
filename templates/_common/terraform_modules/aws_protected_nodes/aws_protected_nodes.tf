@@ -22,6 +22,10 @@ variable "dns_zone" {
   description = "DNS zone"
 }
 
+variable "dns_zone_reverse" {
+  description = "DNS zone (reverse)"
+}
+
 variable "cluster_ip" {
   type = string
 }
@@ -125,6 +129,14 @@ resource "aws_route53_record" "orchestrator" {
   records = [aws_instance.orchestrator.private_ip]
 }
 
+resource "aws_route53_record" "orchestrator_reverse" {
+  zone_id = var.dns_zone_reverse.zone_id
+  name = element(split(".", aws_instance.orchestrator.private_ip), 3)
+  type = "PTR"
+  ttl = "300"
+  records = [ format("%s.%s", "orchestrator", yamldecode(file("cluster.yaml"))["domain"]) ]
+}
+
 # script to ssh into orchestrator via ssh proxy (aka jump host)
 module "ssh_script_orchestrator" {
   source                        = "../common_ssh_script_protected_node"
@@ -165,6 +177,15 @@ resource "aws_route53_record" "node" {
   type = "A"
   ttl = "300"
   records = [element(aws_instance.node.*.private_ip, count.index)]
+}
+
+resource "aws_route53_record" "node_reverse" {
+  count = length(local.nodes)
+  zone_id = var.dns_zone_reverse.zone_id
+  name = element(split(".", element(aws_instance.node.*.private_ip, count.index)), 3)
+  type = "PTR"
+  ttl = "300"
+  records = [ format("%s.%s", local.nodes[count.index].name, yamldecode(file("cluster.yaml"))["domain"]) ]
 }
 
 # script to ssh into nodes via ssh proxy (aka jump host)
