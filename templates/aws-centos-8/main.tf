@@ -63,6 +63,7 @@ module "aws_protected_nodes" {
   cluster_private_key_filename  = "${path.module}/cluster_key"
   cluster_ip                    = module.aws_nat.cluster_ip
   dns_zone                      = module.aws_vpc.dns_zone
+  dns_zone_reverse              = module.aws_vpc.dns_zone_reverse
   stackable_user                = local.stackable_user
 }
 

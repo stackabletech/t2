@@ -21,10 +21,24 @@ resource "aws_route53_zone" "private" {
   }
 }
 
+resource "aws_route53_zone" "private_reverse" {
+  name = "1.0.10.in-addr.arpa"
+  vpc {
+    vpc_id = aws_vpc.vpc.id
+  }
+  tags = {
+    "Name" = "${var.name}-dns-zone-reverse"
+  }
+}
+
 output "vpc" {
   value = aws_vpc.vpc
 }
 
 output "dns_zone" {
   value = aws_route53_zone.private
+}
+
+output "dns_zone_reverse" {
+  value = aws_route53_zone.private_reverse
 }
