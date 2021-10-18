@@ -15,6 +15,6 @@ $TTL 86400
 {% set reverse_dns_domain_of_bastion_host = internal_ip | ipaddr('revdns') %}
 $ORIGIN {{ reverse_dns_domain_of_bastion_host.split('.')[1:] | join('.') }}
 
-{{ hostvars[groups.nat[0]]['internal_ip'].split('.')[-1] }}  IN      PTR    nat.{{ domain }}.
+{{ internal_ip.split('.')[-1] }}  IN      PTR    nat.{{ domain }}.
 {% for host in groups['protected'] %}{{ hostvars[host]['ansible_host'].split('.')[-1] }}  IN      PTR       {{ host }}.{{ domain }}.
 {% endfor %}
