@@ -53,6 +53,9 @@ public class SecurityConfiguration {
         } catch (IOException e) {
             LOGGER.error("No credentials read from path {} due to an error.", path, e);
         }
+
+        LOGGER.info("Credentials read from {}.", path);
+        
         return credentials;
     }
 
