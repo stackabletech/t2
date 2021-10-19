@@ -6,7 +6,6 @@ import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isWritable;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.commons.lang3.StringUtils;

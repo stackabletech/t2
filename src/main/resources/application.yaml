@@ -6,9 +6,8 @@ server:
     include-stacktrace: never
 t2:
   build:
-    version: "@project.version@"
+    version: "@git.commit.id.describe-short@"
     timestamp: "@build-timestamp@"
-    git-commit: "@git.commit.id.describe-short@"
   workspace:
     directory: /tmp/t2-workspace/
   templates:

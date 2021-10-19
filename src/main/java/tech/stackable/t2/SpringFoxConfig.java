@@ -26,9 +26,6 @@ public class SpringFoxConfig {
     @Value("${t2.build.version}")
     private String version;
 
-    @Value("${t2.build.git-commit}")
-    private String gitCommit;
-
     @Bean
     public Docket apiDocs() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -45,7 +42,7 @@ public class SpringFoxConfig {
         return new ApiInfo(
                 "Stackable T2 REST API",
                 "REST API of Stackable's T2 service (integration test and troubleshooting)",
-                String.format("%s (%s)", version, gitCommit),
+                version,
                 null,
                 new Contact("Stackable", "http://www.stackable.de", "info@stackable.de"),
                 "Apache License 2.0", "http://www.apache.org/licenses/LICENSE-2.0", Collections.emptyList());
