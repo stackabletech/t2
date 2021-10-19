@@ -14,10 +14,7 @@ t2:
   templates:
     directory: templates/
   security:
-    token:
-      source: static  # options: file | static
-      file: null
-      static: t2-secret-token
+    token-file: security-token
     credential-file: ~/t2-credentials.properties
   dns:
     enabled: true
