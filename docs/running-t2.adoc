@@ -13,37 +13,24 @@
 
 == Running T2
 
-You can run T2 on premise if you like, but currently, we haven't put too much effort into making it conveniently reusable but merely built it to fit our very own needs. Nevertheless, this section might help if you want to run T2.
+To run T2, you can use the Docker image `docker.stackable.tech/t2:latest` (or another version you find https://repo.stackable.tech/#browse/search/docker=attributes.docker.imageName%3Dt2[here, window="_blank"])
 
-T2 is a Spring Boot application and can be packaged via Maven:
+T2 is a dockerized Spring Boot application and can be packaged/built via Maven:
 
 [source,bash]
 ----
 mvn clean package
 ----
 
-The resulting file `target/t2-server.jar` can be executed via Java:
-
-[source,bash]
-----
-java -jar target/t2-server.jar [options]
-----
-
-The `options` are given in the form `--key1=value1 --key2=value2`. The option keys are described below.
+You can start a container based on the resulting Docker image and configure it with port mappings and volume mounts as described below:
 
 === Config options
 
-The following table describes the config options of T2:
-
 [options="header"]
 |=======
-|key |description |default value
-|server.port |port of the HTTP server |`8080`
-|t2.workspace.directory |directory where T2 stores the working dirs of the clusters |`/tmp/t2-workspace/`
-|t2.templates.directory |directory where the T2 cluster templates are located |`./templates`
-|t2.security.token.source |Source of the access token to secure T2. `file` means the token is stored in a file, `static` means it is provided as a property |`static`
-|t2.security.token.file |location of the token file (see above) |`null`
-|t2.security.token.static |security token (see above) |`t2-secret-token`
-|t2.credential-file |File containing credentials in property format, e.g. `ionos_username` or `ionos_password` |`~/t2-credentials.properties`
-|t2.dns.enabled |Should T2 create a DNS entry for the created cluster? Practically, this feature is not usable without our DNS provider account, so you should set it to `false` ;-) |`true`
+|option |description | usage
+| port mapping| make T2 reachable on your machine | map a host port to container port `8080`
+| credential file | file containing credentials in property format, e.g. `ionos_username = me`, `ionos_password = youguess` | map your file to `/var/t2/credentials.properties`
+| security token file | file containing (only!) the token that must be used to access T2 | map your file to `/var/t2/security-token`
+| workspace directory | directory where T2 stores the working dirs of the clusters | Map your folder to `/var/t2/workspace`. If you omit the mapping, the workspace is inside the container and therefore ephemeral.
 |=======
