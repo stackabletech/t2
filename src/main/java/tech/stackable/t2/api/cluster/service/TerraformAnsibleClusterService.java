@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 import org.zeroturnaround.zip.ZipUtil;
@@ -67,16 +66,13 @@ public class TerraformAnsibleClusterService {
     @Autowired
     private AnsibleService ansibleService;
 
-    private int provisionClusterLimit = -1;
-
     /**
      * cluster metadata per cluster (UUID)
      */
     private Map<UUID, Cluster> clusters = new HashMap<>();
 
-    public TerraformAnsibleClusterService(@Value("${t2.cluster-count-limit}") int provisionClusterLimit) {
-        this.provisionClusterLimit = provisionClusterLimit;
-        LOGGER.info("Created TerraformAnsibleClusterService, cluster count limit: {}", this.provisionClusterLimit);
+    public TerraformAnsibleClusterService() {
+        LOGGER.info("Created TerraformAnsibleClusterService");
     }
 
     public Collection<Cluster> getAllClusters() {
@@ -90,10 +86,6 @@ public class TerraformAnsibleClusterService {
     public Cluster createCluster(Map<String, Object> clusterDefinition) {
         synchronized (this.clusters) {
 
-            if (isClusterLimitReached()) {
-                throw new ClusterLimitReachedException();
-            }
-            
             Cluster cluster = new Cluster();
             cluster.setStatus(Status.CREATION_STARTED);
 
@@ -332,15 +324,6 @@ public class TerraformAnsibleClusterService {
                 && Duration.between(cluster.getLastChangedAt(), LocalDateTime.now()).compareTo(CLEANUP_INACTIVITY_THRESHOLD) > 0;
     }
 
-    /**
-     * Did we reach the max number of clusters?
-     * @return Did we reach the max number of clusters?
-     */
-    private boolean isClusterLimitReached() {
-        long nonTerminatedClusterCount = this.clusters.values().stream().filter(c -> c.getStatus()!=Status.TERMINATED).count();
-        return nonTerminatedClusterCount >= this.provisionClusterLimit;
-    }
-    
     /**
      * Name of the given cluster in the cloud provider.
      * 

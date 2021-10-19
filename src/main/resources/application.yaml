@@ -6,19 +6,14 @@ server:
     include-stacktrace: never
 t2:
   build:
-    version: "@project.version@"
+    version: "@git.commit.id.describe-short@"
     timestamp: "@build-timestamp@"
-    git-commit: "@git.commit.id.describe-short@"
   workspace:
     directory: /tmp/t2-workspace/
   templates:
     directory: templates/
-  cluster-count-limit: 5
   security:
-    token:
-      source: static  # options: file | static
-      file: null
-      static: t2-secret-token
+    token-file: security-token
     credential-file: ~/t2-credentials.properties
   dns:
     enabled: true

@@ -1,14 +1,10 @@
 server:
   port: 8080
 t2:
-  cluster-count-limit: 20
   workspace:
     directory: /var/t2/workspace/  
   templates:
     directory: /var/t2/templates/
   security:
-    token:
-      source: file  # options: file | static
-      file: /var/t2/security-token
-      static: null
+    token-file: /var/t2/security-token
     credential-file: /var/t2/credentials.properties

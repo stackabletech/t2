@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,30 +19,10 @@ public class SecurityConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfiguration.class);
 
-    private static final String TOKEN_SOURCE_FILE = "file";
-    private static final String TOKEN_SOURCE_STATIC = "static";
-
     @Bean
-    public SecurityToken securityToken(
-            @Value("${t2.security.token.source}") String tokenSource,
-            @Value("${t2.security.token.static}") String staticToken,
-            @Value("${t2.security.token.file}") String tokenFile) {
+    public SecurityToken securityToken(@Value("${t2.security.token-file}") String tokenFile) {
 
         LOGGER.info("Creating security token...");
-
-        if (StringUtils.isBlank(tokenSource) || !ArrayUtils.contains(new String[] { TOKEN_SOURCE_FILE, TOKEN_SOURCE_STATIC }, tokenSource)) {
-            throw new BeanCreationException("t2.security.token.source must be one of: ( static | file ).");
-        }
-
-        if (TOKEN_SOURCE_STATIC.equals(tokenSource)) {
-            LOGGER.info("Using static security token.");
-            if (StringUtils.isBlank(staticToken)) {
-                throw new BeanCreationException("t2.security.token.static must not be empty.");
-            }
-            SecurityToken securityToken = SecurityToken.of(staticToken);
-            LOGGER.info("Created static security token: [{}]", securityToken);
-            return securityToken;
-        }
 
         LOGGER.info("Read security token from disk...");
         try {
@@ -74,6 +53,9 @@ public class SecurityConfiguration {
         } catch (IOException e) {
             LOGGER.error("No credentials read from path {} due to an error.", path, e);
         }
+
+        LOGGER.info("Credentials read from {}.", path);
+        
         return credentials;
     }
 

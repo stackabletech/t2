@@ -39,6 +39,7 @@ public class T2ServerApplication {
             if (!isWritable(path)) {
                 throw new BeanCreationException(String.format("The specified workspace directory '%s' is not writeable.", workspaceDirectory));
             }
+            LOGGER.info("Configured workspace directory: {}", path);
             return path;
         }
 
@@ -70,6 +71,7 @@ public class T2ServerApplication {
             if (!isWritable(path)) {
                 throw new BeanCreationException(String.format("The specified template directory '%s' is not writeable.", templateDirectory));
             }
+            LOGGER.info("Configured template directory: {}", path);
             return path;
         }
 
