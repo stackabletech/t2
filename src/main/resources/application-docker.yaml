@@ -1,7 +1,6 @@
 server:
   port: 8080
 t2:
-  cluster-count-limit: 20
   workspace:
     directory: /var/t2/workspace/  
   templates:

@@ -39,7 +39,6 @@ The following table describes the config options of T2:
 |=======
 |key |description |default value
 |server.port |port of the HTTP server |`8080`
-|t2.cluster-count-limit |max # of clusters that are provisioned at the same time |`5`
 |t2.workspace.directory |directory where T2 stores the working dirs of the clusters |`/tmp/t2-workspace/`
 |t2.templates.directory |directory where the T2 cluster templates are located |`./templates`
 |t2.security.token.source |Source of the access token to secure T2. `file` means the token is stored in a file, `static` means it is provided as a property |`static`
