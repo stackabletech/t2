@@ -1,4 +1,4 @@
-# Creates a script to SSH into the bastion host
+# Creates a script to SSH into the edge node
 
 terraform {
   required_version = ">= 0.15, < 2.0.0"
@@ -24,11 +24,11 @@ variable "filename" {
   description = "file name of the script file to be generated"
 }
 
-# script to ssh into bastion host
-resource "local_file" "bastion-host-ssh-script" {
+# script to ssh into edge_node
+resource "local_file" "edge-node-ssh-script" {
   filename = var.filename
   file_permission = "0550"
-  content = templatefile("${path.module}/templates/ssh-bastion-host-script.tpl",
+  content = templatefile("${path.module}/templates/ssh-edge-node-script.tpl",
     {
       ip = var.ip
       user = var.user

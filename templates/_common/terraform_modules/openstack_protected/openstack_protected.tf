@@ -45,7 +45,7 @@ variable "stackable_user" {
 
 variable "security_groups" {
   type = list
-  description = "List of security groups for the bastion host"
+  description = "List of security groups for the protected nodes"
 }
 
 variable "network_ready_flag" {

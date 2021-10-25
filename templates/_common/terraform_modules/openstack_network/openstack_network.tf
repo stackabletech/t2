@@ -55,7 +55,7 @@ resource "openstack_networking_router_interface_v2" "router_interface" {
   subnet_id = openstack_networking_subnet_v2.subnet.id
 }
 
-# Obtain a floating IP as a public IP of the cluster (bastion host)
+# Obtain a floating IP as a public IP of the cluster (edge node)
 resource "openstack_compute_floatingip_v2" "cluster_ip" {
   pool = var.ip_pool
 }

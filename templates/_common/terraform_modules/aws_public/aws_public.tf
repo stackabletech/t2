@@ -21,14 +21,14 @@ variable "stackable_user" {
 
 data "aws_availability_zones" "available" {}
 
-# (public) subnet for the internet gateway, NAT and bastion host
-resource "aws_subnet" "nat" {
+# (public) subnet for the internet gateway, NAT and edge node
+resource "aws_subnet" "public" {
   availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block = "10.0.2.0/24"
   vpc_id = var.vpc.id
   map_public_ip_on_launch = true
   tags = {
-    "Name" = "${var.name_prefix}-nat"
+    "Name" = "${var.name_prefix}-public"
   }
 }
 
@@ -53,22 +53,22 @@ resource "aws_route_table" "internet_gateway_route_table" {
 }
 
 resource "aws_route_table_association" "internet_gateway_route_table" {
-  subnet_id = aws_subnet.nat.id
+  subnet_id = aws_subnet.public.id
   route_table_id = aws_route_table.internet_gateway_route_table.id
 }
 
 # public IP address for NAT gateway
-resource "aws_eip" "nat_gateway" {
+resource "aws_eip" "edge" {
   vpc = true
   tags = {
-    "Name" = "${var.name_prefix}-nat-ip"
+    "Name" = "${var.name_prefix}-public-ip"
   }
 }
 
 # the NAT gateway to be used by the nodes in the private network
 resource "aws_nat_gateway" "nat_gateway" {
-  allocation_id = aws_eip.nat_gateway.id
-  subnet_id = aws_subnet.nat.id
+  allocation_id = aws_eip.edge.id
+  subnet_id = aws_subnet.public.id
   tags = {
     "Name" = "${var.name_prefix}-nat-gateway"
   }
@@ -78,11 +78,11 @@ output "nat_gateway" {
   value = aws_nat_gateway.nat_gateway
 }
 
-# security group for the bastion host
+# security group for the edge node
 # (allowing only 22/SSH ingoing traffic)
-resource "aws_security_group" "bastion_host" {
-  name = "${var.name_prefix}-security-group-bastion-host"
-  description = "Allows SSH access only to bastion host"
+resource "aws_security_group" "edge_node" {
+  name = "${var.name_prefix}-security-group-edge-node"
+  description = "Allows SSH access only to edge node"
   vpc_id = var.vpc.id
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -97,47 +97,47 @@ resource "aws_security_group" "bastion_host" {
     protocol = "-1"
   }
   tags = {
-    "Name" = "${var.name_prefix}-security-group-bastion-host"
+    "Name" = "${var.name_prefix}-security-group-edge-node"
   }
 }
 
-# bastion host
-resource "aws_instance" "bastion_host" {
+# edge node
+resource "aws_instance" "edge" {
   instance_type = "t2.micro"
   ami = "ami-06ec8443c2a35b0ba" 
-  subnet_id = aws_subnet.nat.id
-  security_groups = [aws_security_group.bastion_host.id]
+  subnet_id = aws_subnet.public.id
+  security_groups = [aws_security_group.edge_node.id]
   key_name = var.key_pair.key_name
   disable_api_termination = false
   ebs_optimized = false
   root_block_device {
     volume_size = "25"
     tags = {
-      "Name" = "${var.name_prefix}-bastion-host-disk"
+      "Name" = "${var.name_prefix}-edge-disk"
     }
   }
   tags = {
-    "Name" = "${var.name_prefix}-bastion-host"
+    "Name" = "${var.name_prefix}-edge"
   }
 }
 
-# file containing IP address of bastion host.
+# file containing IP address of edge node.
 resource "local_file" "ipv4_file" {
   filename = "ipv4"
-  content = aws_instance.bastion_host.public_ip
+  content = aws_instance.edge.public_ip
   file_permission = "0440"
 }
 
-# script to ssh into bastion host
-module "bastion_host_ssh_script" {
-  source                        = "../common_ssh_script_bastion_host"
-  ip                            = aws_instance.bastion_host.public_ip
+# script to ssh into edge node
+module "edge_node_host_ssh_script" {
+  source                        = "../common_ssh_script_edge_node"
+  ip                            = aws_instance.edge.public_ip
   user                          = var.stackable_user
   cluster_private_key_filename  = var.cluster_private_key_filename
-  filename                      = "ssh-bastion-host.sh"
+  filename                      = "ssh-edge.sh"
 }
 
 # cluster IP address
 output "cluster_ip" {
-  value = aws_instance.bastion_host.public_ip
+  value = aws_instance.edge.public_ip
 }
