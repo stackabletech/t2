@@ -3,7 +3,7 @@
   roles: 
   - distribute_ssh_keys
   - centos_epel_8
-  - role: nat_wireguard_centos_8
+  - role: wireguard_host_centos_8
     when: wireguard|bool
 - hosts: protected
   roles:

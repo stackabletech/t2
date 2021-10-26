@@ -7,7 +7,7 @@
 -A FORWARD -i wg -o ens6 -j ACCEPT
 -A FORWARD -i ens6 -o wg -j ACCEPT
 COMMIT
-*nat
+*edge
 :PREROUTING ACCEPT
 :INPUT ACCEPT
 :OUTPUT ACCEPT

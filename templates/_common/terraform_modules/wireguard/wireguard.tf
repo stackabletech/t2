@@ -19,12 +19,12 @@ variable "endpoint_ip" {
 }
 
 # wireguard configfile for edge node
-resource "local_file" "wireguard_nat_config" {
+resource "local_file" "wireguard_host_config" {
   filename = var.server_config_filename
   file_permission = "0440"
   content = templatefile("${path.module}/templates/wg.conf.tpl",
     {
-      wg_nat_private_key = yamldecode(file("wireguard.yaml"))["server"]["privateKey"]
+      wg_host_private_key = yamldecode(file("wireguard.yaml"))["server"]["privateKey"]
       wg_client_public_keys = [ for client in yamldecode(file("wireguard.yaml"))["clients"]: client.publicKey ]
     }
   )

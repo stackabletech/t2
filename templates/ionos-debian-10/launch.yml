@@ -2,11 +2,11 @@
 - hosts: all
   roles:
   - distribute_ssh_keys
-- hosts: nat
+- hosts: edge
   roles:
   - nat_iptables_debian
   - nat_dns_debian
-  - role: nat_wireguard_debian
+  - role: wireguard_host_centos8
     when: wireguard|bool
   - reboot
 - hosts: protected

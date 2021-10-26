@@ -3,12 +3,12 @@
   roles:
   - distribute_ssh_keys
   - firewalld
-- hosts: nat
+- hosts: edge
   roles: 
   - centos_epel_7
   - nat_iptables_centos
   - nat_dns_centos
-  - role: nat_wireguard_centos_7
+  - role: wireguard_host_centos_8
     when: wireguard|bool
 - hosts: protected
   roles:

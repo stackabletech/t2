@@ -1,2 +1,2 @@
 search {{ domain }}
-nameserver {{ hostvars[groups.nat[0]]['internal_ip']}}
+nameserver {{ hostvars[groups.edge[0]]['internal_ip']}}
