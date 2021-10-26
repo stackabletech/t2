@@ -76,13 +76,6 @@ module "ionos_edge_node" {
   cluster_private_key_filename  = "${path.module}/cluster_key"
 }
 
-# file containing IP address of cluster / edge node.
-resource "local_file" "ipv4_file" {
-  filename = "ipv4"
-  content = module.ionos_edge_node.public_ip
-  file_permission = "0440"
-}
-
 module "ionos_protected_nodes" {
   source                        = "./terraform_modules/ionos_protected_nodes"
   datacenter                    = module.ionos_network.datacenter

@@ -121,13 +121,6 @@ resource "aws_instance" "edge" {
   }
 }
 
-# file containing IP address of edge node.
-resource "local_file" "ipv4_file" {
-  filename = "ipv4"
-  content = aws_instance.edge.public_ip
-  file_permission = "0440"
-}
-
 # script to ssh into edge node
 module "edge_node_host_ssh_script" {
   source                        = "../common_ssh_script_edge_node"
