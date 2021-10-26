@@ -2,7 +2,7 @@
 - hosts: all
   roles:
   - distribute_ssh_keys
-- hosts: bastion_host
+- hosts: edge
   roles: 
   - centos_epel_8
   - bind_centos

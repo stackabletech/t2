@@ -18,7 +18,7 @@ variable "endpoint_ip" {
   type = string
 }
 
-# wireguard configfile for bastion host ('nat')
+# wireguard configfile for edge node
 resource "local_file" "wireguard_nat_config" {
   filename = var.server_config_filename
   file_permission = "0440"

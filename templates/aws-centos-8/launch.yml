@@ -1,5 +1,5 @@
 ---
-- hosts: bastion_host
+- hosts: edge
   roles: 
   - distribute_ssh_keys
   - centos_epel_8

@@ -1,4 +1,4 @@
-# This task configures the nameserver to be the bastion_host (by internal IP)
+# This task configures the nameserver to be the edge node (by internal IP)
 ---
 - name: Disable DNS overwrite by NetworkManager
   ini_file: 
