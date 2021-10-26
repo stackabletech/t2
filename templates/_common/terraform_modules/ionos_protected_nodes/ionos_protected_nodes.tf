@@ -29,7 +29,7 @@ variable "os_version" {
   type = string
 }
 
-variable "nodes" {
+variable "node_configuration" {
 }
 
 variable "cluster_public_key_filename" {
@@ -42,7 +42,7 @@ variable "cluster_private_key_filename" {
 
 # list of all node names to iterate over
 locals {
-  nodenames = [ for node in var.nodes: node.name ]
+  nodenames = [ for node in var.node_configuration: node.name ]
 }
 
 data "ionoscloud_image" "os_image_protected_node" {
@@ -80,10 +80,10 @@ resource "ionoscloud_server" "orchestrator" {
 # nodes (servers)
 resource "ionoscloud_server" "node" {
   count = length(local.nodenames)
-  name = var.nodes[local.nodenames[count.index]].name
+  name = var.node_configuration[local.nodenames[count.index]].name
   datacenter_id = var.datacenter.id
-  cores = var.nodes[local.nodenames[count.index]].numberOfCores
-  ram = var.nodes[local.nodenames[count.index]].memoryMb
+  cores = var.node_configuration[local.nodenames[count.index]].numberOfCores
+  ram = var.node_configuration[local.nodenames[count.index]].memoryMb
   cpu_family = can(yamldecode(file("cluster.yaml"))["spec"]["cpuFamily"]) ? yamldecode(file("cluster.yaml"))["spec"]["cpuFamily"] : null
   availability_zone = "ZONE_1"
 
@@ -91,13 +91,13 @@ resource "ionoscloud_server" "node" {
   ssh_key_path = [ var.cluster_public_key_filename ]
 
   volume {
-    name = "${var.nodes[local.nodenames[count.index]].name}-storage"
-    size = var.nodes[local.nodenames[count.index]].diskSizeGb
-    disk_type = var.nodes[local.nodenames[count.index]].diskType
+    name = "${var.node_configuration[local.nodenames[count.index]].name}-storage"
+    size = var.node_configuration[local.nodenames[count.index]].diskSizeGb
+    disk_type = var.node_configuration[local.nodenames[count.index]].diskType
   }
 
   nic {
-    name = "${var.nodes[local.nodenames[count.index]].name}-internal-nic"
+    name = "${var.node_configuration[local.nodenames[count.index]].name}-internal-nic"
     lan = var.internal_lan.id
     dhcp = true
     firewall_active = false
@@ -122,7 +122,7 @@ module "ssh_script_nodes" {
   node_ip                       = ionoscloud_server.node[count.index].primary_ip
   user                          = "root"
   cluster_private_key_filename  = var.cluster_private_key_filename
-  filename                      = "ssh-${var.nodes[local.nodenames[count.index]].name}.sh"
+  filename                      = "ssh-${var.node_configuration[local.nodenames[count.index]].name}.sh"
 }
 
 output "orchestrator" {

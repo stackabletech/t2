@@ -19,7 +19,7 @@ variable "edge_node_internal_ip" {
   type = string
 }
 
-variable "node_data" {
+variable "node_configuration" {
 }
 
 variable "protected_nodes" {
@@ -46,7 +46,7 @@ resource "local_file" "ansible-inventory" {
       stackable_user_home = "/root/"
       cluster_ip = var.cluster_ip
       nodes = var.protected_nodes
-      node_data = var.node_data
+      node_configuration = var.node_configuration
       edge_node_internal_ip = var.edge_node_internal_ip
       orchestrator = var.orchestrator
       ssh_key_private_path = var.cluster_private_key_filename

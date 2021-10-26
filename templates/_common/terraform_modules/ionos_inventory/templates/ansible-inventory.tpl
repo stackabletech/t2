@@ -14,7 +14,7 @@ ansible_become=yes
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.name} ansible_host=${node.primary_ip} stackable_agent=${node_data[node.name]["agent"]}
+${node.name} ansible_host=${node.primary_ip} stackable_agent=${node_configuration[node.name]["agent"]}
 %{ endfor ~}
 
 [nodes:vars]

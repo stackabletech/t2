@@ -52,17 +52,12 @@ variable "network_ready_flag" {
   description = "resource as a flag to indicate that the network is ready to be used"
 }
 
-# list of all the nodes of the different types
+variable "node_configuration" {
+}
+
+# list of all node names to iterate over
 locals {
-  nodes = flatten([
-    for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
-      for i in range(1, definition.numberOfNodes + 1): {
-        name = "${type}-${i}" 
-        flavorName = can(definition.openstackFlavorName) ? definition.openstackFlavorName : "2C-4GB-20GB"
-        agent = can(definition.agent) ? definition.agent : true
-      }
-    ]
-  ])
+  nodenames = [ for node in var.node_configuration: node.name ]
 }
 
 # Create the orchestrator compute instance
@@ -82,10 +77,10 @@ resource "openstack_compute_instance_v2" "orchestrator" {
 # Create the cluster-specific nodes as compute instances
 resource "openstack_compute_instance_v2" "node" {
   depends_on      = [ var.network_ready_flag ]
-  count           = length(local.nodes)
-  name            = "${var.cluster_name}-${local.nodes[count.index].name}"
+  count           = length(local.nodenames)
+  name            = "${var.cluster_name}-${var.node_configuration[local.nodenames[count.index]].name}"
   image_id        = "3ecdee9c-241c-4913-acf0-12731f73d2b6"  # CentOS 8
-  flavor_name     = local.nodes[count.index].flavorName
+  flavor_name     = var.node_configuration[local.nodenames[count.index]].flavorName
   key_pair        = "${var.cluster_name}-master-key"
   security_groups = var.security_groups
 
@@ -94,8 +89,8 @@ resource "openstack_compute_instance_v2" "node" {
   }
 
   metadata = {
-    "hostname" = local.nodes[count.index].name
-    "has_agent" = local.nodes[count.index].agent
+    "hostname" = var.node_configuration[local.nodenames[count.index]].name
+    "has_agent" = var.node_configuration[local.nodenames[count.index]].agent
   }
 }
 
@@ -111,13 +106,13 @@ module "ssh_script_orchestrator" {
 
 # script to ssh into nodes via ssh proxy (aka jump host)
 module "ssh_script_nodes" {
-  count                         = length(local.nodes)
+  count                         = length(local.nodenames)
   source                        = "../common_ssh_script_protected_node"
   cluster_ip                    = var.cluster_ip
   node_ip                       = element(openstack_compute_instance_v2.node.*.access_ip_v4, count.index)
   user                          = var.stackable_user
   cluster_private_key_filename  = var.cluster_private_key_filename
-  filename                      = "ssh-${local.nodes[count.index].name}.sh"
+  filename                      = "ssh-${var.node_configuration[local.nodenames[count.index]].name}.sh"
 }
 
 output "orchestrator" {

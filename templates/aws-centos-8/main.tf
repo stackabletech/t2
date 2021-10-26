@@ -25,6 +25,25 @@ provider "aws" {
   secret_key  = var.aws_secret_access_key
 }
 
+# collect configuration information from cluster.yaml
+locals {
+
+  node_configuration = { for node in flatten([
+    for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
+      for i in range(1, definition.numberOfNodes + 1): {
+        name = "${type}-${i}" 
+        diskType = can(definition.diskType) ? definition.diskType : "gp2"
+        diskSizeGb = can(definition.diskSizeGb) ? definition.diskSizeGb : 50
+        awsInstanceType = can(definition.awsInstanceType) ? definition.awsInstanceType : "t2.medium"
+        agent = can(definition.agent) ? definition.agent : true
+      }
+    ]
+  ]): node.name => node }
+
+  datacenter_location = yamldecode(file("cluster.yaml"))["spec"]["region"]
+  datacenter_description = yamldecode(file("cluster.yaml"))["metadata"]["description"]
+}
+
 locals {
   stackable_user = "ec2-user"
   stackable_user_home = "/home/ec2-user/"
@@ -65,6 +84,7 @@ module "aws_protected" {
   dns_zone                      = module.aws_vpc.dns_zone
   dns_zone_reverse              = module.aws_vpc.dns_zone_reverse
   stackable_user                = local.stackable_user
+  node_configuration            = local.node_configuration
 }
 
 module "aws_ansible_inventory" {

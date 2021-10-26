@@ -14,6 +14,9 @@ variable "key_pair" {
   description = "AWS Key Pair"
 }
 
+variable "node_configuration" {
+}
+
 variable "cluster_private_key_filename" {
   type = string
 }
@@ -35,19 +38,9 @@ variable "stackable_user" {
   description = "non-root user for Stackable"
 }
 
-# list of all the nodes of the different types
+# list of all node names to iterate over
 locals {
-  nodes = flatten([
-    for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
-      for i in range(1, definition.numberOfNodes + 1): {
-        name = "${type}-${i}" 
-        diskType = can(definition.diskType) ? definition.diskType : "gp2"
-        diskSizeGb = can(definition.diskSizeGb) ? definition.diskSizeGb : 50
-        awsInstanceType = can(definition.awsInstanceType) ? definition.awsInstanceType : "t2.medium"
-        agent = can(definition.agent) ? definition.agent : true
-      }
-    ]
-  ])
+  nodenames = [ for node in var.node_configuration: node.name ]
 }
 
 data "aws_availability_zones" "available" {}
@@ -148,8 +141,8 @@ module "ssh_script_orchestrator" {
 }
 
 resource "aws_instance" "node" {
-  count = length(local.nodes)
-  instance_type = local.nodes[count.index].awsInstanceType
+  count = length(local.nodenames)
+  instance_type = var.node_configuration[local.nodenames[count.index]].awsInstanceType
   ami = "ami-06ec8443c2a35b0ba"
   subnet_id = aws_subnet.protected.id
   security_groups = [aws_security_group.protected_nodes.id]
@@ -157,46 +150,46 @@ resource "aws_instance" "node" {
   disable_api_termination = false
   ebs_optimized = false
   root_block_device {
-    volume_size = local.nodes[count.index].diskSizeGb
-    volume_type = local.nodes[count.index].diskType
+    volume_size = var.node_configuration[local.nodenames[count.index]].diskSizeGb
+    volume_type = var.node_configuration[local.nodenames[count.index]].diskType
     tags = {
-      "Name" = "${var.name_prefix}-${local.nodes[count.index].name}-disk"
+      "Name" = "${var.name_prefix}-${var.node_configuration[local.nodenames[count.index]].name}-disk"
     }
   }
   tags = {
-    "Name" = "${var.name_prefix}-${local.nodes[count.index].name}"
-    "hostname" = local.nodes[count.index].name
-    "has_agent" = local.nodes[count.index].agent
+    "Name" = "${var.name_prefix}-${var.node_configuration[local.nodenames[count.index]].name}"
+    "hostname" = var.node_configuration[local.nodenames[count.index]].name
+    "has_agent" = var.node_configuration[local.nodenames[count.index]].agent
   }
 }
 
 resource "aws_route53_record" "node" {
-  count = length(local.nodes)
+  count = length(local.nodenames)
   zone_id = var.dns_zone.zone_id
-  name = local.nodes[count.index].name
+  name = var.node_configuration[local.nodenames[count.index]].name
   type = "A"
   ttl = "300"
   records = [element(aws_instance.node.*.private_ip, count.index)]
 }
 
 resource "aws_route53_record" "node_reverse" {
-  count = length(local.nodes)
+  count = length(local.nodenames)
   zone_id = var.dns_zone_reverse.zone_id
   name = element(split(".", element(aws_instance.node.*.private_ip, count.index)), 3)
   type = "PTR"
   ttl = "300"
-  records = [ format("%s.%s", local.nodes[count.index].name, yamldecode(file("cluster.yaml"))["domain"]) ]
+  records = [ format("%s.%s", var.node_configuration[local.nodenames[count.index]].name, yamldecode(file("cluster.yaml"))["domain"]) ]
 }
 
 # script to ssh into nodes via ssh proxy (aka jump host)
 module "ssh_script_nodes" {
-  count                         = length(local.nodes)
+  count                         = length(local.nodenames)
   source                        = "../common_ssh_script_protected_node"
   cluster_ip                    = var.cluster_ip
   node_ip                       = element(aws_instance.node.*.private_ip, count.index)
   user                          = var.stackable_user
   cluster_private_key_filename  = var.cluster_private_key_filename
-  filename                      = "ssh-${local.nodes[count.index].name}.sh"
+  filename                      = "ssh-${var.node_configuration[local.nodenames[count.index]].name}.sh"
 }
 
 output "nodes" {

@@ -78,6 +78,23 @@ provider "openstack" {
   region            = yamldecode(file("cluster.yaml"))["spec"]["region"]
 }
 
+# collect configuration information from cluster.yaml
+locals {
+
+  node_configuration = { for node in flatten([
+    for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
+      for i in range(1, definition.numberOfNodes + 1): {
+        name = "${type}-${i}" 
+        flavorName = can(definition.openstackFlavorName) ? definition.openstackFlavorName : "2C-4GB-20GB"
+        agent = can(definition.agent) ? definition.agent : true
+      }
+    ]
+  ]): node.name => node }
+
+  datacenter_location = yamldecode(file("cluster.yaml"))["spec"]["region"]
+  datacenter_description = yamldecode(file("cluster.yaml"))["metadata"]["description"]
+}
+
 locals {
   stackable_user = "centos"
   stackable_user_home = "/home/centos/"
@@ -137,6 +154,7 @@ module "openstack_protected" {
   stackable_user                = local.stackable_user
   security_groups               = [ module.openstack_network.secgroup_default.name ]
   network_ready_flag            = module.openstack_network.network_ready_flag
+  node_configuration            = local.node_configuration
 }
 
 # Creates the Ansible inventory file(s) for this cluster
