@@ -80,7 +80,7 @@ module "ionos_protected_nodes" {
   source                        = "./terraform_modules/ionos_protected_nodes"
   datacenter                    = module.ionos_network.datacenter
   internal_lan                  = module.ionos_network.internal_lan
-  public_ip                     = module.ionos_edge_node.public_ip
+  cluster_ip                    = module.ionos_edge_node.cluster_ip
   nodes                         = local.nodes
   os_name                       = "CentOS"
   os_version                    = "8-server"
@@ -90,7 +90,7 @@ module "ionos_protected_nodes" {
 
 module "ionos_inventory" {
   source                        = "./terraform_modules/ionos_inventory"
-  public_ip                     = module.ionos_edge_node.public_ip
+  cluster_ip                    = module.ionos_edge_node.cluster_ip
   edge_node_internal_ip         = module.ionos_edge_node.edge_node_internal_ip
   node_data                     = local.nodes
   protected_nodes               = module.ionos_protected_nodes.protected_nodes
@@ -105,7 +105,7 @@ module "stackable_client_script" {
     { name = node.name, ip = node.primary_ip }
   ]
   orchestrator_ip               = module.ionos_protected_nodes.orchestrator.primary_ip
-  cluster_ip                    = module.ionos_edge_node.public_ip
+  cluster_ip                    = module.ionos_edge_node.cluster_ip
   ssh-username                  = "root"
 }
 
@@ -119,6 +119,6 @@ module "wireguard" {
   server_config_filename    = "ansible_roles/files/wireguard_server.conf"
   client_config_base_path   = "resources/wireguard-client-config"
   allowed_ips               = concat([ for node in module.ionos_protected_nodes.protected_nodes: node.primary_ip ], [module.ionos_protected_nodes.orchestrator.primary_ip])
-  endpoint_ip               = module.ionos_edge_node.public_ip
+  endpoint_ip               = module.ionos_edge_node.cluster_ip
 }
 

@@ -80,7 +80,7 @@ module "edge_node_ssh_script" {
   filename                      = "ssh-edge.sh"
 }
 
-output "public_ip" {
+output "cluster_ip" {
   value = ionoscloud_server.edge.primary_ip
 }
 

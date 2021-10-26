@@ -11,7 +11,7 @@ terraform {
   }
 }
 
-variable "public_ip" {
+variable "cluster_ip" {
   type = string
 }
 
@@ -44,7 +44,7 @@ resource "local_file" "ansible-inventory" {
       domain = yamldecode(file("cluster.yaml"))["domain"]
       stackable_user = "root"
       stackable_user_home = "/root/"
-      public_ip = var.public_ip
+      cluster_ip = var.cluster_ip
       nodes = var.protected_nodes
       node_data = var.node_data
       edge_node_internal_ip = var.edge_node_internal_ip

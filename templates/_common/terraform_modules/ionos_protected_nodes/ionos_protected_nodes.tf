@@ -17,7 +17,7 @@ variable "datacenter" {
 variable "internal_lan" {
 }
 
-variable "public_ip" {
+variable "cluster_ip" {
   type = string
 }
 
@@ -107,7 +107,7 @@ resource "ionoscloud_server" "node" {
 # script to ssh into orchestrator using edge node as jump host
 module "ssh_script_orchestrator" {
   source                        = "../common_ssh_script_protected_node"
-  cluster_ip                    = var.public_ip
+  cluster_ip                    = var.cluster_ip
   node_ip                       = ionoscloud_server.orchestrator.primary_ip
   user                          = "root"
   cluster_private_key_filename  = var.cluster_private_key_filename
@@ -118,7 +118,7 @@ module "ssh_script_orchestrator" {
 module "ssh_script_nodes" {
   count                         = length(local.nodenames)
   source                        = "../common_ssh_script_protected_node"
-  cluster_ip                    = var.public_ip
+  cluster_ip                    = var.cluster_ip
   node_ip                       = ionoscloud_server.node[count.index].primary_ip
   user                          = "root"
   cluster_private_key_filename  = var.cluster_private_key_filename
