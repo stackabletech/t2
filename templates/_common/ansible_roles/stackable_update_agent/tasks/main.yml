@@ -1,3 +1,4 @@
+# Update the Stackable Agent
 ---
 - name: Ensure agent is installed (YUM)
   yum:

@@ -1,3 +1,4 @@
+# Enable IP forwarding on edge node (CentOS 8)
 ---
 - name: Enable IP forwarding
   sysctl:
@@ -14,10 +15,14 @@
 
 - name: Ensure iptables config is up-to-date
   copy:
-    src: nat_iptables
+    src: iptables
     dest: /etc/sysconfig/iptables
     owner: root
     group: root
-  notify: 
-    - restart iptables
+
+- name: Ensure iptables service is started
+  service: 
+    name: iptables 
+    state: restarted
+    enabled: yes
 

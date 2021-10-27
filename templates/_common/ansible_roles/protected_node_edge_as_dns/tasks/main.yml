@@ -1,3 +1,4 @@
+# Sets the edge node as DNS server
 ---
 - name: Create resolv.conf
   template:

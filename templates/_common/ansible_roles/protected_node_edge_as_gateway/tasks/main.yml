@@ -1,3 +1,5 @@
+# Sets the edge node as a gateway via the default route.
+# As this config might be reset at each reboot, we create a service to config the network at startup
 ---
 - name: Create network config script
   template:

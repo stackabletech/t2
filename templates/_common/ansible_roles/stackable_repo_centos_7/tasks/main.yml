@@ -1,3 +1,4 @@
+# Add Stackable repository for CentOS 7
 ---
 - name: Add Stackable repository
   yum_repository:

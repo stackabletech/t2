@@ -1,3 +1,4 @@
+# Add Stackable repository for Debian 10
 ---
 - name: Add key for Stackable repository
   apt_key:

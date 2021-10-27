@@ -1,3 +1,4 @@
+# Allow easy mutual SSH access between the protected nodes of the cluster
 ---
 - name: create directory for keypair for mutual access
   file:

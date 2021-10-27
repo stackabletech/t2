@@ -1,3 +1,4 @@
+# Install and configure the wireguard server (on the edge node)
 ---
 
 # This is needed on CentOS/RHEL because otherwise the running kernel and the kernel-headers (installed as a dependency of wireguard)
