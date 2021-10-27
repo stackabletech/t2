@@ -6,14 +6,15 @@
 - hosts: edge
   roles: 
   - centos_epel_8
-  - nat_iptables_centos
-  - nat_dns_centos
-  - role: wireguard_host_centos_8
-    when: wireguard|bool
+  - edge_ip_forwarding
+  - edge_bind
+#  - role: wireguard_host_centos_8
+#    when: wireguard|bool
 - hosts: protected
   roles:
   - protected_node_common_centos
-  - protected_node_configure_network
+  - protected_node_edge_as_gateway
+  - protected_node_edge_as_dns
   - protected_node_mutual_access
   - protected_node_software_centos_8
   - protected_node_chrony
