@@ -48,7 +48,7 @@ locals {
 
 module "master_keypair" {
   source      = "../master_keypair"
-  filename    = "${path.module}/cluster_key"
+  filename    = "cluster_key"
 }
 
 module "ionos_network" {
@@ -63,8 +63,8 @@ module "ionos_edge_node" {
   datacenter                    = module.ionos_network.datacenter
   external_lan                  = module.ionos_network.external_lan
   internal_lan                  = module.ionos_network.internal_lan
-  cluster_public_key_filename   = "${path.module}/cluster_key.pub"
-  cluster_private_key_filename  = "${path.module}/cluster_key"
+  cluster_public_key_filename   = "cluster_key.pub"
+  cluster_private_key_filename  = "cluster_key"
 }
 
 module "ionos_protected_nodes" {
@@ -75,8 +75,8 @@ module "ionos_protected_nodes" {
   node_configuration            = local.node_configuration
   os_name                       = var.os_name
   os_version                    = var.os_version
-  cluster_public_key_filename   = "${path.module}/cluster_key.pub"
-  cluster_private_key_filename  = "${path.module}/cluster_key"
+  cluster_public_key_filename   = "cluster_key.pub"
+  cluster_private_key_filename  = "cluster_key"
 }
 
 module "ionos_inventory" {
@@ -86,8 +86,8 @@ module "ionos_inventory" {
   node_configuration            = local.node_configuration
   protected_nodes               = module.ionos_protected_nodes.protected_nodes
   orchestrator                  = module.ionos_protected_nodes.orchestrator
-  cluster_public_key_filename   = "${path.module}/cluster_key.pub"
-  cluster_private_key_filename  = "${path.module}/cluster_key"
+  cluster_public_key_filename   = "cluster_key.pub"
+  cluster_private_key_filename  = "cluster_key"
 }
 
 module "stackable_client_script" {
