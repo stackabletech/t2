@@ -4,6 +4,7 @@
   - distribute_ssh_keys
 - hosts: edge
   roles:
+  - firewalld
   - centos_epel_8
   - role: edge_ip_forwarding
     when: not (wireguard|bool)
