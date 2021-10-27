@@ -4,7 +4,7 @@ stackable_user=${stackable_user}
 stackable_user_home=${stackable_user_home}
 
 [edge]
-${cluster_ip} internal_ip=${edge_node_internal_ip}
+edge ansible_host=${cluster_ip} internal_ip=${edge_node_internal_ip}
 
 [edge:vars]
 ansible_user=${stackable_user}
