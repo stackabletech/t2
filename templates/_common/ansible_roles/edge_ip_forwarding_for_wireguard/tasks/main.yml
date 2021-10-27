@@ -1,0 +1,29 @@
+# Enable IP forwarding on edge node (CentOS 8)
+# This version of the iptables config is suitable for acting as a wireguard host
+---
+- name: Enable IP forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Ensure iptables-services is installed
+  yum:
+    name: iptables-services
+    state: present
+
+- name: Ensure iptables config is up-to-date
+  copy:
+    src: iptables_wireguard
+    dest: /etc/sysconfig/iptables
+    owner: root
+    group: root
+
+- name: Ensure iptables service is started
+  service: 
+    name: iptables 
+    state: restarted
+    enabled: yes
+

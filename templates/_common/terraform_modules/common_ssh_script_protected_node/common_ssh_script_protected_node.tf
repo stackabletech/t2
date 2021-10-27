@@ -29,7 +29,7 @@ variable "filename" {
   description = "file name of the script file to be generated"
 }
 
-# script to ssh into bastion host
+# script to ssh into node
 resource "local_file" "protected-node-ssh-script" {
   filename = var.filename
   file_permission = "0550"

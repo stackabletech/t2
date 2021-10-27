@@ -25,6 +25,25 @@ provider "aws" {
   secret_key  = var.aws_secret_access_key
 }
 
+# collect configuration information from cluster.yaml
+locals {
+
+  node_configuration = { for node in flatten([
+    for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
+      for i in range(1, definition.numberOfNodes + 1): {
+        name = "${type}-${i}" 
+        diskType = can(definition.diskType) ? definition.diskType : "gp2"
+        diskSizeGb = can(definition.diskSizeGb) ? definition.diskSizeGb : 50
+        awsInstanceType = can(definition.awsInstanceType) ? definition.awsInstanceType : "t2.medium"
+        agent = can(definition.agent) ? definition.agent : true
+      }
+    ]
+  ]): node.name => node }
+
+  datacenter_location = yamldecode(file("cluster.yaml"))["spec"]["region"]
+  datacenter_description = yamldecode(file("cluster.yaml"))["metadata"]["description"]
+}
+
 locals {
   stackable_user = "ec2-user"
   stackable_user_home = "/home/ec2-user/"
@@ -45,8 +64,8 @@ module "aws_vpc" {
   name                  = var.cluster_name
 }
 
-module "aws_nat" {
-  source                        = "./terraform_modules/aws_nat"
+module "aws_public" {
+  source                        = "./terraform_modules/aws_public"
   name_prefix                   = var.cluster_name
   vpc                           = module.aws_vpc.vpc
   key_pair                      = aws_key_pair.master_keypair
@@ -54,25 +73,26 @@ module "aws_nat" {
   stackable_user                = local.stackable_user
 }
 
-module "aws_protected_nodes" {
-  source                        = "./terraform_modules/aws_protected_nodes"
+module "aws_protected" {
+  source                        = "./terraform_modules/aws_protected"
   name_prefix                   = var.cluster_name
   vpc                           = module.aws_vpc.vpc
-  nat_gateway                   = module.aws_nat.nat_gateway
+  nat_gateway                   = module.aws_public.nat_gateway
   key_pair                      = aws_key_pair.master_keypair
   cluster_private_key_filename  = "${path.module}/cluster_key"
-  cluster_ip                    = module.aws_nat.cluster_ip
+  cluster_ip                    = module.aws_public.cluster_ip
   dns_zone                      = module.aws_vpc.dns_zone
   dns_zone_reverse              = module.aws_vpc.dns_zone_reverse
   stackable_user                = local.stackable_user
+  node_configuration            = local.node_configuration
 }
 
 module "aws_ansible_inventory" {
   source                        = "./terraform_modules/aws_ansible_inventory"
-  nodes                         = module.aws_protected_nodes.nodes
-  orchestrator                  = module.aws_protected_nodes.orchestrator
+  nodes                         = module.aws_protected.nodes
+  orchestrator                  = module.aws_protected.orchestrator
   cluster_private_key_filename  = "${path.module}/cluster_key"
-  cluster_ip                    = module.aws_nat.cluster_ip
+  cluster_ip                    = module.aws_public.cluster_ip
   stackable_user                = local.stackable_user
   stackable_user_home           = local.stackable_user_home
 }
@@ -80,11 +100,11 @@ module "aws_ansible_inventory" {
 
 module "stackable_client_script" {
   source                        = "./terraform_modules/stackable_client_script"
-  nodes                         = [for node in module.aws_protected_nodes.nodes : 
+  nodes                         = [for node in module.aws_protected.nodes : 
     { name = node.tags["hostname"], ip = node.private_ip }
   ]
-  orchestrator_ip               = module.aws_protected_nodes.orchestrator.private_ip
-  cluster_ip                    = module.aws_nat.cluster_ip
+  orchestrator_ip               = module.aws_protected.orchestrator.private_ip
+  cluster_ip                    = module.aws_public.cluster_ip
   ssh-username                  = local.stackable_user
 }
 
@@ -101,6 +121,6 @@ module "wireguard" {
   source                    = "./terraform_modules/wireguard"
   server_config_filename    = "ansible_roles/files/wireguard_server.conf"
   client_config_base_path   = "resources/wireguard-client-config"
-  allowed_ips               = concat([ for node in module.aws_protected_nodes.nodes: node.private_ip ], [module.aws_protected_nodes.orchestrator.private_ip])
-  endpoint_ip               = module.aws_nat.cluster_ip
+  allowed_ips               = concat([ for node in module.aws_protected.nodes: node.private_ip ], [module.aws_protected.orchestrator.private_ip])
+  endpoint_ip               = module.aws_public.cluster_ip
 }

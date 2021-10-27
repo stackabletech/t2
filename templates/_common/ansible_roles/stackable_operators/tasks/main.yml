@@ -1,3 +1,4 @@
+# Ensure Stackable operators are installed
 ---
 - name: Install operator (YUM)
   yum:

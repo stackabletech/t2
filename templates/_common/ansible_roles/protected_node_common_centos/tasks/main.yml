@@ -1,3 +1,9 @@
+# Some common settings for CentOS nodes
+# 
+# - hostname
+# - transparent hugepages disabled
+# - SELinux disabled
+# - IPv6 disabled
 ---
 - name: Set hostname
   hostname:

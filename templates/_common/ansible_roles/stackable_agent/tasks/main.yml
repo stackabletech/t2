@@ -1,3 +1,4 @@
+# Install Stackable agent
 ---
 - name: Ensure stackable agent is installed (YUM)
   yum:

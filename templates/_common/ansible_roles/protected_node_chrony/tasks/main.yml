@@ -1,3 +1,5 @@
+# Install and configure chrony service
+# https://chrony.tuxfamily.org/
 ---
 - name: Ensure Chrony uses correct NTP servers
   template:

@@ -1,3 +1,4 @@
+# Collect the version of all operators in one file on the Ansible runner
 ---
 - name: Create file to collect operator versions in
   shell: |

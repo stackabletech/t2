@@ -3,10 +3,10 @@ domain=${domain}
 stackable_user=${stackable_user}
 stackable_user_home=${stackable_user_home}
 
-[bastion_host]
-${cluster_ip}
+[edge]
+edge ansible_host=${cluster_ip}
 
-[bastion_host:vars]
+[edge:vars]
 ansible_user=${stackable_user}
 ansible_ssh_private_key_file=${ssh_key_private_path}
 wireguard=${wireguard}

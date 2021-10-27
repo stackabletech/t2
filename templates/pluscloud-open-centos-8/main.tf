@@ -78,6 +78,23 @@ provider "openstack" {
   region            = yamldecode(file("cluster.yaml"))["spec"]["region"]
 }
 
+# collect configuration information from cluster.yaml
+locals {
+
+  node_configuration = { for node in flatten([
+    for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
+      for i in range(1, definition.numberOfNodes + 1): {
+        name = "${type}-${i}" 
+        flavorName = can(definition.openstackFlavorName) ? definition.openstackFlavorName : "2C-4GB-20GB"
+        agent = can(definition.agent) ? definition.agent : true
+      }
+    ]
+  ]): node.name => node }
+
+  datacenter_location = yamldecode(file("cluster.yaml"))["spec"]["region"]
+  datacenter_description = yamldecode(file("cluster.yaml"))["metadata"]["description"]
+}
+
 locals {
   stackable_user = "centos"
   stackable_user_home = "/home/centos/"
@@ -113,9 +130,9 @@ module "openstack_network" {
   ip_pool                       = var.pluscloud_open_ip_pool_name
 }
 
-# Creates the bastion host for this cluster
-module "openstack_nat" {
-  source                        = "./terraform_modules/openstack_nat"
+# Creates the public stuff (edge node) for this cluster
+module "openstack_public" {
+  source                        = "./terraform_modules/openstack_public"
   cluster_name                  = var.cluster_name
   cluster_ip                    = module.openstack_network.cluster_ip
   network_name                  = module.openstack_network.network_name
@@ -126,9 +143,9 @@ module "openstack_nat" {
   network_ready_flag            = module.openstack_network.network_ready_flag
 }
 
-# Creates the protected (=accessible via bastion host only) nodes of this cluster
-module "openstack_protected_nodes" {
-  source                        = "./terraform_modules/openstack_protected_nodes"
+# Creates the protected (=accessible via edge node only) nodes of this cluster
+module "openstack_protected" {
+  source                        = "./terraform_modules/openstack_protected"
   cluster_name                  = var.cluster_name
   cluster_ip                    = module.openstack_network.cluster_ip
   network_name                  = module.openstack_network.network_name
@@ -137,16 +154,17 @@ module "openstack_protected_nodes" {
   stackable_user                = local.stackable_user
   security_groups               = [ module.openstack_network.secgroup_default.name ]
   network_ready_flag            = module.openstack_network.network_ready_flag
+  node_configuration            = local.node_configuration
 }
 
 # Creates the Ansible inventory file(s) for this cluster
 module "openstack_inventory" {
   source                        = "./terraform_modules/openstack_inventory"
-  orchestrator                  = module.openstack_protected_nodes.orchestrator
-  nodes                         = module.openstack_protected_nodes.nodes
+  orchestrator                  = module.openstack_protected.orchestrator
+  nodes                         = module.openstack_protected.nodes
   cluster_private_key_filename  = "${path.module}/cluster_key"
   cluster_ip                    = module.openstack_network.cluster_ip
-  bastion_host_internal_ip      = module.openstack_nat.bastion_host_internal_ip
+  edge_node_internal_ip         = module.openstack_public.edge_node_internal_ip
   stackable_user                = local.stackable_user
   stackable_user_home           = local.stackable_user_home
 }
@@ -154,10 +172,10 @@ module "openstack_inventory" {
 # Creates the Stackable client script to access the cluster once it's up and running
 module "stackable_client_script" {
   source                        = "./terraform_modules/stackable_client_script"
-  nodes                         = [for node in module.openstack_protected_nodes.nodes : 
+  nodes                         = [for node in module.openstack_protected.nodes : 
     { name = node.metadata["hostname"], ip = node.access_ip_v4 }
   ]
-  orchestrator_ip               = module.openstack_protected_nodes.orchestrator.access_ip_v4
+  orchestrator_ip               = module.openstack_protected.orchestrator.access_ip_v4
   cluster_ip                    = module.openstack_network.cluster_ip
   ssh-username                  = local.stackable_user
 }
@@ -168,6 +186,6 @@ module "wireguard" {
   source                    = "./terraform_modules/wireguard"
   server_config_filename    = "ansible_roles/files/wireguard_server.conf"
   client_config_base_path   = "resources/wireguard-client-config"
-  allowed_ips               = concat([ for node in module.openstack_protected_nodes.nodes: node.access_ip_v4 ], [module.openstack_protected_nodes.orchestrator.access_ip_v4])
+  allowed_ips               = concat([ for node in module.openstack_protected.nodes: node.access_ip_v4 ], [module.openstack_protected.orchestrator.access_ip_v4])
   endpoint_ip               = module.openstack_network.cluster_ip
 }

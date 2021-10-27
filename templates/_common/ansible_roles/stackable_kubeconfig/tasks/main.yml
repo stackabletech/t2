@@ -1,3 +1,4 @@
+# Ensure kubectl is installed
 ---
 - name: Ensure kubectl is installed
   package:

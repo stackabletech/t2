@@ -1,3 +1,4 @@
+# Distribute the SSH keys provided in the cluster.yaml as authorized key to access this host.
 ---
 - name: Distribute SSH public keys to server
   authorized_key:

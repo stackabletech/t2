@@ -3,15 +3,15 @@ domain=${domain}
 stackable_user=${stackable_user}
 stackable_user_home=${stackable_user_home}
 
-[bastion_host]
-bastion_host ansible_host=${cluster_ip}
+[edge]
+edge ansible_host=${cluster_ip}
 
-[bastion_host:vars]
+[edge:vars]
 ansible_user=${stackable_user}
 ansible_ssh_private_key_file=${ssh_key_private_path}
 wireguard=${wireguard}
 ansible_become=yes
-internal_ip=${bastion_host_internal_ip}
+internal_ip=${edge_node_internal_ip}
 
 [orchestrators]
 orchestrator ansible_host=${orchestrator.access_ip_v4}

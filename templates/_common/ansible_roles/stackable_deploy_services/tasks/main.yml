@@ -1,3 +1,4 @@
+# Deploy the Stackable services as requested in the cluster definition
 ---
 - name: Create directory for service definitions
   file:

@@ -1,3 +1,4 @@
+# Install K3s
 ---
 - name: Install K3s w/ rancher script
   shell: curl -sfL https://get.k3s.io | sh -s

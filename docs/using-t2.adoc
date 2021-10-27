@@ -86,7 +86,7 @@ This is an example cluster definition, please find detailed specification of the
 ----
 apiVersion: t2.stackable.tech/v1
 kind: Infra
-template: demo-debian-10
+template: ionos-debian-10
 metadata: 
   name: stackable-demo
   description: "This is the cluster I want!"
@@ -189,9 +189,9 @@ The following table lists the currently available templates:
 [options="header"]
 |=======
 |key |Cloud provider| Linux distribution
-|demo-centos-7 | IONOS Cloud | CentOS 7
-|demo-centos-8 | IONOS Cloud | CentOS 8
-|demo-debian-10 | IONOS Cloud | Debian 10
+|ionos-centos-7 | IONOS Cloud | CentOS 7
+|ionos-centos-8 | IONOS Cloud | CentOS 8
+|ionos-debian-10 | IONOS Cloud | Debian 10
 |aws-centos-8 | Amazon EC2 | CentOS 8
 |pluscloud-open-centos-8 | PlusCloud Open (Plusserver, SCS implementation, based on OpenStack) | CentOS 8
 |=======

@@ -1,13 +1,12 @@
 ---
-- hosts: bastion_host
-  roles: 
-  - distribute_ssh_keys
-  - centos_epel_8
-  - role: nat_wireguard_centos_8
-    when: wireguard|bool
-- hosts: protected
+- hosts: all
   roles:
   - distribute_ssh_keys
+- hosts: edge
+  roles: 
+  - centos_epel_8
+- hosts: protected
+  roles:
   - protected_node_common_centos
   - protected_node_mutual_access
   - protected_node_software_centos_8
@@ -17,7 +16,7 @@
 - hosts: orchestrators  
   roles:
   - wait
-  - nm_cloud_setup_disabled
+  - protected_node_network_manager_cloud_setup_disabled
   - stackable_k3s
   - stackable_operators
   - stackable_collect_versions_operators

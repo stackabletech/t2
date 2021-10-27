@@ -1,3 +1,5 @@
+# Ensure the system is up to date and install useful stuff on CentOS 8
+---
 - name: Ensure system is up to date
   yum:
     name: "*"
