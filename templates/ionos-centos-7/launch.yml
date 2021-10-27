@@ -6,10 +6,13 @@
 - hosts: edge
   roles: 
   - centos_epel_8
-  - edge_ip_forwarding
+  - role: edge_ip_forwarding
+    when: not (wireguard|bool)
+  - role: edge_ip_forwarding_for_wireguard
+    when: wireguard|bool
+  - role: edge_wireguard_host
+    when: wireguard|bool
   - edge_bind
-#  - role: wireguard_host_centos_8
-#    when: wireguard|bool
 - hosts: protected
   roles:
   - protected_node_common_centos
