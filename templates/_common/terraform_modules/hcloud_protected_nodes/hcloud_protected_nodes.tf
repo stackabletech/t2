@@ -74,7 +74,6 @@ resource "hcloud_server" "orchestrator" {
 
   network {
     network_id = var.network.id
-    ip         = "10.0.1.6"
   }
 
   depends_on = [
@@ -94,7 +93,11 @@ resource "hcloud_server" "node" {
 
   network {
     network_id = var.network.id
-    ip         = "10.0.1.${count.index + 10}"
+  }
+
+  labels = {
+    "hostname" = var.node_configuration[local.nodenames[count.index]].name
+    "has_agent" = var.node_configuration[local.nodenames[count.index]].agent
   }
 
   depends_on = [
@@ -113,12 +116,18 @@ module "ssh_script_orchestrator" {
   filename                      = "ssh-orchestrator.sh"
 }
 
+locals {
+  node_internal_ips = [ for index,_ in local.nodenames:
+    element(element(hcloud_server.node.*.network, index)[*].ip, 0)
+  ]
+}
+
 # script to ssh into nodes via ssh proxy (aka jump host)
 module "ssh_script_nodes" {
   count                         = length(local.nodenames)
   source                        = "../common_ssh_script_protected_node"
   cluster_ip                    = var.cluster_ip
-  node_ip                       = element(element(hcloud_server.node.*.network[*].ip, 0), count.index)
+  node_ip                       = local.node_internal_ips[count.index]
   user                          = var.stackable_user
   cluster_private_key_filename  = var.cluster_private_key_filename
   filename                      = "ssh-${var.node_configuration[local.nodenames[count.index]].name}.sh"
@@ -130,6 +139,6 @@ output "orchestrator" {
 }
 
 output "nodes" {
-  value = hcloud_server.orchestrator.node
+  value = hcloud_server.node
   description = "Protected nodes as list of resources"
 }

@@ -100,26 +100,26 @@ module "hcloud_inventory" {
   stackable_user_home           = local.stackable_user_home
 }
 
-#module "stackable_client_script" {
-#  source                        = "../stackable_client_script"
-#  nodes                         = [for node in module.ionos_protected_nodes.protected_nodes : 
-#    { name = node.name, ip = node.primary_ip }
-#  ]
-#  orchestrator_ip               = module.ionos_protected_nodes.orchestrator.primary_ip
-#  cluster_ip                    = module.ionos_edge_node.cluster_ip
-#  ssh-username                  = "root"
-#}
-#
-#module "stackable_service_definitions" {
-#  source = "../stackable_service_definitions"
-#}
-#
-#module "wireguard" {
-#  count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 0
-#  source                    = "../wireguard"
-#  server_config_filename    = "ansible_roles/files/wireguard_server.conf"
-#  client_config_base_path   = "resources/wireguard-client-config"
-#  allowed_ips               = concat([ for node in module.ionos_protected_nodes.protected_nodes: node.primary_ip ], [module.ionos_protected_nodes.orchestrator.primary_ip])
-#  endpoint_ip               = module.ionos_edge_node.cluster_ip
-#}
+module "stackable_client_script" {
+  source                        = "../stackable_client_script"
+  nodes                         = [for node in module.hcloud_protected_nodes.nodes : 
+    { name = node.labels["hostname"], ip = element(node.network[*].ip, 0) }
+  ]
+  orchestrator_ip               = element(module.hcloud_protected_nodes.orchestrator.network[*].ip, 0)
+  cluster_ip                    = module.hcloud_edge_node.cluster_ip
+  ssh-username                  = local.stackable_user
+}
+
+module "stackable_service_definitions" {
+  source = "../stackable_service_definitions"
+}
+
+module "wireguard" {
+  count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 0
+  source                    = "../wireguard"
+  server_config_filename    = "ansible_roles/files/wireguard_server.conf"
+  client_config_base_path   = "resources/wireguard-client-config"
+  allowed_ips               = concat([ for node in module.hcloud_protected_nodes.nodes: element(node.network[*].ip, 0) ], [element(module.hcloud_protected_nodes.orchestrator.network[*].ip, 0)])
+  endpoint_ip               = module.hcloud_edge_node.cluster_ip
+}
 

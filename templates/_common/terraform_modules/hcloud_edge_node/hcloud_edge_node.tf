@@ -59,7 +59,6 @@ resource "hcloud_server" "edge" {
 
   network {
     network_id = var.network.id
-    ip         = "10.0.1.5"
   }
 
   depends_on = [

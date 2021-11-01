@@ -14,7 +14,7 @@ ansible_become=yes
 internal_ip=${edge_node_internal_ip}
 
 [orchestrators]
-orchestrator ansible_host=${orchestrator.access_ip_v4}
+orchestrator ansible_host=${element(orchestrator.network[*].ip, 0)}
 
 [orchestrators:vars]
 ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
@@ -24,7 +24,7 @@ ansible_become=yes
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.metadata["hostname"]} ansible_host=${node.access_ip_v4} stackable_agent=${node.metadata["has_agent"]}
+${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} stackable_agent=${node.labels["has_agent"]}
 %{ endfor ~}
 
 [nodes:vars]
