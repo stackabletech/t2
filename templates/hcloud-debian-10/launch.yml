@@ -1,0 +1,42 @@
+---
+- hosts: all
+  roles:
+  - distribute_ssh_keys
+#- hosts: edge
+#  roles:
+#  - centos_epel_8
+#  - role: edge_ip_forwarding
+#    when: not (wireguard|bool)
+#  - role: edge_ip_forwarding_for_wireguard
+#    when: wireguard|bool
+#  - role: edge_wireguard_host
+#    when: wireguard|bool
+#  - edge_bind
+#- hosts: protected
+#  roles:
+#  - protected_node_common_debian
+#  - protected_node_edge_as_gateway
+#  - protected_node_edge_as_dns
+#  - protected_node_mutual_access
+#  - protected_node_software_debian
+#  - protected_node_chrony
+#  - k9s
+#  - stackable_repo_debian
+#- hosts: orchestrators  
+#  roles:
+#  - wait
+#  - stackable_k3s
+#  - stackable_operators
+#  - stackable_collect_versions_operators
+#- hosts: nodes
+#  roles:
+#  - stackable_kubeconfig
+#  - stackable_agent
+#  - stackable_collect_versions_agent
+#- hosts: orchestrators  
+#  roles:
+#  - stackable_approve_agents
+#  - stackable_deploy_services
+#- hosts: localhost
+#  roles:
+#  - merge_version_info

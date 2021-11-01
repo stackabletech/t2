@@ -1,0 +1,9 @@
+---
+stackable-agent: "RELEASE"
+stackable-spark-operator: "RELEASE"
+stackable-zookeeper-operator: "RELEASE"
+stackable-kafka-operator: "RELEASE"
+stackable-nifi-operator: "RELEASE"
+stackable-opa-operator: "RELEASE"
+stackable-regorule-operator: "RELEASE"
+stackable-monitoring-operator: "RELEASE"
