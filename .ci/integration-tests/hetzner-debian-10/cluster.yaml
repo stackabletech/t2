@@ -1,0 +1,18 @@
+---
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: hcloud-debian-10
+metadata: 
+  name: t2-integration-tests
+  description: "Cluster for T2 Integration Tests (Hetzner Cloud / Debian 10)"
+domain: stackable.test
+publicKeys: []
+spec:
+  region: nbg1
+  wireguard: false
+  nodes:
+    main:
+      numberOfNodes: 1
+    testdriver:
+      numberOfNodes: 1
+      agent: false
