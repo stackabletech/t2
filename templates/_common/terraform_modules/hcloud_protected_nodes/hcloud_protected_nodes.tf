@@ -64,6 +64,26 @@ locals {
   nodenames = [ for node in var.node_configuration: node.name ]
 }
 
+resource "hcloud_firewall" "protected_nodes" {
+  name = "${var.cluster_name}-protected-nodes-firewall"
+  rule {
+    direction = "in"
+    protocol  = "tcp"
+    port      = "any"
+    source_ips = [
+      "10.0.0.0/16"
+    ]
+  }
+  rule {
+    direction = "in"
+    protocol  = "udp"
+    port      = "any"
+    source_ips = [
+      "10.0.0.0/16"
+    ]
+  }
+}
+
 # Create the orchestrator compute instance
 resource "hcloud_server" "orchestrator" {
   name        = "${var.cluster_name}-orchestrator"
@@ -75,6 +95,8 @@ resource "hcloud_server" "orchestrator" {
   network {
     network_id = var.network.id
   }
+
+  firewall_ids = [ hcloud_firewall.protected_nodes.id ]
 
   depends_on = [
     var.network,
@@ -99,6 +121,8 @@ resource "hcloud_server" "node" {
     "hostname" = var.node_configuration[local.nodenames[count.index]].name
     "has_agent" = var.node_configuration[local.nodenames[count.index]].agent
   }
+
+  firewall_ids = [ hcloud_firewall.protected_nodes.id ]
 
   depends_on = [
     var.network,
