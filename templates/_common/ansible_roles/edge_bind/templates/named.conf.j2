@@ -2,6 +2,9 @@ options {
         directory "/var/named";
         forwarders { 8.8.8.8; 8.8.4.4; };
         notify no;
+        allow-recursion { 10.0.0.0/16; };
+        allow-query { 10.0.0.0/16; };
+        allow-query-cache { 10.0.0.0/16; };
 };
 
 zone "{{ domain }}" in {

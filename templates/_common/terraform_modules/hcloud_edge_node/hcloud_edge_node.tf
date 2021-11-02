@@ -45,6 +45,35 @@ variable "location" {
   type        = string
 }
 
+resource "hcloud_firewall" "edge_node" {
+  name = "${var.cluster_name}-edge-node-firewall"
+  rule {
+    direction = "in"
+    protocol  = "tcp"
+    port      = "22"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+  rule {
+    direction = "in"
+    protocol  = "tcp"
+    port      = "any"
+    source_ips = [
+      "10.0.0.0/16"
+    ]
+  }
+  rule {
+    direction = "in"
+    protocol  = "udp"
+    port      = "any"
+    source_ips = [
+      "10.0.0.0/16"
+    ]
+  }
+}
+
 resource "hcloud_server" "edge" {
   name        = "${var.cluster_name}-edge"
   server_type = "cx11"
@@ -55,6 +84,8 @@ resource "hcloud_server" "edge" {
   network {
     network_id = var.network.id
   }
+
+  firewall_ids = [ hcloud_firewall.edge_node.id ]
 
   depends_on = [
     var.network,

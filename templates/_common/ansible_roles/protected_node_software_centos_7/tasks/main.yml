@@ -19,3 +19,4 @@
       - wget
       - java-11-openjdk-devel
       - gnupg
+      - tar
