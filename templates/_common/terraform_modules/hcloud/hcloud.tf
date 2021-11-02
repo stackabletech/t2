@@ -70,7 +70,6 @@ module "hcloud_edge_node" {
   subnet                        = module.hcloud_network.subnet
   stackable_user                = local.stackable_user
   location                      = local.location
-  os_image                      = var.os_image
 }
 
 # Creates the protected nodes for this cluster

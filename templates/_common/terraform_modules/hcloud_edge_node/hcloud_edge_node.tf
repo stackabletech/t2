@@ -40,11 +40,6 @@ variable "cluster_private_key_filename" {
   description = "master keyfile"
 }
 
-variable "os_image" {
-  description = "Image of the OS for the node, e.g. centos-8"
-  type        = string
-}
-
 variable "location" {
   description = "Location of the node, e.g. nbg1"
   type        = string
@@ -53,7 +48,7 @@ variable "location" {
 resource "hcloud_server" "edge" {
   name        = "${var.cluster_name}-edge"
   server_type = "cx11"
-  image       = var.os_image
+  image       = "centos-8"
   location    = var.location
   ssh_keys    = [ var.keypair.id ]
 
