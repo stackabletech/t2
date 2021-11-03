@@ -58,6 +58,15 @@ resource "hcloud_firewall" "edge_node" {
   }
   rule {
     direction = "in"
+    protocol  = "udp"
+    port      = "52888"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+  rule {
+    direction = "in"
     protocol  = "tcp"
     port      = "any"
     source_ips = [

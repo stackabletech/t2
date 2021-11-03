@@ -15,8 +15,8 @@
     state: present
 
 - name: Ensure iptables config is up-to-date
-  copy:
-    src: iptables_wireguard
+  template:
+    src: iptables_wireguard.j2
     dest: /etc/sysconfig/iptables
     owner: root
     group: root
