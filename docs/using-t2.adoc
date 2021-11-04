@@ -193,8 +193,8 @@ The following table lists the currently available templates:
 |ionos-centos-8 | IONOS Cloud | CentOS 8
 |ionos-debian-10 | IONOS Cloud | Debian 10
 |aws-centos-8 | Amazon EC2 | CentOS 8
-|hetzner-centos-8 | Hetzner Cloud | CentOS 8
-|hetzner-debian-10 | Hetzner Cloud | Debian 10
+|hcloud-centos-8 | Hetzner Cloud | CentOS 8
+|hcloud-debian-10 | Hetzner Cloud | Debian 10
 |pluscloud-open-centos-8 | PlusCloud Open (Plusserver, SCS implementation, based on OpenStack) | CentOS 8
 |=======
 
