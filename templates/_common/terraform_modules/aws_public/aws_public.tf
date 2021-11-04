@@ -90,6 +90,12 @@ resource "aws_security_group" "edge_node" {
     to_port = 22
     protocol = "tcp"
   }
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port = 0
+    to_port = 52888
+    protocol = "udp"
+  }
   egress {
     cidr_blocks = ["0.0.0.0/0"]
     from_port = 0
