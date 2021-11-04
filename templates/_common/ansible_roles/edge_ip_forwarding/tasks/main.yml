@@ -14,8 +14,8 @@
     state: present
 
 - name: Ensure iptables config is up-to-date
-  copy:
-    src: iptables
+  template:
+    src: iptables.j2
     dest: /etc/sysconfig/iptables
     owner: root
     group: root

@@ -9,6 +9,7 @@
   apt:
     name: "{{ packages }}"
     state: latest
+    update_cache: yes
   vars:
     packages:
       - unzip
@@ -20,3 +21,4 @@
       - openjdk-11-jdk
       - gnupg
       - sudo
+      - tar
