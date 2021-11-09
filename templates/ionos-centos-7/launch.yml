@@ -32,11 +32,8 @@
 - hosts: nodes
   roles:
   - stackable_kubeconfig
-  - stackable_agent
-  - stackable_collect_versions_agent
 - hosts: orchestrators  
   roles:
-  - stackable_approve_agents
   - stackable_deploy_services
 - hosts: localhost
   roles:
