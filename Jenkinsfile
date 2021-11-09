@@ -24,6 +24,7 @@ pipeline {
     }
 
     stages {
+
         stage('Log variables') {
             steps {
                 echo "Maven project version: $POM_VERSION"
@@ -34,6 +35,7 @@ pipeline {
                 echo "Docker tag w/ version number: $DOCKER_TAG_VERSION"
             }
         }
+
         stage('Maven test') {
             steps {
                 sh 'mvn clean test'
@@ -44,6 +46,8 @@ pipeline {
                 }
             }
         }
+
+        // for all builds: a Docker image tagged with the abbreviated Git commit # is built and pushed
         stage('Build and push Docker image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_PUBLISHER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
@@ -56,7 +60,14 @@ pipeline {
                 }            
             }
         }
+
+        // The Docker image is tagged with a version-label for ...
+        // - ... all SNAPSHOT builds 
+        // - ... RELEASE-builds ONLY on main branch (to prevent releasing from other branches)
         stage('Docker: tag with version/branch label') {
+            when {
+                expression { env.POM_VERSION.contains('-SNAPSHOT') || env.BRANCH_NAME=='main' }
+            }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_PUBLISHER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
                     sh '''
@@ -68,6 +79,8 @@ pipeline {
                 }            
             }
         }
+
+        // The Docker image is tagged as 'latest' ONLY IF the version is not a SNAPSHOT version AND we build the main branch
         stage('Docker: tag latest') {
             when {
                 expression { !env.POM_VERSION.contains('-SNAPSHOT') && env.BRANCH_NAME=='main' }
