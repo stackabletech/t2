@@ -58,7 +58,7 @@ pipeline {
         }
         stage('Docker: tag with version/branch label') {
             when {
-                expression { !env.BRANCH_NAME=='main' }
+                expression { env.BRANCH_NAME!='main' }
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_PUBLISHER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
