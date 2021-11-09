@@ -29,6 +29,11 @@
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<build-timestamp>${maven.build.timestamp}</build-timestamp>
 		<dockerfile-maven-version>1.4.13</dockerfile-maven-version>
+
+		<!-- Both the image tag and displayed version default to the abbreviated git commit#. 
+			 They can be overwritten when calling Maven-->
+		<docker.image.tag>${git.commit.id.describe-short}</docker.image.tag>
+		<displayed-version>${git.commit.id.describe-short}</displayed-version>
 	</properties>
 
 	<dependencies>
@@ -100,7 +105,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>${project.name}-${git.commit.id.describe-short}</finalName>
+		<finalName>${project.name}-${docker.image.tag}</finalName>
 		<resources>
 			<resource>
 				<filtering>true</filtering>
@@ -140,16 +145,7 @@
   							<goal>push</goal>
 						</goals>
 						<configuration>
-							<tag>${git.commit.id.describe-short}</tag>
-						</configuration>
-					</execution>
-					<execution>
-						<id>tag-latest</id>
-						<goals>
-							<goal>tag</goal>
-						</goals>
-						<configuration>
-							<tag>latest</tag>
+							<tag>${docker.image.tag}</tag>
 						</configuration>
 					</execution>
 				</executions>

@@ -6,7 +6,7 @@ server:
     include-stacktrace: never
 t2:
   build:
-    version: "@git.commit.id.describe-short@"
+    version: "@displayed-version@"
     timestamp: "@build-timestamp@"
   workspace:
     directory: /tmp/t2-workspace/
