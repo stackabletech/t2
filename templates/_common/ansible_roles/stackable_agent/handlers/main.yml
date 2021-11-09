@@ -1,7 +1,0 @@
----
-- name: restart agent
-  service:
-    name: stackable-agent
-    state: restarted
-    enabled: yes
-    daemon_reload: yes
