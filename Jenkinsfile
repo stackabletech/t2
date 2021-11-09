@@ -21,7 +21,6 @@ pipeline {
             script: "echo '${POM_VERSION}' | sed 's/SNAPSHOT/$BRANCH_NAME_NORMALIZED/'",
             returnStdout: true
         ).trim()
-        RELEASE_BUILD = "${env.POM_VERSION == "0.1.0-SNAPSHOT" ? "false" : "true"}"
     }
 
     stages {
@@ -32,7 +31,6 @@ pipeline {
                 echo "Git branch (normalized): $BRANCH_NAME_NORMALIZED"
                 echo "Git commit: $GIT_COMMIT"
                 echo "Git commit (abbreviated): $GIT_COMMIT_SHORT"
-                echo "Release version build: $RELEASE_BUILD"
                 echo "Docker tag w/ version number: $DOCKER_TAG_VERSION"
             }
         }
@@ -46,33 +44,36 @@ pipeline {
                 }
             }
         }
-        stage('Build Docker image') {
-            steps {
-                sh "mvn clean package -DskipTests -Ddocker.image.tag=$GIT_COMMIT_SHORT -Ddisplayed-version=$DOCKER_TAG_VERSION"
-            }
-        }
-        stage('Docker: tag version') {
-            steps {
-                sh "docker tag docker.stackable.tech/t2:$GIT_COMMIT_SHORT docker.stackable.tech/t2:$DOCKER_TAG_VERSION"
-            }
-        }
-        stage('Push Docker images') {
+        stage('Build and push Docker image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_PUBLISHER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
                     sh '''
+                        mvn clean package -DskipTests -Ddocker.image.tag="$GIT_COMMIT_SHORT" -Ddisplayed-version="$DOCKER_TAG_VERSION"
                         docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" docker.stackable.tech
-                        docker push docker.stackable.tech/t2:$GIT_COMMIT_SHORT
-                        docker push docker.stackable.tech/t2:$DOCKER_TAG_VERSION
+                        docker push docker.stackable.tech/t2:"$GIT_COMMIT_SHORT"
                         docker logout docker.stackable.tech
                     ''' 
                 }            
             }
         }
-        stage('Docker: tag and push latest') {
+        stage('Docker: tag with version/branch label') {
             when {
-                not {
-                    expression { env.POM_VERSION.contains('-SNAPSHOT') }
-                }
+                expression { !env.BRANCH_NAME=='main' }
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'DOCKER_PUBLISHER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
+                    sh '''
+                        docker tag docker.stackable.tech/t2:"$GIT_COMMIT_SHORT" docker.stackable.tech/t2:"$DOCKER_TAG_VERSION"
+                        docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" docker.stackable.tech
+                        docker push docker.stackable.tech/t2:"$DOCKER_TAG_VERSION"
+                        docker logout docker.stackable.tech
+                    ''' 
+                }            
+            }
+        }
+        stage('Docker: tag latest') {
+            when {
+                expression { !env.POM_VERSION.contains('-SNAPSHOT') && env.BRANCH_NAME=='main' }
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_PUBLISHER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
