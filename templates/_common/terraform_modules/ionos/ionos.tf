@@ -37,7 +37,7 @@ locals {
         memoryMb = definition.memoryMb
         diskType = definition.diskType
         diskSizeGb = definition.diskSizeGb
-        agent = can(definition.agent) ? definition.agent : true
+        k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
   ]): node.name => node }

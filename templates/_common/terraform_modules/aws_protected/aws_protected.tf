@@ -159,7 +159,7 @@ resource "aws_instance" "node" {
   tags = {
     "Name" = "${var.name_prefix}-${var.node_configuration[local.nodenames[count.index]].name}"
     "hostname" = var.node_configuration[local.nodenames[count.index]].name
-    "has_agent" = var.node_configuration[local.nodenames[count.index]].agent
+    "k8s_node" = var.node_configuration[local.nodenames[count.index]].k8s_node
   }
 }
 

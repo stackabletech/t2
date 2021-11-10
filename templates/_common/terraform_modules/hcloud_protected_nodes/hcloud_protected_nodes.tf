@@ -119,7 +119,7 @@ resource "hcloud_server" "node" {
 
   labels = {
     "hostname" = var.node_configuration[local.nodenames[count.index]].name
-    "has_agent" = var.node_configuration[local.nodenames[count.index]].agent
+    "k8s_node" = var.node_configuration[local.nodenames[count.index]].k8s_node
   }
 
   firewall_ids = [ hcloud_firewall.protected_nodes.id ]
