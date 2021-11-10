@@ -22,14 +22,14 @@
   - wait
   - protected_node_network_manager_cloud_setup_disabled
   - stackable_k3s
-  - stackable_operators
-  - stackable_collect_versions_operators
+#  - stackable_operators
+#  - stackable_collect_versions_operators
 - hosts: nodes
   roles:
   - stackable_kubeconfig
-- hosts: orchestrators  
-  roles:
-  - stackable_deploy_services
-- hosts: localhost
-  roles:
-  - merge_version_info
+#- hosts: orchestrators  
+#  roles:
+#  - stackable_deploy_services
+#- hosts: localhost
+#  roles:
+#  - merge_version_info
