@@ -21,12 +21,13 @@
   roles:
   - wait
   - protected_node_network_manager_cloud_setup_disabled
-  - stackable_k3s
+  - k3s_server
 #  - stackable_operators
 #  - stackable_collect_versions_operators
 - hosts: nodes
   roles:
-  - stackable_kubeconfig
+   - k3s_agent
+   - kubeconfig
 #- hosts: orchestrators  
 #  roles:
 #  - stackable_deploy_services
