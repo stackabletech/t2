@@ -8,4 +8,4 @@
       sh -s - 
   args:
     warn: no
-
+  when: k8s_node | bool
