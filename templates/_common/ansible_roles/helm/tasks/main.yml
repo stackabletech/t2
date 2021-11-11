@@ -1,0 +1,9 @@
+# Install Helm tool
+# https://helm.sh/docs/intro/install/
+---
+- name: Install Helm
+  shell: |
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh -s - 
+  args:
+    warn: no
+    creates: /usr/local/bin/helm

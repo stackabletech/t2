@@ -22,6 +22,7 @@
   - protected_node_software_centos_7
   - protected_node_chrony
   - k9s
+  - helm
   - stackable_repo_centos_7
 - hosts: orchestrators  
   roles:

@@ -16,6 +16,7 @@
   - protected_node_software_centos_8
   - protected_node_chrony
   - k9s
+  - helm
   - stackable_repo_centos_8
   - protected_node_network_manager_cloud_setup_disabled
 - hosts: orchestrators  

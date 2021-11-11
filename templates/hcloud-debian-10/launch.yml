@@ -18,6 +18,7 @@
   - protected_node_software_debian
   - protected_node_chrony
   - k9s
+  - helm
   - stackable_repo_debian
 - hosts: orchestrators  
   roles:
