@@ -17,10 +17,10 @@
   - protected_node_chrony
   - k9s
   - stackable_repo_centos_8
+  - protected_node_network_manager_cloud_setup_disabled
 - hosts: orchestrators  
   roles:
   - wait
-  - protected_node_network_manager_cloud_setup_disabled
   - k3s_server
 #  - stackable_operators
 #  - stackable_collect_versions_operators
