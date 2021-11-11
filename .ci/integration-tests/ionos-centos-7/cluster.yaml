@@ -23,4 +23,4 @@ spec:
       memoryMb: 4096
       diskType: HDD 
       diskSizeGb: 15
-      agent: false
+      k8s_node: false

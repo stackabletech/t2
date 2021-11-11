@@ -1,5 +1,4 @@
 ---
-stackable-agent: "RELEASE"
 stackable-spark-operator: "RELEASE"
 stackable-zookeeper-operator: "RELEASE"
 stackable-kafka-operator: "RELEASE"

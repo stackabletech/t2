@@ -18,22 +18,21 @@
   - protected_node_software_debian
   - protected_node_chrony
   - k9s
+  - helm
   - stackable_repo_debian
 - hosts: orchestrators  
   roles:
   - wait
-  - stackable_k3s
-  - stackable_operators
-  - stackable_collect_versions_operators
+  - k3s_server
+#  - stackable_operators
+#  - stackable_collect_versions_operators
 - hosts: nodes
   roles:
-  - stackable_kubeconfig
-  - stackable_agent
-  - stackable_collect_versions_agent
-- hosts: orchestrators  
-  roles:
-  - stackable_approve_agents
-  - stackable_deploy_services
-- hosts: localhost
-  roles:
-  - merge_version_info
+   - k3s_agent
+   - kubeconfig
+#- hosts: orchestrators  
+#  roles:
+#  - stackable_deploy_services
+#- hosts: localhost
+#  roles:
+#  - merge_version_info

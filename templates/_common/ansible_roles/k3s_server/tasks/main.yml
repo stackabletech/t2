@@ -1,7 +1,10 @@
 # Install K3s
 ---
-- name: Install K3s w/ rancher script
-  shell: curl -sfL https://get.k3s.io | sh -s
+- name: Install K3s Server/API w/ rancher script
+  shell: |
+    curl -sfL https://get.k3s.io | sh -s - \
+    --tls-san orchestrator.{{ domain }} \
+    --advertise-address {{ ansible_host }}
   args:
     warn: no
     creates: /etc/rancher/k3s/k3s.yaml
@@ -41,23 +44,13 @@
     dest: resources/kubeconfig
     flat: yes
 
-- name: Ensure Kubernetes configs are present on orchestrator
-  copy:
-    src: "{{ item }}"
-    dest: /tmp/
-    mode: 0444
-  with_items: 
-    - stackable-repositories.crd.yml
-    - stackablepublic-repo.yml
-
 - name: Force all notified handlers to run at this point, not waiting for normal sync points
   meta: flush_handlers
   
-- name: Apply Kubernetes configs
-  shell: |
-    /usr/local/bin/kubectl apply -f /tmp/{{ item }}
-  args:
-    warn: no
-  with_items: 
-    - stackable-repositories.crd.yml
-    - stackablepublic-repo.yml
+- name: Fetch content of K3s token file
+  shell: "cat /var/lib/rancher/k3s/server/token"
+  register: k3s_token_file
+
+- name: extract Token to fact
+  set_fact:
+    k3s_token: "{{ k3s_token_file.stdout }}"

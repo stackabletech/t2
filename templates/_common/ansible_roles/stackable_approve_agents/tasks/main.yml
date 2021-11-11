@@ -1,7 +1,0 @@
-# certificate approval on all nodes with agents
----
-- name: Approve waiting agents on all nodes
-  shell: "/usr/local/bin/kubectl certificate approve {{ item }}.{{ domain }}-tls || true"
-  args:
-    warn: no
-  with_items: "{{groups['nodes']}}"

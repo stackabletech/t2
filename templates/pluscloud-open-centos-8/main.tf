@@ -86,7 +86,7 @@ locals {
       for i in range(1, definition.numberOfNodes + 1): {
         name = "${type}-${i}" 
         flavorName = can(definition.openstackFlavorName) ? definition.openstackFlavorName : "2C-4GB-20GB"
-        agent = can(definition.agent) ? definition.agent : true
+        k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
   ]): node.name => node }

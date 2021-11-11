@@ -16,7 +16,7 @@ private_network_interface_name=eth0
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.tags["hostname"]} ansible_host=${node.private_ip} stackable_agent=${node.tags["has_agent"]}
+${node.tags["hostname"]} ansible_host=${node.private_ip} k8s_node=${node.tags["k8s_node"]}
 %{ endfor ~}
 
 [nodes:vars]
