@@ -7,3 +7,5 @@
   args:
     warn: no
     creates: /usr/local/bin/helm
+  vars:
+    ansible_become: false
