@@ -3,7 +3,9 @@
 ---
 - name: Install Helm
   shell: |
-    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh -s - 
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s -
   args:
     warn: no
     creates: /usr/local/bin/helm
+  vars:
+    ansible_become: false

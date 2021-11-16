@@ -4,7 +4,8 @@
   shell: |
     curl -sfL https://get.k3s.io | sh -s - \
     --tls-san orchestrator.{{ domain }} \
-    --advertise-address {{ ansible_host }}
+    --advertise-address {{ ansible_host }} \
+    --node-ip {{ ansible_host }}
   args:
     warn: no
     creates: /etc/rancher/k3s/k3s.yaml
