@@ -26,8 +26,8 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-module "stackable_package_versions_centos_8" {
-  source = "./terraform_modules/stackable_package_versions_centos_8"
+module "stackable_component_versions" {
+  source = "./terraform_modules/stackable_component_versions"
 }
 
 module "hcloud" {

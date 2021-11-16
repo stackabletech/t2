@@ -1,0 +1,14 @@
+---
+stackable_operators:
+  - spark-operator
+  - zookeeper-operator
+  - hbase-operator
+  - hdfs-operator
+  - hive-operator
+  - kafka-operator
+  - monitoring-operator
+  - nifi-operator
+  - regorule-operator
+  - superset-operator
+  - trino-operator
+  - druid-operator

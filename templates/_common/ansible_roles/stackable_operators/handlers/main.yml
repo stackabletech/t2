@@ -1,8 +1,0 @@
----
-- name: restart operators
-  service: 
-    name: "{{ item.service }}"
-    state: restarted 
-    enabled: yes
-    daemon_reload: yes
-  loop: "{{ stackable_operators }}"

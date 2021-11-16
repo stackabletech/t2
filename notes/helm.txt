@@ -1,0 +1,42 @@
+helm repo add stackable-dev https://repo.stackable.tech/repository/helm-dev/
+helm repo add stackable-stable https://repo.stackable.tech/repository/helm-stable/
+
+helm repo list
+helm repo remove stackable-dev
+helm repo remove stackable-stable
+
+helm repo update
+
+Search:
+
+--versions: show ALL
+no --versions: show "latest" (alphabetically)
+
+all dev versions: 
+helm search repo stackable-dev/spark-operator --versions --devel
+
+all dev versions of 0.1.0: (e.g. 0.1.0-rc1, 0.1.0-rc2)
+helm search repo stackable-dev/spark-operator --versions --version '^0.1.0-0'
+
+(see https://stackoverflow.com/questions/51031294/for-a-helm-chart-what-versions-are-available)
+(see https://stackoverflow.com/questions/22343224/whats-the-difference-between-tilde-and-caret-in-package-json/25861938#25861938)
+
+
+all stable versions: 
+helm search repo stackable-stable/spark-operator --versions
+
+
+Installation
+
+latest stable version
+helm install spark-operator stackable-stable/spark-operator --dry-run | grep 'helm.sh/chart: spark-operator-' | uniq
+
+latest "nightly" version
+(because 'nightly' > 'mr...' only)
+helm install spark-operator stackable-dev/spark-operator --version '>0.0.0-0' --dry-run | grep 'helm.sh/chart: spark-operator-' | uniq
+
+specfic version
+helm install spark-operator stackable-stable/spark-operator --version '0.2.1' --dry-run | grep 'helm.sh/chart: spark-operator-' | uniq
+helm install spark-operator stackable-dev/spark-operator --version '0.2.1-nightly' --dry-run | grep 'helm.sh/chart: spark-operator-' | uniq
+helm install spark-operator stackable-dev/spark-operator --version '0.3.0-mr10303' --dry-run | grep 'helm.sh/chart: spark-operator-' | uniq
+
