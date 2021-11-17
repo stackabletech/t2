@@ -22,3 +22,5 @@
       - gnupg
       - sudo
       - tar
+      - apparmor
+      - apparmor-utils
