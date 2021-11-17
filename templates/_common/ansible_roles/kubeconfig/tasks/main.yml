@@ -16,6 +16,7 @@
   copy:
     src: resources/kubeconfig
     dest: "{{ stackable_user_home }}.kube/config"
+    mode: 0600
   vars:
     ansible_become: false
 

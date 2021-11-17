@@ -23,7 +23,7 @@
   shell: |
     mkdir -p {{ stackable_user_home }}.kube/
     cp /tmp/kubeconfig-user {{ stackable_user_home }}.kube/config
-    chmod 660 {{ stackable_user_home }}.kube/config
+    chmod 600 {{ stackable_user_home }}.kube/config
   vars:
     ansible_become: false
 
