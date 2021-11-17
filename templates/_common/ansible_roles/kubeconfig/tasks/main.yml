@@ -19,14 +19,3 @@
     mode: 0600
   vars:
     ansible_become: false
-
-- name: kubeconfig for the Stackable components - create directory
-  file:
-    path: /opt/stackable/
-    state: directory
-
-- name: kubeconfig for the Stackable components - copy file
-  copy:
-    src: "resources/kubeconfig"
-    dest: "/opt/stackable/kubeconfig"
-    mode: 0664
