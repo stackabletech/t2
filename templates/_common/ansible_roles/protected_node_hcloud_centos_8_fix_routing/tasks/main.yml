@@ -1,0 +1,32 @@
+# Fixes the default routing for HCloud CentOS 8
+# Beginning around 2021-11-16, our HCloud CentOS 8 clusters started to have 
+# a default routing similar to that:
+#
+# default via 10.0.0.1 dev ens10 proto dhcp metric 100 
+# default via 172.31.1.1 dev eth0 proto dhcp metric 101 
+# 10.0.0.0/16 via 10.0.0.1 dev ens10 proto dhcp metric 100 
+# 10.0.0.1 dev ens10 proto dhcp scope link metric 100 
+# 172.31.1.1 dev eth0 proto dhcp scope link metric 101 
+#
+# The first entry causes the node to be effectively disconnected from the internet.
+# The problem occurred after the first reboot after the general update of the system via yum update
+# This role 'fixes' the problem by removing the first route after restart.
+---
+- name: Create routing fix script
+  template:
+    src: fix_routing.sh.j2
+    dest: /root/fix_routing.sh
+    mode: 0755
+
+- name: Create action to run after network comes up
+  template:
+    src: fix_routing.service.j2
+    dest: /etc/systemd/system/fix_routing.service
+
+- name: Enable and start service to fix routing
+  systemd:
+    name: fix_routing
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
