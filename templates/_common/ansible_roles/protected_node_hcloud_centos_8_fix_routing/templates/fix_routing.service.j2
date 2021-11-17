@@ -1,0 +1,14 @@
+[Unit]
+Description=Fixes the routing for HCloud CentOS 8
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/root/fix_routing.sh
+ExecStartPre=/bin/sleep 5
+Type=oneshot
+StandardOutput=journal
+RemainAfterExit=false
+
+[Install]
+WantedBy=multi-user.target
