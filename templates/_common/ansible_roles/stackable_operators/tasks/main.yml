@@ -18,3 +18,14 @@
     helm install stackable-{{ item }} stackable-stable/{{ item }}
   loop: "{{ stackable_operators }}"
   when: item not in stackable_component_versions.keys()
+
+- name: Collect version info into file on server
+  shell: |
+    helm list > /tmp/stackable-versions.txt
+  ignore_errors: True
+
+- name: Fetch version info file to Ansible localhost
+  fetch:
+    src: /tmp/stackable-versions.txt
+    dest: resources/stackable-versions.txt
+    flat: yes
