@@ -14,6 +14,7 @@
   roles:
   - protected_node_common_centos
   - protected_node_edge_as_dns
+  - protected_node_hcloud_centos_8_fix_routing
   - protected_node_mutual_access
   - protected_node_software_centos_8
   - protected_node_chrony
