@@ -22,7 +22,6 @@
   - protected_node_chrony
   - k9s
   - helm
-  - stackable_repo_centos_8
 - hosts: orchestrators  
   roles:
   - wait

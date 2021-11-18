@@ -24,3 +24,13 @@
       - tar
       - apparmor
       - apparmor-utils
+
+- name: Add key for Kubernetes repository
+  apt_key:
+    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+    state: present
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
