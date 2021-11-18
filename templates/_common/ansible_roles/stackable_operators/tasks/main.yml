@@ -9,13 +9,13 @@
 
 - name: install operators (when version is set)
   shell: |
-    helm install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}'
+    helm install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
   loop: "{{ stackable_operators }}"
   when: item in stackable_component_versions.keys()
 
 - name: install operators (when no version is set)
   shell: |
-    helm install stackable-{{ item }} stackable-stable/{{ item }}
+    helm install stackable-{{ item }} stackable-stable/{{ item }} || true
   loop: "{{ stackable_operators }}"
   when: item not in stackable_component_versions.keys()
 

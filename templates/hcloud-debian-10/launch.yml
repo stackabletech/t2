@@ -27,8 +27,9 @@
   - stackable_operators
 - hosts: nodes
   roles:
-   - k3s_agent
-   - kubeconfig
+  - wait
+  - k3s_agent
+  - kubeconfig
 #- hosts: orchestrators  
 #  roles:
 #  - stackable_deploy_services
