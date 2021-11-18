@@ -31,6 +31,6 @@
   - wait
   - k3s_agent
   - kubeconfig
-#- hosts: orchestrators  
-#  roles:
-#  - stackable_deploy_services
+- hosts: orchestrators  
+  roles:
+  - stackable_deploy_services
