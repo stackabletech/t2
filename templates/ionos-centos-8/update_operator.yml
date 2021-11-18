@@ -1,4 +1,0 @@
----
-- hosts: orchestrator
-  roles:
-  - stackable_update_operator
