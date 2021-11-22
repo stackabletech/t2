@@ -10,7 +10,6 @@ publicKeys: []
 spec:
   region: de/fra
   wireguard: false
-  k8sVersion: v1.19.16+k3s1
   nodes:
     main:
       numberOfNodes: 1
