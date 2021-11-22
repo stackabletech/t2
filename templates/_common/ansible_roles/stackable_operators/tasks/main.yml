@@ -6,23 +6,31 @@
     helm repo add stackable-stable https://repo.stackable.tech/repository/helm-stable/
   args:
     warn: no
+  vars:
+    ansible_become: false
 
 - name: install operators (when version is set)
   shell: |
     helm install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
   loop: "{{ stackable_operators }}"
   when: item in stackable_component_versions.keys()
+  vars:
+    ansible_become: false
 
 - name: install operators (when no version is set)
   shell: |
     helm install stackable-{{ item }} stackable-stable/{{ item }} || true
   loop: "{{ stackable_operators }}"
   when: item not in stackable_component_versions.keys()
+  vars:
+    ansible_become: false
 
 - name: Collect version info into file on server
   shell: |
     helm list > /tmp/stackable-versions.txt
   ignore_errors: True
+  vars:
+    ansible_become: false
 
 - name: Fetch version info file to Ansible localhost
   fetch:
