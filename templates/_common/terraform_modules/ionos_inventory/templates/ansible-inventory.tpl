@@ -1,5 +1,6 @@
 [all:vars]
 domain=${domain}
+k8s_version=${k8s_version}
 stackable_user=${stackable_user}
 stackable_user_home=${stackable_user_home}
 

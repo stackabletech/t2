@@ -2,10 +2,12 @@
 ---
 - name: Install K3s Server/API w/ rancher script
   shell: |
-    curl -sfL https://get.k3s.io | sh -s - \
-    --tls-san orchestrator.{{ domain }} \
-    --advertise-address {{ ansible_host }} \
-    --node-ip {{ ansible_host }}
+    curl -sfL https://get.k3s.io | \
+      INSTALL_K3S_VERSION="{{ k8s_version }}" \
+      sh -s - \
+      --tls-san orchestrator.{{ domain }} \
+      --advertise-address {{ ansible_host }} \
+      --node-ip {{ ansible_host }}
   args:
     warn: no
     creates: /etc/rancher/k3s/k3s.yaml
