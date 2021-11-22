@@ -42,6 +42,7 @@ resource "local_file" "ansible-inventory" {
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
       domain = yamldecode(file("cluster.yaml"))["domain"]
+      k8s_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : ""
       stackable_user = "root"
       stackable_user_home = "/root/"
       cluster_ip = var.cluster_ip

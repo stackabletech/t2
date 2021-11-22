@@ -1,0 +1,59 @@
+# Install K3s
+---
+- name: Install K3s Server/API w/ rancher script
+  shell: |
+    curl -sfL https://get.k3s.io | \
+      INSTALL_K3S_VERSION="{{ k8s_version }}" \
+      sh -s - \
+      --tls-san orchestrator.{{ domain }} \
+      --advertise-address {{ ansible_host }} \
+      --node-ip {{ ansible_host }}
+  args:
+    warn: no
+    creates: /etc/rancher/k3s/k3s.yaml
+  notify: restart k3s
+
+- name: generate config for other k8s nodes
+  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig
+
+- name: copy config to be picked up for other users on this host
+  shell: |
+    cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig-user 
+    chmod 444 /tmp/kubeconfig-user
+
+- name: provide kubeconfig at standard location
+  shell: |
+    mkdir -p {{ stackable_user_home }}.kube/
+    cp /tmp/kubeconfig-user {{ stackable_user_home }}.kube/config
+    chmod 600 {{ stackable_user_home }}.kube/config
+  vars:
+    ansible_become: false
+
+- name: set env variable to point to kubeconfig for Stackable user
+  lineinfile:
+    dest: "{{ stackable_user_home }}.bashrc"
+    line: |
+
+      # kubeconfig to be used by K9s, kubectl, ...
+      export KUBECONFIG={{ stackable_user_home }}.kube/config
+    state: present
+    insertafter: EOF
+  vars:
+    ansible_become: false
+
+- name: Fetch the kubeconfig to (1) distribute it to the other nodes later and (2) provide it to the cluster users
+  fetch: 
+    src: /tmp/kubeconfig
+    dest: resources/kubeconfig
+    flat: yes
+
+- name: Force all notified handlers to run at this point, not waiting for normal sync points
+  meta: flush_handlers
+  
+- name: Fetch content of K3s token file
+  shell: "cat /var/lib/rancher/k3s/server/token"
+  register: k3s_token_file
+
+- name: extract Token to fact
+  set_fact:
+    k3s_token: "{{ k3s_token_file.stdout }}"

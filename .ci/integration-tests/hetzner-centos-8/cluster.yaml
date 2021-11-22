@@ -15,4 +15,4 @@ spec:
       numberOfNodes: 1
     testdriver:
       numberOfNodes: 1
-      agent: false
+      k8s_node: false

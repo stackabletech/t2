@@ -86,7 +86,7 @@ locals {
       for i in range(1, definition.numberOfNodes + 1): {
         name = "${type}-${i}" 
         flavorName = can(definition.openstackFlavorName) ? definition.openstackFlavorName : "2C-4GB-20GB"
-        agent = can(definition.agent) ? definition.agent : true
+        k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
   ]): node.name => node }
@@ -114,8 +114,8 @@ resource "openstack_compute_keypair_v2" "master_keypair" {
 
 # Creates a file containing the desired (or default) versions of Stackable
 # components in the Ansible inventory
-module "stackable_package_versions_centos_8" {
-  source = "./terraform_modules/stackable_package_versions_centos_8"
+module "stackable_component_versions" {
+  source = "./terraform_modules/stackable_component_versions"
 }
 
 module "stackable_service_definitions" {

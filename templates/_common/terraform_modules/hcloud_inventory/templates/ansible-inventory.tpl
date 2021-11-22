@@ -1,5 +1,6 @@
 [all:vars]
 domain=${domain}
+k8s_version=${k8s_version}
 stackable_user=${stackable_user}
 stackable_user_home=${stackable_user_home}
 
@@ -26,7 +27,7 @@ ansible_become=yes
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} stackable_agent=${node.labels["has_agent"]}
+${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} k8s_node=${node.labels["k8s_node"]}
 %{ endfor ~}
 
 [nodes:vars]

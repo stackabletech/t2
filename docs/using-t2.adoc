@@ -25,7 +25,7 @@ To see in more detail what T2 is doing to create your cluster, you can https://t
 
 Once the cluster is up and running, you can download a script https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClientScriptUsingGET[here, window="_blank"] which provides you with a convenient way to access the nodes of the cluster (see <<client_script>> below).
 
-To check which versions of the Stackable components (agent, operators) are running in your cluster, you can get an overview https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[here, window="_blank"]. (requires token as well)
+To check which versions of the Stackable operators are running in your cluster, you can get an overview https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[here, window="_blank"]. (requires token as well)
 
 ==== VPN (Wireguard)
 
@@ -98,10 +98,12 @@ spec:
   region: de/fra
   cpuFamily: INTEL_XEON
   wireguard: true
+  k8sVersion: "1.21.6"
   versions:
-    stackable-agent: "0.6.1"
-    stackable-spark-operator: "0.2.0"
-    stackable-kafka-operator: "0.3.0"
+    spark-operator: "0.2.0"
+    kafka-operator: "0.3.0"
+    zookeper-operator: "NIGHTLY"
+    monitoring-operator: "RELEASE"
   orchestrator:
     numberOfCores: 4
     memoryMb: 8192
@@ -126,7 +128,7 @@ spec:
       memoryMb: 2048
       diskType: HDD 
       diskSizeGb: 15
-      agent: false
+      k8s_node: false
 services:
   spark-primary: |
     apiVersion: spark.stackable.tech/v1
@@ -214,6 +216,7 @@ The following table lists the currently available templates:
 |spec.location |one of the locations that the cloud vendor provides 3+| not available | e.g. `nbg1`, `hel1`
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 3+| not available
 |spec.wireguard |(boolean, optional, defaults to `false`) Should a wireguard server be started on the bastion host? Leaving wireguard switched off when you don't need it speeds up the start of the cluster. | | not available | not available |
+|spec.k8sVersion |The K8s version (optional, defaults to whatever the K3s installation script regards as the default), see https://github.com/k3s-io/k3s/releases[here, window="_blank"] which versions are available. 4+| 
 |spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 4+|
 |spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details. 4+|
 |spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have | default: `4` 3+| not available
@@ -232,7 +235,7 @@ The following table lists the currently available templates:
 |spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below 2+| not available
 |spec.nodes.<type>.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `2C-4GB-20GB` | not available
 |spec.nodes.<type>.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cx21`
-|spec.nodes.<type>.agent |(boolean, optional, defaults to `true`) Should a Stackable agent be run on this node? 4+|
+|spec.nodes.<type>.k8s_node |(boolean, optional, defaults to `true`) Should this node work as a Kubernetes node? 4+|
 |services |Map of service descriptions as embedded YAMLs. See below for available services. 4+|
 |=======
 
@@ -250,15 +253,21 @@ These are components that a Stackable cluster is made of. You can specify their 
 [options="header"]
 |=======
 |Name |key
-|https://github.com/stackabletech/agent[Stackable Agent] | `stackable-agent`
-|https://github.com/stackabletech/spark-operator[Stackable Operator for Apache Spark] |`stackable-spark-operator`
-|https://github.com/stackabletech/zookeeper-operator[Stackable Operator for Apache ZooKeeper] |`stackable-zookeeper-operator`
-|https://github.com/stackabletech/kafka-operator[Stackable Operator for Apache Kafka] |`stackable-kafka-operator`
-|https://github.com/stackabletech/nifi-operator[Stackable Operator for Apache NiFi] |`stackable-nifi-operator`
-|https://github.com/stackabletech/opa-operator[Stackable Operator for OpenPolicyAgent (OPA)] |`stackable-opa-operator`
-|https://github.com/stackabletech/regorule-operator[Stackable RegoRule Operator] |`stackable-regorule-operator`
-|https://github.com/stackabletech/monitoring-operator[Stackable Operator for Monitoring and Metrics] |`stackable-monitoring-operator`
+|https://github.com/stackabletech/druid-operator[Stackable Operator for Apache Druid ] |`druid-operator`
+|https://github.com/stackabletech/hbase-operator[Stackable Operator for Apache HBase ] |`hbase-operator`
+|https://github.com/stackabletech/hdfs-operator[Stackable Operator for Apache HDFS] |`hdfs-operator`
+|https://github.com/stackabletech/hive-operator[Stackable Operator for Apache Hive] |`hive-operator`
+|https://github.com/stackabletech/kafka-operator[Stackable Operator for Apache Kafka] |`kafka-operator`
+|https://github.com/stackabletech/monitoring-operator[Stackable Operator for Monitoring and Metrics] |`monitoring-operator`
+|https://github.com/stackabletech/nifi-operator[Stackable Operator for Apache NiFi] |`nifi-operator`
+|https://github.com/stackabletech/opa-operator[Stackable Operator for OpenPolicyAgent (OPA)] |`opa-operator`
+|https://github.com/stackabletech/regorule-operator[Stackable RegoRule Operator] |`regorule-operator`
+|https://github.com/stackabletech/spark-operator[Stackable Operator for Apache Spark] |`spark-operator`
+|https://github.com/stackabletech/superset-operator[Stackable Operator for Apache Superset] |`superset-operator`
+|https://github.com/stackabletech/trino-operator[Stackable Operator for Trino] |`trino-operator`
+|https://github.com/stackabletech/zookeeper-operator[Stackable Operator for Apache ZooKeeper] |`zookeeper-operator`
 |=======
+
 
 ==== Version literals
 
@@ -267,9 +276,9 @@ As shown in the example `cluster.yaml`, you can specify the versions of the Stac
 [options="header"]
 |=======
 |example |description
-|`NIGHTLY` | The newest nightly version which can be found in the Stackable binary repository
-| (no version specified) | same as `NIGHTLY`
-|`RELEASE` | The newest release version which can be found in the Stackable binary repository
+|`RELEASE` | The newest release version which can be found in the Stackable repository
+| (no version specified) | same as `RELEASE`
+|`NIGHTLY` | The newest nightly version which can be found in the Stackable repository
 |`0.2.0-mr404` | latest build of version 0.2.0 from GitHub Pull Request #404
 |`0.3.0-nightly` | latest nightly build of version 0.3.0
 |`0.6.1` | realeased version 0.6.1
@@ -322,52 +331,4 @@ The following files are created in the directory mounted into `/target/`:
 
 The return code of the Docker container process is the return code of the test script!
 
-== The T2 client script (deprecated, please use Docker image, see section above)
-
-If you want to automate your Stackable cluster generation (e.g. in a CI/CD pipeline), you can use a https://raw.githubusercontent.com/stackabletech/t2/client-script/client/t2.py[Python script^] that we provide with T2. This section describes the usage of this script.
-
-=== How the script works
-
-Roughly, this is what the script does:
-
-* Launch
-** Create a folder `.cluster/` where the temporary files go
-** Generate an SSH keypair
-** Make a copy of your provided cluster definition file and add the public key to the `publicKeys` section. (If you do not plan to provide any SSH key on your own, please provide that section as an empty list!)
-** Call T2 to launch a new cluster
-** Wait until the cluster is up and running
-** Download the Stackable client script (see <<client_script>>) into your current folder to easily access the built cluster.
-* Terminate
-** Call T2 to tear the cluster down
-** Wait until the cluster is terminated
-
-=== The launch command
-
-The `launch` command needs as params:
-
-. the T2 token to authenticate
-. the base URL of the T2 REST API
-. the path to a valid cluster definition file
-
-Example:
-
-[source,bash]
-----
-python3 t2.py launch my-secret-token https://t2.stackable.tech path/to/my/cluster.yaml
-----
-
-
-=== The terminate command
-
-The `terminate` command needs as params:
-
-. the T2 token to authenticate
-. the base URL of the T2 REST API
-
-Example:
-
-[source,bash]
-----
-python3 t2.py terminate my-secret-token https://t2.stackable.tech 
-----
 

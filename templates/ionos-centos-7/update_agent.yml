@@ -1,4 +1,0 @@
----
-- hosts: nodes
-  roles:
-  - stackable_update_agent

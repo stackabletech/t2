@@ -90,7 +90,7 @@ resource "openstack_compute_instance_v2" "node" {
 
   metadata = {
     "hostname" = var.node_configuration[local.nodenames[count.index]].name
-    "has_agent" = var.node_configuration[local.nodenames[count.index]].agent
+    "k8s_node" = var.node_configuration[local.nodenames[count.index]].k8s_node
   }
 }
 

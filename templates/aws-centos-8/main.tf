@@ -35,7 +35,7 @@ locals {
         diskType = can(definition.diskType) ? definition.diskType : "gp2"
         diskSizeGb = can(definition.diskSizeGb) ? definition.diskSizeGb : 50
         awsInstanceType = can(definition.awsInstanceType) ? definition.awsInstanceType : "t2.medium"
-        agent = can(definition.agent) ? definition.agent : true
+        k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
   ]): node.name => node }
@@ -108,8 +108,8 @@ module "stackable_client_script" {
   ssh-username                  = local.stackable_user
 }
 
-module "stackable_package_versions_centos_8" {
-  source = "./terraform_modules/stackable_package_versions_centos_8"
+module "stackable_component_versions" {
+  source = "./terraform_modules/stackable_component_versions"
 }
 
 module "stackable_service_definitions" {

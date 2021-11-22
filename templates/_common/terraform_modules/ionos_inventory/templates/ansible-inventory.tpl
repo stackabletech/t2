@@ -1,5 +1,6 @@
 [all:vars]
 domain=${domain}
+k8s_version=${k8s_version}
 stackable_user=${stackable_user}
 stackable_user_home=${stackable_user_home}
 
@@ -16,7 +17,7 @@ private_network_interface_name=ens6
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.name} ansible_host=${node.primary_ip} stackable_agent=${node_configuration[node.name]["agent"]}
+${node.name} ansible_host=${node.primary_ip} k8s_node=${node_configuration[node.name]["k8s_node"]}
 %{ endfor ~}
 
 [nodes:vars]

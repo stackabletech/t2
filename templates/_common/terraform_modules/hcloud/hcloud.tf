@@ -29,7 +29,7 @@ locals {
       for i in range(1, definition.numberOfNodes + 1): {
         name = "${type}-${i}" 
         serverType = can(definition.serverType) ? definition.serverType : "cx21"
-        agent = can(definition.agent) ? definition.agent : true
+        k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
   ]): node.name => node }
