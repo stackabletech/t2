@@ -10,6 +10,7 @@ publicKeys: []
 spec:
   region: eu-central-1
   wireguard: false
+  k8sVersion: v1.22.4-rc1+k3s1
   nodes:
     main:
       numberOfNodes: 1
