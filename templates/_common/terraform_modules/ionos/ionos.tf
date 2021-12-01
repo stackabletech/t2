@@ -100,6 +100,16 @@ module "stackable_client_script" {
   ssh-username                  = "root"
 }
 
+module "ssh_config" {
+  source                        = "../ssh_config"
+  nodes                         = [for node in module.ionos_protected_nodes.protected_nodes : 
+    { name = node.name, ip = node.primary_ip }
+  ]
+  orchestrator_ip               = module.ionos_protected_nodes.orchestrator.primary_ip
+  cluster_ip                    = module.ionos_edge_node.cluster_ip
+  ssh-username                  = "root"
+}
+
 module "stackable_service_definitions" {
   source = "../stackable_service_definitions"
 }
