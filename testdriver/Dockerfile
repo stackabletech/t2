@@ -18,6 +18,9 @@ ENV KUBECONFIG /root/.kube/config
 ENV PATH "/root/.cargo/bin:$PATH"
 RUN mkdir -p /root/.kube/
 RUN mkdir -p /root/.ssh/
+COPY operator-logs.sh /
+RUN chmod a+x /operator-logs.sh
+
 
 CMD [ "python", "/testdriver.py" ]
 
