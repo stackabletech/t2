@@ -128,6 +128,20 @@ def launch():
         f.close()
     os.chmod("/stackable.sh", 0o755)
 
+    log("Downloading SSH config")
+
+    with open ("/root/.ssh/config", "w") as f:
+        f.write(get_ssh_config(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id']))
+        f.close()
+    os.chmod("/root/.ssh/config", 0o600)
+
+    log("Configuring SSH")
+
+    os.system(f"cp {PRIVATE_KEY_FILE} /root/.ssh/id_rsa")
+    os.system(f"cp {PUBLIC_KEY_FILE} /root/.ssh/id_rsa.pub")
+    os.system(f"chmod 600 /root/.ssh/id_rsa")
+    os.system(f"chmod 644 /root/.ssh/id_rsa.pub")
+
     log("Downloading Stackable kubeconfig")
 
     with open ("/kubeconfig", "w") as f:
@@ -221,6 +235,18 @@ def get_client_script(t2_url, t2_token, id):
     response = requests.get(f"{t2_url}/api/clusters/{id}/stackable-client-script", headers={ "t2-token": t2_token })
     if(response.status_code != 200):
         log(f"API call to get Stackable client script returned error code {response.status_code}")
+        return None
+    return response.text
+
+def get_ssh_config(t2_url, t2_token, id):
+    """Downloads the SSH config using T2 REST API
+
+    Returns:
+    - content of the SSH config
+    """
+    response = requests.get(f"{t2_url}/api/clusters/{id}/ssh-config", headers={ "t2-token": t2_token })
+    if(response.status_code != 200):
+        log(f"API call to get SSH config returned error code {response.status_code}")
         return None
     return response.text
 

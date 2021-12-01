@@ -25,6 +25,8 @@ To see in more detail what T2 is doing to create your cluster, you can https://t
 
 Once the cluster is up and running, you can download a script https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClientScriptUsingGET[here, window="_blank"] which provides you with a convenient way to access the nodes of the cluster (see <<client_script>> below).
 
+Another way of accessing the cluster is using a prepared SSH config together with one of the private keys corresponding to a public key in the cluster definition file. You can download the SSH config https://t2.stackable.tech/swagger-ui/#/cluster-controller/getSshConfigUsingGET[here, window="_blank"]. When you use the SSH config or copy parts of it into your own SSH config, you can use tools like `ssh` or `scp` to interact with the cluster.
+
 To check which versions of the Stackable operators are running in your cluster, you can get an overview https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[here, window="_blank"]. (requires token as well)
 
 ==== VPN (Wireguard)
