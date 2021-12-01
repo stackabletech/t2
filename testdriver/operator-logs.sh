@@ -1,1 +1,1 @@
-kubectl logs --selector=app.kubernetes.io/instance=stackable-$1-operator
+kubectl logs --selector=app.kubernetes.io/instance=stackable-$1-operator | ansi2txt
