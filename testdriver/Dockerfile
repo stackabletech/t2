@@ -17,6 +17,7 @@ COPY testdriver.py /
 ENV KUBECONFIG /root/.kube/config
 ENV PATH "/root/.cargo/bin:$PATH"
 RUN mkdir -p /root/.kube/
+RUN mkdir -p /root/.ssh/
 
 CMD [ "python", "/testdriver.py" ]
 
