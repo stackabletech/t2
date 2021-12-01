@@ -4,7 +4,7 @@ RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add 
 RUN echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list
 RUN apt-get update
 RUN apt-get install -y kubectl
-RUN apt-get install -y gcc libssl-dev pkg-config
+RUN apt-get install -y gcc libssl-dev pkg-config colorized-logs
 RUN apt-get install -y git
 
 RUN curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -17,10 +17,9 @@ COPY testdriver.py /
 ENV KUBECONFIG /root/.kube/config
 ENV PATH "/root/.cargo/bin:$PATH"
 RUN mkdir -p /root/.kube/
+RUN mkdir -p /root/.ssh/
+COPY operator-logs.sh /
+RUN chmod a+x /operator-logs.sh
+
 
 CMD [ "python", "/testdriver.py" ]
-
-
-
-
-

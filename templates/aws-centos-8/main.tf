@@ -108,6 +108,16 @@ module "stackable_client_script" {
   ssh-username                  = local.stackable_user
 }
 
+module "ssh_config" {
+  source                        = "./terraform_modules/ssh_config"
+  nodes                         = [for node in module.aws_protected.nodes : 
+    { name = node.tags["hostname"], ip = node.private_ip }
+  ]
+  orchestrator_ip               = module.aws_protected.orchestrator.private_ip
+  cluster_ip                    = module.aws_public.cluster_ip
+  ssh-username                  = local.stackable_user
+}
+
 module "stackable_component_versions" {
   source = "./terraform_modules/stackable_component_versions"
 }

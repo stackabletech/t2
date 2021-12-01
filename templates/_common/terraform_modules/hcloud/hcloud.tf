@@ -109,6 +109,16 @@ module "stackable_client_script" {
   ssh-username                  = local.stackable_user
 }
 
+module "ssh_config" {
+  source                        = "../ssh_config"
+  nodes                         = [for node in module.hcloud_protected_nodes.nodes : 
+    { name = node.labels["hostname"], ip = element(node.network[*].ip, 0) }
+  ]
+  orchestrator_ip               = element(module.hcloud_protected_nodes.orchestrator.network[*].ip, 0)
+  cluster_ip                    = module.hcloud_edge_node.cluster_ip
+  ssh-username                  = local.stackable_user
+}
+
 module "stackable_service_definitions" {
   source = "../stackable_service_definitions"
 }
