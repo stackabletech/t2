@@ -31,4 +31,5 @@
   - kubeconfig
 - hosts: orchestrators  
   roles:
+  - stackable_collect_versions
   - stackable_deploy_services
