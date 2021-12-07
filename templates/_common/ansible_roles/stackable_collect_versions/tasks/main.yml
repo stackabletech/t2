@@ -1,0 +1,23 @@
+# Collect version informations
+---
+- name: Collect cluster info into file on server
+  shell: |
+    kubectl get nodes > /tmp/stackable-versions.txt
+    echo '' >> /tmp/stackable-versions.txt
+    echo '' >> /tmp/stackable-versions.txt
+  ignore_errors: True
+  vars:
+    ansible_become: false
+
+- name: Collect operator versions info into file on server
+  shell: |
+    helm list >> /tmp/stackable-versions.txt
+  ignore_errors: True
+  vars:
+    ansible_become: false
+
+- name: Fetch version info file to Ansible localhost
+  fetch:
+    src: /tmp/stackable-versions.txt
+    dest: resources/stackable-versions.txt
+    flat: yes
