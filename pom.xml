@@ -34,6 +34,7 @@
 			 They can be overwritten when calling Maven-->
 		<docker.image.tag>${git.commit.id.describe-short}</docker.image.tag>
 		<displayed-version>${git.commit.id.describe-short}</displayed-version>
+		<logback.version>1.2.8</logback.version>
 	</properties>
 
 	<dependencies>
