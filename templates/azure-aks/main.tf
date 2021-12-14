@@ -76,7 +76,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
 }
 
 # extract client certificate to file
-resource "local_file" "kubeconfig" {
+resource "local_file" "client-certificate" {
   filename = "resources/client_certificate"
   content = azurerm_kubernetes_cluster.kubernetes-cluster.kube_config.0.client_certificate
   file_permission = "0400"
