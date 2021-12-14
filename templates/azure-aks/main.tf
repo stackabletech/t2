@@ -88,3 +88,7 @@ resource "local_file" "kubeconfig" {
   content = azurerm_kubernetes_cluster.kubernetes-cluster.kube_config_raw
   file_permission = "0400"
 } 
+
+module "stackable_component_versions" {
+  source = "./terraform_modules/stackable_component_versions"
+}
