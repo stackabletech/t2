@@ -2,10 +2,21 @@ FROM adoptopenjdk/openjdk11:alpine
 
 RUN mkdir -p /var/t2/workspace/
 
+# install curl
+RUN apk add curl
+
+# install openssl
+RUN apk add openssl
+
 # install Terraform 
-RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.0.9/terraform_1.0.9_linux_amd64.zip
+RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_linux_amd64.zip
 RUN unzip /tmp/terraform.zip -d /tmp/
 RUN mv /tmp/terraform /usr/bin/
+
+# install Helm and the Stackable Helm repos
+RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh -s -
+RUN helm repo add stackable-dev https://repo.stackable.tech/repository/helm-dev/
+RUN helm repo add stackable-stable https://repo.stackable.tech/repository/helm-stable/
 
 # install Python
 RUN apk add python3

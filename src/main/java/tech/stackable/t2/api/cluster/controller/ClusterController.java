@@ -164,7 +164,7 @@ public class ClusterController {
 
     @GetMapping("{id}/kubeconfig")
     @ResponseBody
-    @Operation(summary = "read Kubeconfig", description = "Reads a Kubeconfig file to work with the cluster while working with VPN")
+    @Operation(summary = "read Kubeconfig", description = "Reads a Kubeconfig file to work with the cluster. In some cases you might need a VPN tunnel to the cluster to use this config.")
     public String getKubeconfig(
             @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
             @RequestHeader(name = "t2-token", required = false) String token) {
