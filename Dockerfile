@@ -13,6 +13,11 @@ RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.1.0/te
 RUN unzip /tmp/terraform.zip -d /tmp/
 RUN mv /tmp/terraform /usr/bin/
 
+# install kubectl
+RUN wget -O /tmp/kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+RUN install -o root -g root -m 0755 /tmp/kubectl /usr/bin/kubectl
+RUN rm /tmp/kubectl
+
 # install Helm and the Stackable Helm repos
 RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh -s -
 RUN helm repo add stackable-dev https://repo.stackable.tech/repository/helm-dev/
