@@ -1,2 +1,5 @@
 sleep 10
-/stackable.sh testdriver-1 -i /.cluster/key 'kubectl get nodes'
+kubectl get nodes
+echo ""
+echo ""
+helm list

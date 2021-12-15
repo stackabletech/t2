@@ -1,0 +1,10 @@
+---
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: azure-aks
+metadata: 
+  name: t2-integration-tests
+  description: "Cluster for T2 Integration Tests (Azure AKS)"
+publicKeys: []
+spec:
+  versions: []

@@ -12,7 +12,4 @@ spec:
   wireguard: false
   nodes:
     main:
-      numberOfNodes: 1
-    testdriver:
-      numberOfNodes: 1
-      k8s_node: false
+      numberOfNodes: 3
