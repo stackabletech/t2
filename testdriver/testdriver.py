@@ -23,15 +23,20 @@ def prerequisites():
     if not os.path.isfile("/cluster.yaml"):
         print("Error Please supply cluster definition as file in /cluster.yaml.")
         exit(1)
-         
+
+
 def init_log():
-    """ Inits (=clears) the log files """
-    os.system('rm -rf /target/test_output.log || true')
+    """ Inits the log files.
+        a) remove the files that will be written later
+        b) create the empty testdriver log and make it accessible
+    """
     os.system('rm -rf /target/testdriver.log || true')
-    os.system('rm -rf /target/stackable-versions.txt || true')
     os.system('touch /target/testdriver.log')
     os.system(f"chown {uid_gid_output} /target/testdriver.log")
     os.system('chmod 664 /target/testdriver.log')
+    os.system('rm -rf /target/test_output.log || true')
+    os.system('rm -rf /target/stackable-versions.txt || true')
+
 
 def log(msg=""):
     """ Logs the given text message to stdout AND the logfile """
@@ -42,11 +47,13 @@ def log(msg=""):
     f.write(f"{msg}\n")
     f.close()    
 
+
 def is_dry_run():
     """ Checks if the testdriver should be executed as a 'dry run', which means
         that the cluster is not created.
     """
     return 'DRY_RUN' in os.environ and os.environ['DRY_RUN']=='true'
+
 
 def is_interactive_mode():
     """ Checks if the testdriver should be run in 'interactive mode', which means
@@ -54,6 +61,7 @@ def is_interactive_mode():
         '/cluster_lock' to be deleted.
     """
     return 'INTERACTIVE_MODE' in os.environ and os.environ['INTERACTIVE_MODE']=='true'
+
 
 def run_test_script():
     if os.path.isfile("/test.sh"):
@@ -67,6 +75,7 @@ def run_test_script():
         log("No test script supplied.")
         return 0
 
+
 def launch(): 
     """Launch a cluster.
     
@@ -76,6 +85,8 @@ def launch():
     private key is used to access the cluster later.
 
     If the cluster launch fails, this script exits. T2 takes care of the termination of partly created clusters.
+
+    Returns cluster UUID
     """
 
     os.mkdir(CLUSTER_FOLDER)
@@ -121,41 +132,7 @@ def launch():
     with open(f"{CLUSTER_FOLDER}/uuid", "w") as uuid_text_file:
         print(cluster['id'], file=uuid_text_file)
 
-    log("Downloading Stackable client script for cluster")
-
-    with open ("/stackable.sh", "w") as f:
-        f.write(get_client_script(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id']))
-        f.close()
-    os.chmod("/stackable.sh", 0o755)
-
-    log("Downloading SSH config")
-
-    with open ("/root/.ssh/config", "w") as f:
-        f.write(get_ssh_config(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id']))
-        f.close()
-    os.chmod("/root/.ssh/config", 0o600)
-
-    log("Configuring SSH")
-
-    os.system(f"cp {PRIVATE_KEY_FILE} /root/.ssh/id_rsa")
-    os.system(f"cp {PUBLIC_KEY_FILE} /root/.ssh/id_rsa.pub")
-    os.system(f"chmod 600 /root/.ssh/id_rsa")
-    os.system(f"chmod 644 /root/.ssh/id_rsa.pub")
-
-    log("Downloading Stackable kubeconfig")
-
-    with open ("/kubeconfig", "w") as f:
-        f.write(get_kubeconfig(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id']))
-        f.close()
-
-    log("Downloading Stackable version information sheet for cluster")
-
-    stackable_versions = get_version_information_sheet(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-    with open ("/target/stackable-versions.txt", "w") as f:
-        f.write(stackable_versions)
-        f.close()
-    os.system(f"chown {uid_gid_output} /target/stackable-versions.txt")
-    os.system('chmod 664 /target/stackable-versions.txt')
+    return cluster['id']
 
 
 def terminate():
@@ -226,53 +203,71 @@ def delete_cluster(t2_url, t2_token, id):
     return response.json()
 
 
-def get_client_script(t2_url, t2_token, id):
-    """Downloads the Stackable client script using T2 REST API
-
-    Returns:
-    - content of the Stackable client script
-    """
-    response = requests.get(f"{t2_url}/api/clusters/{id}/stackable-client-script", headers={ "t2-token": t2_token })
+def download_cluster_file(t2_url, t2_token, id, resource_name, destination_path):
+    """Downloads the cluster resource file with the given resource name to the given destination."""
+    response = requests.get(f"{t2_url}/api/clusters/{id}/{resource_name}", headers={ "t2-token": t2_token })
     if(response.status_code != 200):
-        log(f"API call to get Stackable client script returned error code {response.status_code}")
-        return None
-    return response.text
+        log(f"API call to get resource '{resource_name}' returned error code {response.status_code}")
+        return 
+    with open (destination_path, "w") as f:
+        f.write(response.text)
+        f.close()
 
-def get_ssh_config(t2_url, t2_token, id):
-    """Downloads the SSH config using T2 REST API
 
-    Returns:
-    - content of the SSH config
-    """
-    response = requests.get(f"{t2_url}/api/clusters/{id}/ssh-config", headers={ "t2-token": t2_token })
-    if(response.status_code != 200):
-        log(f"API call to get SSH config returned error code {response.status_code}")
-        return None
-    return response.text
+def download_cluster_files(t2_url, t2_token, id):
+    """Downloads the various files belonging to the cluster using T2 REST API"""
+    os.system('mkdir -p /download')
+    log("Downloading Stackable client script for cluster from T2...")
+    download_cluster_file(t2_url, t2_token, id, "stackable-client-script", "/download/stackable.sh")
+    log("Downloading SSH config from T2...")
+    download_cluster_file(t2_url, t2_token, id, "ssh-config", "/download/ssh-config")
+    log("Downloading Stackable version information sheet for cluster from T2...")
+    download_cluster_file(t2_url, t2_token, id, "stackable-versions", "/download/stackable-versions.txt")
+    log("Downloading kubeconfig from T2...")
+    download_cluster_file(t2_url, t2_token, id, "kubeconfig", "/download/kubeconfig")
 
-def get_version_information_sheet(t2_url, t2_token, id):
-    """Downloads the Stackable version information sheet using T2 REST API
 
-    Returns:
-    - content of the Stackable version information sheet
-    """
-    response = requests.get(f"{t2_url}/api/clusters/{id}/stackable-versions", headers={ "t2-token": t2_token })
-    if(response.status_code != 200):
-        log(f"API call to get Stackable version information sheet returned error code {response.status_code}")
-        return "No Stackable version information available."
-    return response.text
+def install_stackable_client_script():
+    if(os.path.exists("/download/stackable.sh")):
+        os.system('install /download/stackable.sh /usr/bin/stackable')
+        log("Stackable client script installed as command 'stackable'")
+        return
 
-def get_kubeconfig(t2_url, t2_token, id):
-    """Downloads the kubeconfig using T2 REST API
+    log('Stackable client script not available on this cluster.')
 
-    Returns:
-    - content of the Stackable kubeconfig
-    """
-    response = requests.get(f"{t2_url}/api/clusters/{id}/kubeconfig", headers={ "t2-token": t2_token })
-    if(response.status_code != 200):
-        log(f"API call to get Stackable kubeconfig returned error code {response.status_code}")
-        return None
-    return response.text
+
+def configure_ssh():
+    if(os.path.exists("/download/ssh-config")):
+        os.system('mkdir -p /root/.ssh/')
+        os.system('cp /download/ssh-config /root/.ssh/config')
+        os.chmod("/root/.ssh/config", 0o600)
+        os.system(f"cp {PRIVATE_KEY_FILE} /root/.ssh/id_rsa")
+        os.system(f"cp {PUBLIC_KEY_FILE} /root/.ssh/id_rsa.pub")
+        os.system(f"chmod 600 /root/.ssh/id_rsa")
+        os.system(f"chmod 644 /root/.ssh/id_rsa.pub")
+        log("SSH configured to work directly with all cluster nodes")
+        return
+
+    log('SSH not configurable in this cluster.')
+
+
+def configure_k8s_access():
+
+    if(not os.path.exists("/download/kubeconfig")):
+        log("No kubeconfig available for this cluster")
+        return
+
+    if(os.path.exists("/download/ssh-config") and os.path.exists("/download/stackable.sh")):
+        (_, api_port) = create_kubeconfig_for_ssh_tunnel("/download/kubeconfig", "/root/.kube/config")
+        os.system(f"stackable -i {PRIVATE_KEY_FILE} api-tunnel {api_port}")
+        log("Successfully set up kubeconfig to access cluster through SSH tunnel.")
+    
+    else:
+        os.system('cp /download/kubeconfig /root/.kube/config')
+        log("Successfully set up kubeconfig to access cluster.")
+
+    os.system("chmod 600 /root/.kube/config")
+
 
 def create_kubeconfig_for_ssh_tunnel(kubeconfig_file, kubeconfig_target_file):
     """
@@ -306,20 +301,34 @@ def create_kubeconfig_for_ssh_tunnel(kubeconfig_file, kubeconfig_target_file):
 
     return (original_api_hostname, original_api_port)        
 
-def establish_ssh_tunnel_to_api(api_port):
-    os.system(f"/stackable.sh -i {PRIVATE_KEY_FILE} api-tunnel {api_port}")
+
+def provide_version_information_sheet():
+
+    if(os.path.exists("/download/stackable-versions.txt")):
+        os.system('cp /download/stackable-versions.txt /target/')
+        os.system(f"chown {uid_gid_output} /target/stackable-versions.txt")
+        os.system('chmod 664 /target/stackable-versions.txt')
+        log('Stackable version information available in /target/stackable-versions.txt')
+        return
+
+    log('Stackable version information not available in this cluster.')
+
 
 
 if __name__ == "__main__":
 
+    # check if we have everything to get started
     prerequisites()
 
+    # exit code of the T2 testdriver
     exit_code = 0
 
+    # determine user/group for output files (default: root/root)
     uid_gid_output = "0:0"
     if 'UID_GID' in os.environ:
         uid_gid_output = os.environ['UID_GID']
 
+    # clear/init log files
     init_log()
 
     log("Starting T2 test driver...")
@@ -329,9 +338,12 @@ if __name__ == "__main__":
 
     if not dry_run:
         log(f"Creating a cluster using T2 at {os.environ['T2_URL']}...")
-        launch()
-        (_, api_port) = create_kubeconfig_for_ssh_tunnel("/kubeconfig", "/root/.kube/config")
-        establish_ssh_tunnel_to_api(api_port)
+        cluster_id = launch()
+        download_cluster_files(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)
+        install_stackable_client_script()
+        configure_ssh()
+        configure_k8s_access()
+        provide_version_information_sheet()
     else:
         log(f"DRY RUN: Not creating a cluster!")
 
@@ -340,9 +352,9 @@ if __name__ == "__main__":
         exit_code = run_test_script()
         log("Test script finished.")
     else:
-        log("Interactive mode. The testdriver will be open for business until you stop it by creating a file /cluster_lock")
+        log("Interactive mode. The testdriver will be open for business until you stop it by creating the file /cluster_lock")
         while not os.path.exists('/cluster_lock'):
-            time.sleep(5)
+            time.sleep(1)
 
     if not dry_run:
         log(f"Terminating the test cluster...")
