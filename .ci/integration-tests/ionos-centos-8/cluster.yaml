@@ -12,15 +12,8 @@ spec:
   wireguard: false
   nodes:
     main:
-      numberOfNodes: 1
+      numberOfNodes: 3
       numberOfCores: 2
       memoryMb: 4096
       diskType: HDD 
       diskSizeGb: 15
-    testdriver:
-      numberOfNodes: 1
-      numberOfCores: 2
-      memoryMb: 4096
-      diskType: HDD 
-      diskSizeGb: 15
-      k8s_node: false
