@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  roles:
+  - stackable_operators
+  - stackable_collect_versions_localhost
