@@ -84,6 +84,8 @@ In either way you choose to use T2, you have to provide a definition of the Stac
 
 This is an example cluster definition, please find detailed specification of the structure below.
 
+*Warning!* This exact config cannot be copy/pasted and used, as it is kind of a superset of options and therefore may contain contradicting and/or deprecated values. Please refer to the reference table below if you plan to setup a cluster.
+
 [source,yaml]
 ----
 apiVersion: t2.stackable.tech/v1
@@ -186,23 +188,32 @@ The following sections describe the fields of the cluster definition in more det
 
 === Templates
 
-The most important choice you have to make in a cluster definition is right in line #3: the template. By choosing a template, you decide which cloud provider will host your cluster and which Linux distribution will be used.
+The most important choice you have to make in a cluster definition is right in line #3: the template. There are two kinds of templates: 
+
+* "K3s-based self-provisioned": We use the compute power of the cloud provider and install a K3s-based Kubernetes cluster ourselves.
+* "Managed K8s": We use the managed Kubernetes products of the cloud provider.
 
 The following table lists the currently available templates:
 
 [options="header"]
 |=======
-|key |Cloud provider| Linux distribution
-|ionos-centos-7 | IONOS Cloud | CentOS 7
+|Type|key |Cloud provider| Linux distribution
+.7+|K3s |ionos-centos-7 | IONOS Cloud | CentOS 7
 |ionos-centos-8 | IONOS Cloud | CentOS 8
 |ionos-debian-10 | IONOS Cloud | Debian 10
 |aws-centos-8 | Amazon EC2 | CentOS 8
 |hcloud-centos-8 | Hetzner Cloud | CentOS 8
 |hcloud-debian-10 | Hetzner Cloud | Debian 10
 |pluscloud-open-centos-8 | PlusCloud Open (Plusserver, SCS implementation, based on OpenStack) | CentOS 8
+.2+|managed K8s |azure-aks | Microsoft Azure | 
+|aws-eks | Amazon AWS | 
 |=======
 
 === Configuration options
+
+To keep the following informations somewhat handy, they are split in the options for K3s-based clusters and managed K8s
+
+==== Configuration (K3s)
 
 [options="header"]
 |=======
@@ -239,6 +250,24 @@ The following table lists the currently available templates:
 |spec.nodes.<type>.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cx21`
 |spec.nodes.<type>.k8s_node |(boolean, optional, defaults to `true`) Should this node work as a Kubernetes node? 4+|
 |services |Map of service descriptions as embedded YAMLs. See below for available services. 4+|
+|=======
+
+==== Configuration (managed K8s)
+
+[options="header"]
+|=======
+|key |description |Azure AKS|Amazon EKS
+|apiVersion |always `t2.stackable.tech/v1` 2+| 
+|kind |always `Infra` 2+| 
+|template |see section above 2+| 
+|metadata.name |name of the cluster 2+| 
+|metadata.description |description of the cluster 2+| 
+|spec.location |one of the locations that the cloud vendor provides | e.g. `West Europe` | not available
+|spec.k8sVersion |The K8s version (optional, defaults to whatever the cloud provider regards as the default) 2+| 
+|spec.node_count |# of nodes in the cluster 2+|
+|spec.vm_size |one of the VM sizes that the cloud vendor provides (optional) | e.g. `Standard_D2_v2` (which is also the default) | not available
+|spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 2+|
+|services |Map of service descriptions as embedded YAMLs. See below for available services. 2+|
 |=======
 
 ==== Links

@@ -55,7 +55,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "resource-group" {
   name     = "${var.cluster_name}-resource-group"
-  location = "West Europe"
+  location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : "West Europe"
 }
 
 resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
@@ -63,11 +63,12 @@ resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
   location            = azurerm_resource_group.resource-group.location
   resource_group_name = azurerm_resource_group.resource-group.name
   dns_prefix          = "${var.cluster_name}"
+  kubernetes_version  = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : null
 
   default_node_pool {
     name       = "default"
-    node_count = 3
-    vm_size    = "Standard_D2_v2"
+    node_count = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
+    vm_size    = can(yamldecode(file("cluster.yaml"))["spec"]["vm_size"]) ? yamldecode(file("cluster.yaml"))["spec"]["vm_size"] : "Standard_D2_v2"
   }
 
   identity {
@@ -75,20 +76,19 @@ resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
   }
 }
 
-# extract client certificate to file
-resource "local_file" "client-certificate" {
-  filename = "resources/client_certificate"
-  content = azurerm_kubernetes_cluster.kubernetes-cluster.kube_config.0.client_certificate
-  file_permission = "0400"
-} 
-
-# extract kubeconfig to file
+# write kubeconfig to file
 resource "local_file" "kubeconfig" {
   filename = "resources/kubeconfig"
   content = azurerm_kubernetes_cluster.kubernetes-cluster.kube_config_raw
   file_permission = "0400"
 } 
 
+# create file w/ stackable component versions for Ansible inventory
 module "stackable_component_versions" {
   source = "./terraform_modules/stackable_component_versions"
 }
+
+
+
+
+

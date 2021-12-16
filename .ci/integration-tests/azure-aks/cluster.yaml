@@ -8,3 +8,4 @@ metadata:
 publicKeys: []
 spec:
   versions: []
+  node_count: 5
