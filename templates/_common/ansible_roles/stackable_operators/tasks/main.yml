@@ -13,6 +13,8 @@
 - name: Update Helm repositories
   shell: |
     helm repo update
+  vars:
+    ansible_become: false
 
 - name: install operators (when version is set)
   shell: |
