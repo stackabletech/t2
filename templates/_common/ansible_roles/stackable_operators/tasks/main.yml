@@ -8,12 +8,31 @@
     warn: no
   vars:
     ansible_become: false
+  when: "'localhost' not in inventory_hostname"
+
+- name: Update Helm repositories
+  shell: |
+    helm repo update
+  vars:
+    ansible_become: false
 
 - name: install operators (when version is set)
   shell: |
     helm install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
   loop: "{{ stackable_operators }}"
-  when: item in stackable_component_versions.keys()
+  when: 
+    - "'localhost' not in inventory_hostname"
+    - item in stackable_component_versions.keys()
+  vars:
+    ansible_become: false
+
+- name: install operators (when version is set, using kubeconfig from localhost)
+  shell: |
+    helm --kubeconfig resources/kubeconfig install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
+  loop: "{{ stackable_operators }}"
+  when: 
+    - "'localhost' in inventory_hostname"
+    - item in stackable_component_versions.keys()
   vars:
     ansible_become: false
 
@@ -21,6 +40,18 @@
   shell: |
     helm install stackable-{{ item }} stackable-stable/{{ item }} || true
   loop: "{{ stackable_operators }}"
-  when: item not in stackable_component_versions.keys()
+  when: 
+    - "'localhost' not in inventory_hostname"
+    - item not in stackable_component_versions.keys()
+  vars:
+    ansible_become: false
+
+- name: install operators (when no version is set, using kubeconfig from localhost)
+  shell: |
+    helm --kubeconfig resources/kubeconfig install stackable-{{ item }} stackable-stable/{{ item }} || true
+  loop: "{{ stackable_operators }}"
+  when: 
+    - "'localhost' in inventory_hostname"
+    - item not in stackable_component_versions.keys()
   vars:
     ansible_become: false
