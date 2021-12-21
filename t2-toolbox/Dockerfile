@@ -2,7 +2,7 @@ FROM debian:10
 
 # install helpful tools
 RUN apt-get update
-RUN apt-get install curl python3 unzip wget vim -y
+RUN apt-get install curl python3 unzip wget vim git gcc libssl-dev pkg-config -y
 
 # install Helm and the Stackable Helm repos
 RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s -
@@ -33,3 +33,7 @@ RUN unzip /tmp/terraform.zip -d /tmp/terraform/
 RUN install -o root -g root -m 0755 /tmp/terraform/terraform /usr/local/bin/terraform
 RUN rm /tmp/terraform.zip
 RUN rm -rf /tmp/terraform/
+
+# install Rust
+RUN curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH "/root/.cargo/bin:$PATH"
