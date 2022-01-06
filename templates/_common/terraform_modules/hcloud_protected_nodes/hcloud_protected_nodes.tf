@@ -46,7 +46,7 @@ variable "cluster_private_key_filename" {
 }
 
 variable "os_image" {
-  description = "Image of the OS for the node, e.g. centos-8"
+  description = "Image of the OS for the node, e.g. centos-stream-8"
   type        = string
 }
 

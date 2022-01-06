@@ -86,7 +86,7 @@ resource "hcloud_firewall" "edge_node" {
 resource "hcloud_server" "edge" {
   name        = "${var.cluster_name}-edge"
   server_type = "cx11"
-  image       = "centos-8"
+  image       = "centos-stream-8"
   location    = var.location
   ssh_keys    = [ var.keypair.id ]
 

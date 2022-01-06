@@ -33,5 +33,5 @@ module "stackable_component_versions" {
 module "hcloud" {
   source                     = "./terraform_modules/hcloud"
   cluster_name               = var.cluster_name
-  os_image                   = "centos-8"
+  os_image                   = "centos-stream-8"
 }
