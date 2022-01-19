@@ -360,6 +360,6 @@ if __name__ == "__main__":
     log("T2 test driver finished.")
 
     # set output file ownership recursively
-    os.system(f"chown -R {uid_gid_output} /target/testdriver.log")
+    os.system(f"chown -R {uid_gid_output} /target/")
 
     exit(exit_code)
