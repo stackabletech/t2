@@ -32,7 +32,6 @@ def init_log():
     """
     os.system('rm -rf /target/testdriver.log || true')
     os.system('touch /target/testdriver.log')
-    os.system(f"chown {uid_gid_output} /target/testdriver.log")
     os.system('chmod 664 /target/testdriver.log')
     os.system('rm -rf /target/test_output.log || true')
     os.system('rm -rf /target/stackable-versions.txt || true')
@@ -66,7 +65,6 @@ def is_interactive_mode():
 def run_test_script():
     if os.path.isfile("/test.sh"):
         os.system('touch /target/test_output.log')
-        os.system(f"chown {uid_gid_output} /target/test_output.log")
         os.system('chmod 664 /target/test_output.log')
         os.system('(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee /target/test_output.log')
         with open ("/test_exit_code", "r") as f:
@@ -306,7 +304,6 @@ def provide_version_information_sheet():
 
     if(os.path.exists("/download/stackable-versions.txt")):
         os.system('cp /download/stackable-versions.txt /target/')
-        os.system(f"chown {uid_gid_output} /target/stackable-versions.txt")
         os.system('chmod 664 /target/stackable-versions.txt')
         log('Stackable version information available in /target/stackable-versions.txt')
         return
@@ -361,5 +358,8 @@ if __name__ == "__main__":
         terminate()
 
     log("T2 test driver finished.")
+
+    # set output file ownership recursively
+    os.system(f"chown -R {uid_gid_output} /target/")
 
     exit(exit_code)
