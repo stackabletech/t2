@@ -40,7 +40,7 @@ locals {
       {
         name = p.name
         version = p.version
-        repository = replace(p.version, "-", "") == p.version ? "stable" : "dev"
+        repository = replace(p.version, "-", "") == p.version ? "stable" : replace(p.version, "-pr", "") == p.version ? "dev" : "test"
       }
   ]
   stackable_component_versions = [

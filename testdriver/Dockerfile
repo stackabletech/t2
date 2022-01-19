@@ -23,6 +23,15 @@ RUN install -o root -g root -m 0755 /tmp/k9s/k9s /usr/local/bin/k9s
 RUN rm /tmp/k9s.tar.gz
 RUN rm -rf /tmp/k9s/
 
+# install Docker
+# (https://docs.docker.com/engine/install/debian/)
+RUN apt-get update
+RUN apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+RUN apt-get update
+RUN apt-get install -y docker-ce docker-ce-cli containerd.io
+
 # install Rust
 RUN curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
