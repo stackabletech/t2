@@ -39,6 +39,9 @@ RUN apk add wireguard-tools
 # install ssh
 RUN apk add openssh
 
+# install git
+RUN apk add git
+
 # add template directory
 ADD templates/ /var/t2/templates/
 
