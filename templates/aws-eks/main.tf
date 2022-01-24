@@ -5,19 +5,9 @@ terraform {
       version = ">= 3.20.0"
     }
 
-    random = {
-      source  = "hashicorp/random"
-      version = "3.1.0"
-    }
-
     local = {
       source  = "hashicorp/local"
       version = "2.1.0"
-    }
-
-    null = {
-      source  = "hashicorp/null"
-      version = "3.1.0"
     }
 
     kubernetes = {
@@ -82,8 +72,8 @@ module "vpc" {
   }
 }
 
-resource "aws_security_group" "worker_group_mgmt_one" {
-  name_prefix = "worker_group_mgmt_one"
+resource "aws_security_group" "${var.cluster_name}-worker-group" {
+  name_prefix = "worker_group"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
@@ -93,38 +83,6 @@ resource "aws_security_group" "worker_group_mgmt_one" {
 
     cidr_blocks = [
       "10.0.0.0/8",
-    ]
-  }
-}
-
-resource "aws_security_group" "worker_group_mgmt_two" {
-  name_prefix = "worker_group_mgmt_two"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
-
-    cidr_blocks = [
-      "192.168.0.0/16",
-    ]
-  }
-}
-
-resource "aws_security_group" "all_worker_mgmt" {
-  name_prefix = "all_worker_management"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
-
-    cidr_blocks = [
-      "10.0.0.0/8",
-      "172.16.0.0/12",
-      "192.168.0.0/16",
     ]
   }
 }
@@ -133,7 +91,7 @@ module "eks" {
   source          = "terraform-aws-modules/eks/aws"
   version         = "17.24.0"
   cluster_name    = var.cluster_name
-  cluster_version = "1.21"
+  cluster_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : "1.21"
   subnets         = module.vpc.private_subnets
 
   vpc_id = module.vpc.vpc_id
@@ -144,19 +102,13 @@ module "eks" {
 
   worker_groups = [
     {
-      name                          = "worker-group-1"
-      instance_type                 = "t2.small"
-      additional_userdata           = "echo foo bar"
-      additional_security_group_ids = [aws_security_group.worker_group_mgmt_one.id]
+      name                          = "${var.cluster_name}-worker-group"
+      instance_type                 = can(yamldecode(file("cluster.yaml"))["spec"]["awsInstanceType"]) ? yamldecode(file("cluster.yaml"))["spec"]["awsInstanceType"] : "t2.small"
+      additional_security_group_ids = [aws_security_group.worker_group.id]
+      asg_min_size                  = 1
+      asg_max_size                  = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
       asg_desired_capacity          = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
-    },
-    {
-      name                          = "worker-group-2"
-      instance_type                 = "t2.medium"
-      additional_userdata           = "echo foo bar"
-      additional_security_group_ids = [aws_security_group.worker_group_mgmt_two.id]
-      asg_desired_capacity          = 1
-    },
+    }
   ]
 }
 
