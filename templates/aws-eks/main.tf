@@ -72,7 +72,7 @@ module "vpc" {
   }
 }
 
-resource "aws_security_group" "${var.cluster_name}-worker-group" {
+resource "aws_security_group" "worker_group" {
   name_prefix = "worker_group"
   vpc_id      = module.vpc.vpc_id
 
