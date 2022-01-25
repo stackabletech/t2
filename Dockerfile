@@ -42,6 +42,12 @@ RUN apk add openssh
 # install git
 RUN apk add git
 
+# install jq (JSON Parser)
+RUN apk add jq
+
+# install yq (YAML Parser)
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.17.2/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+
 # add template directory
 ADD templates/ /var/t2/templates/
 
