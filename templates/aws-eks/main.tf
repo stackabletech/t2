@@ -126,11 +126,21 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
 }
 
-# write kubeconfig to file
+# write kubeconfig to file and replace AWS IAM auth by generated token afterwards
 resource "local_file" "kubeconfig" {
   filename = "resources/kubeconfig"
   content = module.eks.kubeconfig
   file_permission = "0400"
+  provisioner "local-exec" {
+    command = <<EOC
+      AWS_EKS_K8S_TOKEN=$(aws eks get-token --cluster-name ${var.cluster_name} | jq .status.token)
+      yq e -i "del(.users[0].user.exec) | .users[0].user.token=$AWS_EKS_K8S_TOKEN" resources/kubeconfig
+    EOC
+    environment = {
+      AWS_ACCESS_KEY_ID = var.aws_access_key
+      AWS_SECRET_ACCESS_KEY = var.aws_secret_access_key
+    }
+  }
 } 
 
 # create file w/ stackable component versions for Ansible inventory
