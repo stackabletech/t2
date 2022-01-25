@@ -48,6 +48,9 @@ RUN apk add jq
 # install yq (YAML Parser)
 RUN wget https://github.com/mikefarah/yq/releases/download/v4.17.2/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
+# install AWS CLI
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip && unzip awscliv2.zip && rm -f awscliv2.zip && ./aws/install -i /usr/local/aws-cli -b /usr/bin
+
 # add template directory
 ADD templates/ /var/t2/templates/
 
