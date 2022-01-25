@@ -16,7 +16,7 @@ RUN helm repo add stackable-stable https://repo.stackable.tech/repository/helm-s
 RUN helm repo update
 
 # install k9s
-RUN wget -O /tmp/k9s.tar.gz https://github.com/derailed/k9s/releases/download/v0.25.10/k9s_Linux_x86_64.tar.gz
+RUN wget -O /tmp/k9s.tar.gz https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_x86_64.tar.gz
 RUN mkdir /tmp/k9s/
 RUN tar -xzf /tmp/k9s.tar.gz  -C /tmp/k9s/
 RUN install -o root -g root -m 0755 /tmp/k9s/k9s /usr/local/bin/k9s
