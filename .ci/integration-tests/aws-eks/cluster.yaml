@@ -1,0 +1,13 @@
+---
+apiVersion: "t2.stackable.tech/v1"
+kind: "Infra"
+template: aws-eks
+metadata:
+  name: t2-integration-tests
+  description: "Cluster for T2 Integration Tests (AWS EKS)"
+publicKeys: []
+spec:
+  region: "eu-central-1"
+  node_count: 5
+  awsInstanceType: "t2.medium"
+  versions: []

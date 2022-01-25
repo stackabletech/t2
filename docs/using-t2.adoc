@@ -267,6 +267,7 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.k8sVersion |The K8s version (optional, defaults to whatever the cloud provider regards as the default) 2+| 
 |spec.node_count |# of nodes in the cluster 2+|
 |spec.vm_size |one of the VM sizes that the cloud vendor provides (optional) | e.g. `Standard_D2_v2` (which is also the default) | not available
+|spec.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below
 |spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 2+|
 |services |Map of service descriptions as embedded YAMLs. See below for available services. 2+|
 |=======
