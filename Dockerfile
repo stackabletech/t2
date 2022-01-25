@@ -9,7 +9,7 @@ RUN apk add curl
 RUN apk add openssl
 
 # install Terraform 
-RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.1.0/terraform_1.1.0_linux_amd64.zip
+RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.1.4/terraform_1.1.4_linux_amd64.zip
 RUN unzip /tmp/terraform.zip -d /tmp/
 RUN mv /tmp/terraform /usr/bin/
 
