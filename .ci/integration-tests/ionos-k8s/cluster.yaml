@@ -7,5 +7,6 @@ metadata:
   description: "Cluster for T2 Integration Tests (IONOS Cloud managed K8s)"
 publicKeys: []
 spec:
+  region: de/fra
   versions: []
   node_count: 5
