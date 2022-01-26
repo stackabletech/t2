@@ -1,0 +1,11 @@
+---
+apiVersion: t2.stackable.tech/v1
+kind: Infra
+template: ionos-k8s
+metadata: 
+  name: t2-integration-tests
+  description: "Cluster for T2 Integration Tests (IONOS Cloud managed K8s)"
+publicKeys: []
+spec:
+  versions: []
+  node_count: 5
