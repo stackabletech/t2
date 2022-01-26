@@ -48,7 +48,7 @@ resource "ionoscloud_datacenter" "datacenter" {
 
 resource "ionoscloud_k8s_node_pool" "node_pool" {
   name        = "${var.cluster_name}-node-pool"
-  k8s_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : null
+  k8s_version = ionoscloud_k8s_cluster.cluster.k8s_version
   datacenter_id     = ionoscloud_datacenter.datacenter.id
   k8s_cluster_id    = ionoscloud_k8s_cluster.cluster.id
   cpu_family        = "INTEL_SKYLAKE"
