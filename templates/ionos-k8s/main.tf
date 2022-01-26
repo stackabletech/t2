@@ -61,7 +61,7 @@ resource "ionoscloud_k8s_node_pool" "node_pool" {
 }
 
 data "ionoscloud_k8s_cluster" "cluster" {
-  id = ionoscloud_k8s_cluster.cluster.id
+  name = ionoscloud_k8s_cluster.cluster.name
 }
 
 # write kubeconfig to file
