@@ -62,6 +62,11 @@ resource "ionoscloud_k8s_node_pool" "node_pool" {
 
 data "ionoscloud_k8s_cluster" "cluster" {
   id = ionoscloud_k8s_cluster.cluster.id
+  # We need this dependency because non-admin users in IONOS Cloud are only allowed to download the 
+  # kubeconfig (part of this data source) if they own the attached nodepool.
+  depends_on = [
+    ionoscloud_k8s_node_pool.node_pool  
+  ]
 }
 
 # write kubeconfig to file
