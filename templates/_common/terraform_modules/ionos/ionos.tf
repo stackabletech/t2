@@ -6,7 +6,7 @@ terraform {
   required_providers {
     ionoscloud = {
       source = "ionos-cloud/ionoscloud"
-      version = "5.0.4"
+      version = "6.1.3"
     }
   }
 }
@@ -22,7 +22,7 @@ variable "os_name" {
 }
 
 variable "os_version" {
-  description = "Version of the used OS, e.g. 7-server"
+  description = "Version of the used OS, e.g. 7-server-2022-01-01"
   type        = string
 }
 
