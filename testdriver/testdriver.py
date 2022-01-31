@@ -328,6 +328,9 @@ if __name__ == "__main__":
     if 'UID_GID' in os.environ:
         uid_gid_output = os.environ['UID_GID']
 
+    # Set target folder ownership 
+    os.system(f"chown -R {uid_gid_output} /target/")
+
     # clear/init log files
     init_log()
 
