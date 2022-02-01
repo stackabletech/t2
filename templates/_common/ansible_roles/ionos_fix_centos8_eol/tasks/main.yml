@@ -1,0 +1,10 @@
+# Due to this: https://www.centos.org/centos-linux-eol/
+# Workaround found here: https://stackoverflow.com/a/70930049
+# We use this workaround as long as we are waiting for an official image from IONOS
+---
+- name: Fix YUM repo settings to mitigate CentOS8 EOL
+  shell: |
+    sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-*
+  args:
+    warn: no
