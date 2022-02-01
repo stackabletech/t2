@@ -41,6 +41,6 @@ module "ionos" {
   source                        = "./terraform_modules/ionos"
   datacenter_name               = var.cluster_name
   os_name                       = "Debian"
-  os_version                    = "10-server-2022-01-01"
+  os_version                    = "10-server-2022-02-01"
 }
 
