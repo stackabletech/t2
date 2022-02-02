@@ -7,7 +7,8 @@
       sh -s - \
       --tls-san orchestrator.{{ domain }} \
       --advertise-address {{ ansible_host }} \
-      --node-ip {{ ansible_host }}
+      --node-ip {{ ansible_host }} \
+      --flannel-iface {{ private_network_interface_name }}
   args:
     warn: no
     creates: /etc/rancher/k3s/k3s.yaml
