@@ -7,7 +7,8 @@
       K3S_TOKEN="{{ hostvars['orchestrator']['k3s_token'] }}" \
       K3S_URL="https://orchestrator.{{ domain }}:6443" \
       sh -s - \
-      --node-ip {{ ansible_host }}
+      --node-ip {{ ansible_host }} \
+      --flannel-iface {{ private_network_interface_name }}
   args:
     warn: no
   when: k8s_node | bool

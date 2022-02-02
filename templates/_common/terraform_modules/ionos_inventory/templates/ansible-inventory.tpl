@@ -20,19 +20,15 @@ private_network_interface_name=ens6
 ${node.name} ansible_host=${node.primary_ip} k8s_node=${node_configuration[node.name]["k8s_node"]}
 %{ endfor ~}
 
-[nodes:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
-ansible_ssh_private_key_file=${ssh_key_private_path}
-ansible_user=${stackable_user}
-
 [orchestrators]
 orchestrator ansible_host=${orchestrator.primary_ip}
-
-[orchestrators:vars]
-ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
-ansible_ssh_private_key_file=${ssh_key_private_path}
-ansible_user=${stackable_user}
 
 [protected:children]
 nodes
 orchestrators
+
+[protected:vars]
+ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
+ansible_ssh_private_key_file=${ssh_key_private_path}
+ansible_user=${stackable_user}
+private_network_interface_name=ens6
