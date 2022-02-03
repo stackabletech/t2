@@ -14,3 +14,4 @@ stackable_operators:
   - trino-operator
   - druid-operator
   - airflow-operator
+  - secret-operator
