@@ -2,7 +2,7 @@ FROM python:3
 
 # install OS tools
 RUN apt-get update
-RUN apt-get install -y gcc libssl-dev pkg-config colorized-logs unzip wget vim git
+RUN apt-get install -y gcc libssl-dev pkg-config colorized-logs unzip wget vim git gettext
 
 # install kubectl
 RUN wget -O /tmp/kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"

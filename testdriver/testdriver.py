@@ -94,7 +94,7 @@ def launch():
     with open (PUBLIC_KEY_FILE, "r") as f:
         public_key = f.read().strip()
 
-    with open ("/cluster.yaml", "r") as f:
+    with open ("/_cluster.yaml", "r") as f:
         cluster_definition_string = f.read()
     cluster_definition_yaml = yaml.load(cluster_definition_string, Loader=yaml.FullLoader)
 
@@ -102,7 +102,7 @@ def launch():
         log("Error: The cluster definition file does not contain a valid 'publicKeys' section.")
         exit(1)
     cluster_definition_yaml["publicKeys"].append(public_key)        
-    with open (f"{CLUSTER_FOLDER}/cluster.yaml", "w") as f:
+    with open (f"{CLUSTER_FOLDER}/_cluster.yaml", "w") as f:
         f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
         f.close()
 
@@ -339,6 +339,9 @@ if __name__ == "__main__":
     dry_run = is_dry_run()
     interactive_mode = is_interactive_mode()
 
+    # copy cluster.yaml and substitute environment variables
+    os.system('envsubst < cluster.yaml > _cluster.yaml')
+
     if not dry_run:
         log(f"Creating a cluster using T2 at {os.environ['T2_URL']}...")
         cluster_id = launch()
@@ -349,6 +352,8 @@ if __name__ == "__main__":
         provide_version_information_sheet()
     else:
         log(f"DRY RUN: Not creating a cluster!")
+        os.system('cp /_cluster.yaml /target/cluster.yaml')
+        os.system(f"chown -R {uid_gid_output} /target/cluster.yaml")
 
     if not interactive_mode:    
         log("Running test script...")
