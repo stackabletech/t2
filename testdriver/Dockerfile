@@ -2,7 +2,7 @@ FROM python:3
 
 # install OS tools
 RUN apt-get update
-RUN apt-get install -y gcc libssl-dev pkg-config colorized-logs unzip wget vim git
+RUN apt-get install -y gcc libssl-dev pkg-config colorized-logs unzip wget vim git gettext
 
 # install kubectl
 RUN wget -O /tmp/kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -13,6 +13,7 @@ RUN rm /tmp/kubectl
 RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s -
 RUN helm repo add stackable-dev https://repo.stackable.tech/repository/helm-dev/
 RUN helm repo add stackable-stable https://repo.stackable.tech/repository/helm-stable/
+RUN helm repo add stackable-test https://repo.stackable.tech/repository/helm-test/
 RUN helm repo update
 
 # install k9s
