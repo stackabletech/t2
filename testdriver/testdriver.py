@@ -269,6 +269,13 @@ def configure_k8s_access():
     os.system("chmod 600 /root/.kube/config")
 
 
+def close_ssh_tunnel():
+
+    if(os.path.exists("/download/ssh-config") and os.path.exists("/download/stackable.sh")):
+        os.system(f"stackable -i {PRIVATE_KEY_FILE} close-api-tunnel")
+        log("Successfully closed SSH tunnel.")
+
+
 def create_kubeconfig_for_ssh_tunnel(kubeconfig_file, kubeconfig_target_file):
     """
         Creates a kubeconfig in which the Server URL is modified to use a locally set up SSH tunnel. (using 127.0.0.1 as an address)
@@ -371,6 +378,7 @@ if __name__ == "__main__":
 
     if not dry_run:
         log(f"Terminating the test cluster...")
+        close_ssh_tunnel()
         terminate()
 
     log("T2 test driver finished.")
