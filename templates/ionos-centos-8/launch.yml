@@ -2,7 +2,6 @@
 - hosts: all
   roles:
   - distribute_ssh_keys
-  - firewalld
 - hosts: edge
   roles: 
   - ionos_fix_centos8_eol
