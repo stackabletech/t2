@@ -231,7 +231,7 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 3+| not available
 |spec.wireguard |(boolean, optional, defaults to `false`) Should a wireguard server be started on the bastion host? Leaving wireguard switched off when you don't need it speeds up the start of the cluster. | | not available | not available |
 |spec.k8sVersion |The K8s version (optional, defaults to whatever the K3s installation script regards as the default), see https://github.com/k3s-io/k3s/releases[here, window="_blank"] which versions are available. 4+| 
-|spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 4+|
+|spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 4+|
 |spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details. 4+|
 |spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have | default: `4` 3+| not available
 |spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have in MB | default: `8192` 3+| not available 
@@ -269,7 +269,7 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.node_count |# of nodes in the cluster 3+|
 |spec.vm_size |one of the VM sizes that the cloud vendor provides (optional) | e.g. `Standard_D2_v2` (which is also the default) 2+| not available
 |spec.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below | not available
-|spec.versions |(optional) Map of versions of the Stackable components to be used in this cluster. See below for a list of Stackable components. 3+|
+|spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 3+|
 |services |Map of service descriptions as embedded YAMLs. See below for available services. 3+|
 |=======
 
@@ -280,9 +280,9 @@ To keep the following informations somewhat handy, they are split in the options
 * https://www.hetzner.com/de/cloud[Hetzner Cloud server types]
 
 
-=== Stackable components
+=== Stackable operators
 
-These are components that a Stackable cluster is made of. You can specify their versions with the `spec.versions` section in the cluster definition (see above)
+These are operators that Stackable currently provides. You can specify their versions with the `spec.versions` section in the cluster definition (see above).
 
 [options="header"]
 |=======
@@ -295,7 +295,6 @@ These are components that a Stackable cluster is made of. You can specify their 
 |https://github.com/stackabletech/monitoring-operator[Stackable Operator for Monitoring and Metrics] |`monitoring-operator`
 |https://github.com/stackabletech/nifi-operator[Stackable Operator for Apache NiFi] |`nifi-operator`
 |https://github.com/stackabletech/opa-operator[Stackable Operator for OpenPolicyAgent (OPA)] |`opa-operator`
-|https://github.com/stackabletech/regorule-operator[Stackable RegoRule Operator] |`regorule-operator`
 |https://github.com/stackabletech/spark-operator[Stackable Operator for Apache Spark] |`spark-operator`
 |https://github.com/stackabletech/superset-operator[Stackable Operator for Apache Superset] |`superset-operator`
 |https://github.com/stackabletech/trino-operator[Stackable Operator for Trino] |`trino-operator`
@@ -313,10 +312,18 @@ As shown in the example `cluster.yaml`, you can specify the versions of the Stac
 |`RELEASE` | The newest release version which can be found in the Stackable repository
 | (no version specified) | same as `RELEASE`
 |`NIGHTLY` | The newest nightly version which can be found in the Stackable repository
+|`NONE` | The operator is not installed at all.
 |`0.2.0-mr404` | latest build of version 0.2.0 from GitHub Pull Request #404
 |`0.3.0-nightly` | latest nightly build of version 0.3.0
 |`0.6.1` | realeased version 0.6.1
 |=======
+
+
+==== Default version for Stackable Operators
+
+To specify a version for *all* Stackable operators which are not explicitly mentioned in the Versions section, you can use the key `_-operator`. Using this operator most probably does not make sense with actual version numbers, but merely the keywords `RELEASE`, `NIGHTLY` or `NONE`.
+
+If you'd like a cluster without any operators, you can set the version of `_-operator` to `NONE` as the only entry in the `versions` section.
 
 
 === Service descriptions
