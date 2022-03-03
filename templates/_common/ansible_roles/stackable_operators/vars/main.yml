@@ -9,7 +9,6 @@ stackable_operators:
   - monitoring-operator
   - opa-operator
   - nifi-operator
-  - regorule-operator
   - superset-operator
   - trino-operator
   - druid-operator
