@@ -41,6 +41,6 @@ module "ionos" {
   source                        = "./terraform_modules/ionos"
   datacenter_name               = var.cluster_name
   os_name                       = "CentOS"
-  os_version                    = "7-server-2022-02-01"
+  os_version                    = "7-server-2022-03-01"
 }
 
