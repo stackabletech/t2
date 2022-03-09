@@ -11,6 +11,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,10 @@ public class TemplateService {
     	}
     	
         String templateName = (String) clusterDefinition.get("template");
+
+        if (StringUtils.startsWith(templateName, "_")) {
+            throw new MalformedClusterDefinitionException(MessageFormat.format("The template {0} does not exist.", templateName));
+        }
 
         Path templatePath = this.templateDirectory.resolve(templateName);
         if (!Files.exists(templatePath) || !Files.isDirectory(templatePath)) {

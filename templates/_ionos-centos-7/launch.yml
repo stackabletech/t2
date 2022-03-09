@@ -2,7 +2,6 @@
 - hosts: all
   roles:
   - distribute_ssh_keys
-  - firewalld
 - hosts: edge
   roles: 
   - ionos_fix_centos8_eol
@@ -16,12 +15,12 @@
   - edge_bind
 - hosts: protected
   roles:
-  - ionos_fix_centos8_eol
+  - firewalld
   - protected_node_common_centos
   - protected_node_edge_as_gateway
   - protected_node_edge_as_dns
   - protected_node_mutual_access
-  - protected_node_software_centos_8
+  - protected_node_software_centos_7
   - protected_node_chrony
   - k9s
   - helm

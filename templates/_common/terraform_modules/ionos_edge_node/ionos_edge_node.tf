@@ -6,7 +6,7 @@ terraform {
   required_providers {
     ionoscloud = {
       source = "ionos-cloud/ionoscloud"
-      version = "6.1.3"
+      version = "6.1.5"
     }
   }
 }
@@ -30,7 +30,7 @@ variable "cluster_private_key_filename" {
 
 data "ionoscloud_image" "os_image_edge_node" {
   name     = "CentOS"
-  version  = "8-server-2022-01-01"
+  version  = "8-cloud-init.qcow2"
   type     = "HDD"
   location = var.datacenter.location
 }
