@@ -33,3 +33,10 @@ jobs:
           ignore-unfixed: false
           vuln-type: 'os,library'
           # severity: 'CRITICAL,HIGH'
+          output: "report/trivy-report.txt"
+
+      - name: archive artifacts
+        uses: actions/upload-artifact@v2
+        with: 
+          name: trivy-report
+          path: report
