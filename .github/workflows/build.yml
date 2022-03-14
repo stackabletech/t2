@@ -30,14 +30,17 @@ jobs:
 #        run: echo `${{ steps.create_report.outputs.contents }}`
 
       - uses: actions/github-script@v6
+        env:
+          BODY: Knoedel
         with:
           github-token: ${{secrets.STACKY_MC_STACKFACE_TOKEN}}
           script: |
+            const { BODY } = process.env
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "${{ GITHUB_WORKFLOW }} ```${{ GITHUB_RUN_ID }}```"
+              body: `${BODY}`
             })
 
 
