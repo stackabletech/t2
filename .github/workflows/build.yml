@@ -47,13 +47,19 @@ jobs:
         uses: peter-evans/create-or-update-comment@v1
         with:
           issue-number: ${{ github.event.pull_request.number }}
+          repo-token: ${{secrets.STACKY_MC_STACKFACE_TOKEN}}
           body: |
             This is a multi-line test comment
             - With GitHub **Markdown** :sparkles:
             - Created by [create-or-update-comment][1]
 
+            ```
+            code
+            code
+            code
+            ```
+
             [1]: https://github.com/peter-evans/create-or-update-comment
-          reactions: '+1'
 
 
 
