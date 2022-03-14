@@ -26,19 +26,20 @@ jobs:
         with:
           path: "Dockerfile"
 
-      - uses: actions/github-script@v6
-        with:
-          github-token: ${{secrets.STACKY_MC_STACKFACE_TOKEN}}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: ${{ steps.create_report.outputs.contents }}
-            })
+      - name: File contents
+        run: echo "${ steps.create_report.outputs.contents }"
+
+#      - uses: actions/github-script@v6
+#        with:
+#          github-token: ${{secrets.STACKY_MC_STACKFACE_TOKEN}}
+#          script: |
+#            github.rest.issues.createComment({
+#              issue_number: context.issue.number,
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              body: ${{ steps.create_report.outputs.contents }}
+#            })
 
 
 
 
-#      - name: File contents
-#        run: echo "${ steps.read_file.outputs.contents }"
