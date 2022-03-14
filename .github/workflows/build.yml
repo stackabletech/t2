@@ -29,20 +29,31 @@ jobs:
 #      - name: File contents
 #        run: echo `${{ steps.create_report.outputs.contents }}`
 
-      - uses: actions/github-script@v6
-        env:
-          BODY: ${{ github.repository }}
-        with:
-          github-token: ${{secrets.STACKY_MC_STACKFACE_TOKEN}}
-          script: |
-            const { BODY } = process.env
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: "${BODY}"
-            })
+#      - uses: actions/github-script@v6
+#        env:
+#          BODY: ${{ github.repository }}
+#        with:
+#          github-token: ${{secrets.STACKY_MC_STACKFACE_TOKEN}}
+#          script: |
+#            const { BODY } = process.env
+#            github.rest.issues.createComment({
+#              issue_number: context.issue.number,
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              body: `${BODY}`
+#            })
 
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: 1
+          body: |
+            This is a multi-line test comment
+            - With GitHub **Markdown** :sparkles:
+            - Created by [create-or-update-comment][1]
+
+            [1]: https://github.com/peter-evans/create-or-update-comment
+          reactions: '+1'
 
 
 
