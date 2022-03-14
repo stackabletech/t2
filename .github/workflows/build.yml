@@ -18,7 +18,7 @@ jobs:
       - name: Read Dockerfile
         run: |
           REP=$(cat Dockerfile)
-          echo "REPORT=$REP" >> $GITHUB_ENV
+          echo "REPORT=$REP"
 
       - uses: actions/github-script@v5
         with:
