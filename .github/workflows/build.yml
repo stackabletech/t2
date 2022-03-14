@@ -45,9 +45,10 @@ jobs:
 
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.STACKY_MC_STACKFACE_TOKEN }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          repo-token: ${{secrets.STACKY_MC_STACKFACE_TOKEN}}
           body: |
             This is a multi-line test comment
             - With GitHub **Markdown** :sparkles:
