@@ -1,0 +1,16 @@
+name: Trivy Spike
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build an image from Dockerfile
+      run: |
+        docker build -t docker.stackable.tech/t2:${{ github.sha }} .
