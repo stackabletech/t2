@@ -4,7 +4,8 @@ import data.lib.trivy
 
 default ignore = false
 
+ignore_cve := {"CVE-2021-25122", "CVE-2021-38561"}
+
 ignore {
-	# https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-25122
-	input.VulnerabilityID == "CVE-2021-25122"
+	input.VulnerabilityID == "CVE-2021-2512ff2"
 }
