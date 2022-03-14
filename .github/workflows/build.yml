@@ -20,11 +20,11 @@ jobs:
 #        run: |
 #          cat Dockerfile
 
-      - name: Read file contents
-        id: create_report
-        uses: andstor/file-reader-action@v1
-        with:
-          path: "Dockerfile"
+#      - name: Read file contents
+#        id: create_report
+#        uses: andstor/file-reader-action@v1
+#        with:
+#          path: "Dockerfile"
 
 #      - name: File contents
 #        run: echo `${{ steps.create_report.outputs.contents }}`
@@ -43,23 +43,31 @@ jobs:
 #              body: `${BODY}`
 #            })
 
+      - id: get-comment-body
+        run: |
+          body="$(cat comment-body.txt)"
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}" 
+          echo "::set-output name=body::$body"
+
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v1
         with:
           token: ${{ secrets.STACKY_MC_STACKFACE_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            This is a multi-line test comment
-            - With GitHub **Markdown** :sparkles:
-            - Created by [create-or-update-comment][1]
+          body: ${{ steps.get-comment-body.outputs.body }}
 
-            ```
-            code
-            code
-            code
-            ```
 
-            [1]: https://github.com/peter-evans/create-or-update-comment
+
+#          body: |
+#            **Trivy vulnerability report**
+#
+#            ```
+#            code
+#            code
+#            code
+#            ```
 
 
 
