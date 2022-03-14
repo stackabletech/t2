@@ -15,10 +15,16 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - name: create report
-        id: create-report
-        run: |
-          cat Dockerfile
+#      - name: create report
+#        id: create-report
+#        run: |
+#          cat Dockerfile
+
+      - name: Read file contents
+        id: create_report
+        uses: andstor/file-reader-action@v1
+        with:
+          path: "Dockerfile"
 
       - uses: actions/github-script@v6
         with:
@@ -28,5 +34,11 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'report: \\n```\\n${{ steps.create-report.outputs.result }}\\n```\\nende'
+              body: 'report: ${{ steps.create_report.outputs.contents }}'
             })
+
+
+
+
+#      - name: File contents
+#        run: echo "${ steps.read_file.outputs.contents }"
