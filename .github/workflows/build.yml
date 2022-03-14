@@ -15,10 +15,10 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - name: Read Dockerfile
+      - name: create report
+        id: create-report
         run: |
-          REP=$(cat Dockerfile)
-          echo "REPORT=hurz" >> $GITHUB_ENV
+          cat Dockerfile
 
       - uses: actions/github-script@v5
         with:
@@ -28,5 +28,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '${{ env.REPORT }}'
+              body: '${{ steps.create-report.outputs.result }}'
             })
