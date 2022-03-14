@@ -27,7 +27,7 @@ jobs:
           path: "Dockerfile"
 
       - name: File contents
-        run: echo "${ steps.create_report.outputs.contents }"
+        run: echo `${{ steps.create_report.outputs.contents }}`
 
 #      - uses: actions/github-script@v6
 #        with:
