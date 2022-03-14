@@ -38,7 +38,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'docker.stackable.tech/t2:${{ github.sha }}'
-          format: 'table'
+          format: 'json'
           exit-code: '0'
           ignore-unfixed: false
           vuln-type: 'os,library'
