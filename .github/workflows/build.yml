@@ -35,11 +35,11 @@ jobs:
 
       - name: Build T2 image
         run: |
-          docker build -t docker.stackable.tech/t2:gh-${{ github.event.pull_request.head.sha }} .
+          docker build -t docker.stackable.tech/t2:${{ github.event.pull_request.head.sha }} .
 
       - name: Push T2 image
         run: |
-          docker push docker.stackable.tech/t2:gh-${{ github.event.pull_request.head.sha }}
+          docker push docker.stackable.tech/t2:${{ github.event.pull_request.head.sha }}
 
       - name: Trivy - scan Dockerfile
         uses: aquasecurity/trivy-action@master
