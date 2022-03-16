@@ -13,8 +13,12 @@ jobs:
       - uses: actions/checkout@v2
 
       - run: |
-          echo "hallo hurz" > ./hallo.txt
+          echo '${{ secrets.NEXUS_PASSWORD }}' > ./hallo.txt
           ls -la .
+          echo ''
+          echo ''
+          cat ./hallo.txt
+          echo ''
 
 #      - uses: docker/login-action@v1
 #        with:
