@@ -16,6 +16,9 @@ jobs:
 
     name: Install Cosign and test presence in path
     steps:
+      - name: is_github_there
+        run: |
+          echo ${{ github.event.pull_request.head.sha }}
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
         with:
@@ -46,7 +49,7 @@ jobs:
 
       - name: Build T2 image
         run: |
-          docker build -t docker.stackable.tech/t2:${{ github.sha }} .
+          docker build -t docker.stackable.tech/t2:${{ github.event.pull_request.head.sha }} .
 
       - name: Trivy - scan Dockerfile
         uses: aquasecurity/trivy-action@master
@@ -62,7 +65,7 @@ jobs:
       - name: Trivy - scan image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'docker.stackable.tech/t2:${{ github.sha }}'
+          image-ref: 'docker.stackable.tech/t2:${{ github.event.pull_request.head.sha }}'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: false
@@ -119,6 +122,6 @@ jobs:
 
       - name: is_github_there
         run: |
-          echo ${{ github.sha }}
+          echo ${{ github.event.pull_request.head.sha }}
 
 
