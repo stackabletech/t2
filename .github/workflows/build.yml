@@ -109,4 +109,16 @@ jobs:
             ```
             ${{ steps.get-trivy-report.outputs.report }}
             ```
+  sign-with-cosign:
+    runs-on: ubuntu-latest
+    needs:
+      - test-build-scan
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: is_github_there
+        run: |
+          echo ${{ github.sha }}
+
 
