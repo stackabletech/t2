@@ -104,15 +104,22 @@ jobs:
             ```
   sign-with-cosign:
     runs-on: ubuntu-latest
-    permissions:
-      actions: none
     needs:
       - test-build-scan
     steps:
+      - name: Login to Stackable Docker registry
+        run: |
+          docker login --username github --password ${{ secrets.NEXUS_PASSWORD }} docker.stackable.tech
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
         with:
           cosign-release: 'v1.6.0'
-      - name: is_github_there
+      - name: Sign image with a key
         run: |
-          cosign version
+          echo ${COSIGN_KEY} > /tmp/cosign.key && \
+          cosign sign --key /tmp/cosign.key ${TAG}
+        env:
+          COSIGN_KEY: ${{secrets.COSIGN_KEY}}
+          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
+          TAG: docker.stackable.tech/t2:${{ github.event.pull_request.head.sha }}
+
