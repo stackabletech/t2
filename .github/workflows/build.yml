@@ -31,7 +31,7 @@ jobs:
 
       - name: Login to Stackable Docker registry
         run: |
-          echo "${NEXUS_PASSWORD}" | docker login --username github --password-stdin docker.stackable.tech
+          docker login --username github --password ${{ secrets.NEXUS_PASSWORD }} docker.stackable.tech
 
       - name: Build T2 image
         run: |
