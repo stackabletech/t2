@@ -130,3 +130,4 @@ jobs:
           COSIGN_KEY: ${{secrets.COSIGN_KEY}}
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
           TAG: docker.stackable.tech/t2:${{ github.event.pull_request.head.sha }}
+
