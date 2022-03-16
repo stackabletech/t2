@@ -13,11 +13,12 @@ jobs:
       - uses: actions/checkout@v2
 
       - run: |
-          echo '${{ secrets.COSIGN_PRIVATE_KEY }}' > ./hallo.txt
-          ls -la .
+          echo '${{ secrets.COSIGN_PRIVATE_KEY }}' > ./cosign.key
           echo ''
           echo ''
-          cat ./hallo.txt | wc -l
+          cat ./cosign.key | wc -l
+          echo ''
+          cat ./cosign.key | wc -c
           echo ''
 
 #      - uses: docker/login-action@v1
