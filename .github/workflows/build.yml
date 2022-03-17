@@ -14,7 +14,7 @@ jobs:
       - uses: LouisBrunner/checks-action@v1.1.1
         if: always()
         with:
-          token: ${{ secrets.STACKY_MC_STACKFACE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           name: Test XYZ
           conclusion: ${{ job.status }}
           output: |
