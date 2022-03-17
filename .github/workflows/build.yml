@@ -21,6 +21,13 @@ jobs:
             {"summary": "Quark"}
 
 
+  test-checks2:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          gurkensalat
+
+
 
 
   test-build-scan:
