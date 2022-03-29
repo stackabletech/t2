@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:alpine
+FROM eclipse-temurin:11-jre-alpine
 
 RUN mkdir -p /var/t2/workspace/
 
