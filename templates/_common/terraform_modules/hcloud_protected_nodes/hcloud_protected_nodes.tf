@@ -8,7 +8,7 @@ terraform {
   required_providers {
     hcloud = {
       source = "hetznercloud/hcloud"
-      version = "1.32.2"
+      version = "1.33.1"
     }
   }
 }
@@ -46,7 +46,7 @@ variable "cluster_private_key_filename" {
 }
 
 variable "os_image" {
-  description = "Image of the OS for the node, e.g. centos-stream-8"
+  description = "Image of the OS for the node, e.g. centos-stream-9"
   type        = string
 }
 
