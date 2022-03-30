@@ -3,7 +3,7 @@
 - name: Install K3s Server/API w/ rancher script
   shell: |
     curl -sfL https://get.k3s.io | \
-      INSTALL_K3S_VERSION="{{ k8s_version }}" \
+      INSTALL_K3S_VERSION={{ k8s_version }} INSTALL_K3S_SKIP_SELINUX_RPM=true \
       sh -s - \
       --tls-san orchestrator.{{ domain }} \
       --advertise-address {{ ansible_host }} \

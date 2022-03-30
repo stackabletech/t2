@@ -8,7 +8,7 @@ terraform {
   required_providers {
     hcloud = {
       source = "hetznercloud/hcloud"
-      version = "1.32.2"
+      version = "1.33.1"
     }
   }
 }
@@ -86,7 +86,7 @@ resource "hcloud_firewall" "edge_node" {
 resource "hcloud_server" "edge" {
   name        = "${var.cluster_name}-edge"
   server_type = "cx11"
-  image       = "centos-stream-8"
+  image       = "centos-stream-9"
   location    = var.location
   ssh_keys    = [ var.keypair.id ]
 
