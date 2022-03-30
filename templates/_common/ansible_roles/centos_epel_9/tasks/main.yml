@@ -1,0 +1,17 @@
+# Install EPEL for CentOS 9
+# https://docs.fedoraproject.org/en-US/epel/#what_is_extra_packages_for_enterprise_linux_or_epel
+---
+- name: Install key for EPEL repo
+  rpm_key:
+    state: present
+    key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9
+
+- name: Install EPEL repo
+  dnf:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+    state: present
+
+- name: Ensure EPEL Release is installed
+  dnf:
+    name: epel-release
+    state: present
