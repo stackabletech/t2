@@ -40,6 +40,14 @@ RUN curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 COPY python_modules /
 RUN pip install --no-cache-dir -r python_modules
 
+# install ansible
+RUN apt-get update
+RUN apt-get install -y ansible
+
+# install jq
+RUN apt-get update
+RUN apt-get install -y jq
+
 # set kubeconfig location
 ENV KUBECONFIG /root/.kube/config
 
