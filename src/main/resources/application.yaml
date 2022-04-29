@@ -5,9 +5,10 @@ server:
   error:
     include-stacktrace: never
 t2:
+  displayVersion: ${T2_DISPLAY_VERSION:}
   build:
-    version: "@displayed-version@"
-    timestamp: "@build-timestamp@"
+    version: "@git.commit.id.describe-short@"
+    timestamp: "@maven.build.timestamp@"
   workspace:
     directory: /tmp/t2-workspace/
   templates:
