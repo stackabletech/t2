@@ -58,6 +58,8 @@ ADD templates/ /var/t2/templates/
 ARG JAR_FILE
 ADD target/${JAR_FILE} /var/t2/t2-server.jar
 
+ARG T2_DISPLAY_VERSION=
+ENV T2_DISPLAY_VERSION=${T2_DISPLAY_VERSION}
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-Dspring.profiles.active=docker", "-jar", "/var/t2/t2-server.jar"]
 
 
