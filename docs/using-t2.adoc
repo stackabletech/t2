@@ -102,7 +102,7 @@ spec:
   region: de/fra
   cpuFamily: INTEL_XEON
   wireguard: true
-  k8sVersion: "1.21.6"
+  k8sVersion: "v1.23"
   versions:
     spark-operator: "0.2.0"
     kafka-operator: "0.3.0"
@@ -232,7 +232,7 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.location |one of the locations that the cloud vendor provides 3+| not available | e.g. `nbg1`, `hel1`
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 3+| not available
 |spec.wireguard |(boolean, optional, defaults to `false`) Should a wireguard server be started on the bastion host? Leaving wireguard switched off when you don't need it speeds up the start of the cluster. | | not available | not available |
-|spec.k8sVersion |The K8s version (optional, defaults to whatever the K3s installation script regards as the default), see https://github.com/k3s-io/k3s/releases[here, window="_blank"] which versions are available. 4+| 
+|spec.k8sVersion |The K3s release to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.21`, `v1.22` etc. Special channels are `stable` and `latest`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are the latest versions of each channel. 4+| 
 |spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 4+|
 |spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details. 4+|
 |spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have | default: `4` 3+| not available

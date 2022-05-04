@@ -15,3 +15,4 @@ stackable_operators:
   - druid-operator
   - airflow-operator
   - secret-operator
+  - commons-operator

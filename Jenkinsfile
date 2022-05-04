@@ -17,7 +17,7 @@ pipeline {
             script: "echo '${BRANCH_NAME}' | sed s#/#-#g",
             returnStdout: true
         ).trim()
-        DOCKER_TAG_VERSION = sh(
+        DISPLAY_VERSION = sh(
             script: "echo '${POM_VERSION}' | sed 's/SNAPSHOT/$BRANCH_NAME_NORMALIZED/'",
             returnStdout: true
         ).trim()
@@ -32,7 +32,7 @@ pipeline {
                 echo "Git branch (normalized): $BRANCH_NAME_NORMALIZED"
                 echo "Git commit: $GIT_COMMIT"
                 echo "Git commit (abbreviated): $GIT_COMMIT_SHORT"
-                echo "Docker tag w/ version number: $DOCKER_TAG_VERSION"
+                echo "displayed version: $DISPLAY_VERSION"
             }
         }
 
@@ -52,7 +52,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_PUBLISHER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
                     sh '''
-                        mvn clean package -DskipTests -Ddocker.image.tag="$GIT_COMMIT_SHORT" -Ddisplayed-version="$DOCKER_TAG_VERSION"
+                        T2_DISPLAY_VERSION="$DISPLAY_VERSION" mvn clean package -DskipTests
                         docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" docker.stackable.tech
                         docker push docker.stackable.tech/t2:"$GIT_COMMIT_SHORT"
                         docker logout docker.stackable.tech
@@ -71,9 +71,9 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_PUBLISHER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
                     sh '''
-                        docker tag docker.stackable.tech/t2:"$GIT_COMMIT_SHORT" docker.stackable.tech/t2:"$DOCKER_TAG_VERSION"
+                        docker tag docker.stackable.tech/t2:"$GIT_COMMIT_SHORT" docker.stackable.tech/t2:"$DISPLAY_VERSION"
                         docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" docker.stackable.tech
-                        docker push docker.stackable.tech/t2:"$DOCKER_TAG_VERSION"
+                        docker push docker.stackable.tech/t2:"$DISPLAY_VERSION"
                         docker logout docker.stackable.tech
                     ''' 
                 }            
