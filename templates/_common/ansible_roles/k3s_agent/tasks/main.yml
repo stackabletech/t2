@@ -3,7 +3,7 @@
 - name: Install K3s Agent w/ rancher script
   shell: |
     curl -sfL https://get.k3s.io | \
-      INSTALL_K3S_VERSION={{ k8s_version }} INSTALL_K3S_SKIP_SELINUX_RPM=true \
+      INSTALL_K3S_CHANNEL={{ k8s_version }} INSTALL_K3S_SKIP_SELINUX_RPM=true \
       K3S_TOKEN="{{ hostvars['orchestrator']['k3s_token'] }}" \
       K3S_URL="https://orchestrator.{{ domain }}:6443" \
       sh -s - \
