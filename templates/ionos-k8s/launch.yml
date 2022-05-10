@@ -1,6 +1,6 @@
 ---
 - hosts: localhost
   roles:
-  - k8s_ready
   - stackable_operators
   - stackable_collect_versions_localhost
+  - k8s_ready
