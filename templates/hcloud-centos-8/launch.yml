@@ -30,6 +30,7 @@
   - wait
   - k3s_agent
   - kubeconfig
+  - k8s_ready
 - hosts: orchestrators  
   roles:
   - stackable_collect_versions

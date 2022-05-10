@@ -1,0 +1,7 @@
+# Wait for all nodes to be ready
+---
+  - name: Wait for all k8s nodes to be ready
+    shell: kubectl wait --for=condition=Ready nodes --all --timeout=600s
+    register: nodes_ready
+
+  - debug: var=nodes_ready.stdout_lines
