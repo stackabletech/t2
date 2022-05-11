@@ -27,6 +27,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 import org.zeroturnaround.zip.ZipUtil;
 
+import io.micrometer.core.instrument.Counter;
 import tech.stackable.t2.ansible.AnsibleResult;
 import tech.stackable.t2.ansible.AnsibleService;
 import tech.stackable.t2.api.cluster.domain.Cluster;
@@ -66,6 +67,18 @@ public class TerraformAnsibleClusterService {
     @Autowired
     private AnsibleService ansibleService;
 
+    @Autowired
+    @Qualifier("clustersRequestedCounter")
+    private Counter clustersRequestedCounter;
+
+    @Autowired
+    @Qualifier("clustersCreatedCounter")
+    private Counter clustersCreatedCounter;
+
+    @Autowired
+    @Qualifier("clustersTerminatedCounter")
+    private Counter clustersTerminatedCounter;
+
     /**
      * cluster metadata per cluster (UUID)
      */
@@ -88,6 +101,7 @@ public class TerraformAnsibleClusterService {
 
             Cluster cluster = new Cluster();
             cluster.setStatus(Status.CREATION_STARTED);
+            this.clustersRequestedCounter.increment();
 
             Path workingDirectory = this.templateService.createWorkingDirectory(workspaceDirectory.resolve(cluster.getId().toString()), clusterDefinition);
             cluster.setStatus(Status.WORKING_DIR_CREATED);
@@ -152,6 +166,7 @@ public class TerraformAnsibleClusterService {
                 }
 
                 cluster.setStatus(Status.RUNNING);
+                this.clustersCreatedCounter.increment();
 
             }).start();
 
@@ -188,6 +203,7 @@ public class TerraformAnsibleClusterService {
                 }
                 cluster.setIpV4Address(null);
                 cluster.setStatus(Status.TERMINATED);
+                this.clustersTerminatedCounter.increment();
             }).start();
 
             return cluster;

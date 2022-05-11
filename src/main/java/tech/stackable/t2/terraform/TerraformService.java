@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import tech.stackable.t2.process.ProcessLogger;
 
 @Service
@@ -26,6 +30,18 @@ public class TerraformService {
     @Autowired
     @Qualifier("credentials")
     private Properties credentials;
+
+    private final Set<Process> runningProcesses = new HashSet<Process>();
+    
+    private final Counter terraformProcessesStarted;
+    
+    private final Counter terraformProcessesCompleted;
+
+    public TerraformService(MeterRegistry meterRegistry) {
+    	meterRegistry.gauge("TERRAFORM_PROCESSES_RUNNING", this.runningProcesses, Set::size);
+    	this.terraformProcessesStarted = meterRegistry.counter("TERRAFORM_PROCESSES_STARTED");
+    	this.terraformProcessesCompleted = meterRegistry.counter("TERRAFORM_PROCESSES_COMPLETED");
+	}
 
     public TerraformResult init(Path workingDirectory, String clusterName) {
         LOGGER.info("Running Terraform init on {}", workingDirectory);
@@ -77,8 +93,12 @@ public class TerraformService {
             });
             processBuilder.environment().put("TF_VAR_cluster_name", clusterName);
             Process process = processBuilder.redirectErrorStream(true).start();
+            this.runningProcesses.add(process);
+            this.terraformProcessesStarted.increment();
             ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), workingDirectory.resolve("cluster.log"), MessageFormat.format("terraform-{0}", command));
             int exitCode = process.waitFor();
+            this.runningProcesses.remove(process);
+            this.terraformProcessesCompleted.increment();
             outLogger.stop();
             return exitCode;
         } catch (IOException | InterruptedException e) {
