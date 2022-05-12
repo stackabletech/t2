@@ -4,6 +4,8 @@
   shell: |
     kubectl --kubeconfig resources/kubeconfig get nodes > resources/stackable-versions.txt
     echo '' >> resources/stackable-versions.txt
+    kubectl --kubeconfig resources/kubeconfig get nodes -o custom-columns=NAME:metadata.name,TAINTS:spec.taints --sort-by=metadata.name >> resources/stackable-versions.txt
+    echo '' >> resources/stackable-versions.txt
     echo '' >> resources/stackable-versions.txt
   ignore_errors: True
 
