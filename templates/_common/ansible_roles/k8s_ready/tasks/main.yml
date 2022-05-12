@@ -6,10 +6,17 @@
   when: 
     - "'localhost' not in inventory_hostname"
 
+- debug: var=nodes_ready.stdout_lines
+  when: 
+    - "'localhost' not in inventory_hostname"
+
+
 - name: Wait for all k8s nodes to be ready (managed K8s)
   shell: kubectl --kubeconfig resources/kubeconfig wait --for=condition=Ready nodes --all --timeout=600s
-  register: nodes_ready
+  register: nodes_ready_mk8s
   when: 
     - "'localhost' in inventory_hostname"
 
-- debug: var=nodes_ready.stdout_lines
+- debug: var=nodes_ready_mk8s.stdout_lines
+  when: 
+    - "'localhost' in inventory_hostname"
