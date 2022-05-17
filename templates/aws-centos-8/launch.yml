@@ -22,7 +22,6 @@
   roles:
   - wait
   - k3s_server
-  - stackable_operators
 - hosts: nodes
   roles:
   - wait
@@ -31,5 +30,6 @@
 - hosts: orchestrators  
   roles:
   - k8s_ready
+  - stackable_operators
   - stackable_collect_versions
   - stackable_deploy_services
