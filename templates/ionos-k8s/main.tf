@@ -81,5 +81,10 @@ module "stackable_component_versions" {
   source = "./terraform_modules/stackable_component_versions"
 }
 
-
-
+# create script to check K8s node readiness
+module "k8s_ready_script_mk8s" {
+  source = "./terraform_modules/k8s_ready_script_mk8s"
+  node_count = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
+  timeout = "600"
+  kubeconfig_path = "resources/kubeconfig"
+}
