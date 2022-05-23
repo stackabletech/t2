@@ -46,7 +46,7 @@ RUN apk add git
 RUN apk add jq
 
 # install yq (YAML Parser)
-RUN wget https://github.com/mikefarah/yq/releases/download/v4.17.2/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
 # install AWS CLI
 RUN apk add aws-cli
