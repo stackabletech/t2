@@ -350,6 +350,11 @@ def provide_version_information_sheet():
     log('Stackable version information not available in this cluster.')
 
 
+def ex_post_logs():
+
+    if(os.path.exists("/download/ssh-config") and os.path.exists("/download/stackable.sh")):
+        os.system(r"""cat /root/.ssh/config | grep 'Host main' | cut -d ' ' -f 2 | awk -F'/' '{print "stackable "$1" '\''journalctl -u k3s-agent'\'' > /target/"$1"-k3s-agent.log"}' | sh""")
+
 
 if __name__ == "__main__":
 
@@ -406,6 +411,7 @@ if __name__ == "__main__":
     os.system(f"chown -R {uid_gid_output} /target/")
 
     if not dry_run:
+        ex_post_logs()
         log(f"Terminating the test cluster...")
         close_ssh_tunnel()
         terminate()
