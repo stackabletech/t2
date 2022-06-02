@@ -73,6 +73,11 @@ def is_interactive_mode():
 
 def run_test_script():
     if os.path.isfile("/test.sh"):
+        log(f"\n\ntest.sh:\n\n")
+        with open ("/test.sh", "r") as f:
+            log(f.read())
+        log("\n\n")
+
         os.system('touch /target/test_output.log')
         os.system(f"chown {uid_gid_output} /target/test_output.log")
         os.system('chmod 664 /target/test_output.log')
@@ -127,6 +132,8 @@ def launch():
     with open (f"{CLUSTER_FOLDER}/_cluster.yaml", "w") as f:
         f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
         f.close()
+
+    log(f"\n\ncluster.yaml:\n\n{yaml.dump(cluster_definition_yaml, default_flow_style=False)}\n\n")
 
     start_time = time.time()        
     cluster = create_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], yaml.dump(cluster_definition_yaml, default_flow_style=False))    
