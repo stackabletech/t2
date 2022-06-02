@@ -36,7 +36,9 @@ def init_log():
     """
     os.system('rm -rf /target/testdriver.log || true')
     os.system('rm -rf /target/k8s_pod_change.log || true')
+    os.system('rm -rf /target/k8s_pod_change_short.log || true')
     os.system('rm -rf /target/k8s_event.log || true')
+    os.system('rm -rf /target/k8s_event_short.log || true')
     os.system('touch /target/testdriver.log')
     os.system(f"chown {uid_gid_output} /target/testdriver.log")
     os.system('chmod 664 /target/testdriver.log')
@@ -81,10 +83,14 @@ def run_test_script():
         os.system(f"chown {uid_gid_output} /target/k8s_event.log")
         os.system('chmod 664 /target/k8s_event.log')
         proc_k8s_pod_changelog = subprocess.Popen(['/bin/bash', '-c', 'kubectl get pods --all-namespaces -o yaml --watch > /target/k8s_pod_change.log'])
+        proc_k8s_pod_changelog_short = subprocess.Popen(['/bin/bash', '-c', 'kubectl get pods --all-namespaces --watch > /target/k8s_pod_change_short.log'])
         proc_k8s_eventlog = subprocess.Popen(['/bin/bash', '-c', 'kubectl get events --all-namespaces -o yaml --watch > /target/k8s_event.log'])
+        proc_k8s_eventlog_short = subprocess.Popen(['/bin/bash', '-c', 'kubectl get events --all-namespaces --watch > /target/k8s_event_short.log'])
         os.system('(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee /target/test_output.log')
         proc_k8s_pod_changelog.terminate()
+        proc_k8s_pod_changelog_short.terminate()
         proc_k8s_eventlog.terminate()
+        proc_k8s_eventlog_short.terminate()
         with open ("/test_exit_code", "r") as f:
             return int(f.read().strip())
     else:
