@@ -17,7 +17,7 @@ private_network_interface_name=eth0
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.tags["hostname"]} ansible_host=${node.private_ip} k8s_node=${node.tags["k8s_node"]}
+${node.tags["hostname"]} ansible_host=${node.private_ip} k8s_node=${node.tags["k8s_node"]} node_number=${index+1}
 %{ endfor ~}
 
 [orchestrators]

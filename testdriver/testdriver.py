@@ -13,17 +13,20 @@ PRIVATE_KEY_FILE = f"{CLUSTER_FOLDER}key"
 PUBLIC_KEY_FILE = f"{CLUSTER_FOLDER}key.pub"
 TIMEOUT_SECONDS = 3600
 
+EXIT_CODE_LAUNCH_FAILED = 255
+EXIT_CODE_TERMINATION_FAILED = 254
+
 def prerequisites():
     """ Checks the prerequisites of this script and fails if they are not satisfied. """
     if not 'T2_TOKEN' in os.environ:
         print("Error: Please supply T2_TOKEN as an environment variable.")
-        exit(1)
+        exit(EXIT_CODE_LAUNCH_FAILED)
     if not 'T2_URL' in os.environ:
         print("Error: Please supply T2_URL as an environment variable.")
-        exit(1)
+        exit(EXIT_CODE_LAUNCH_FAILED)
     if not os.path.isfile("/cluster.yaml"):
         print("Error Please supply cluster definition as file in /cluster.yaml.")
-        exit(1)
+        exit(EXIT_CODE_LAUNCH_FAILED)
 
 
 def init_log():
@@ -33,7 +36,9 @@ def init_log():
     """
     os.system('rm -rf /target/testdriver.log || true')
     os.system('rm -rf /target/k8s_pod_change.log || true')
+    os.system('rm -rf /target/k8s_pod_change_short.log || true')
     os.system('rm -rf /target/k8s_event.log || true')
+    os.system('rm -rf /target/k8s_event_short.log || true')
     os.system('touch /target/testdriver.log')
     os.system(f"chown {uid_gid_output} /target/testdriver.log")
     os.system('chmod 664 /target/testdriver.log')
@@ -68,6 +73,11 @@ def is_interactive_mode():
 
 def run_test_script():
     if os.path.isfile("/test.sh"):
+        log(f"\n\ntest.sh:\n\n")
+        with open ("/test.sh", "r") as f:
+            log(f.read())
+        log("\n\n")
+
         os.system('touch /target/test_output.log')
         os.system(f"chown {uid_gid_output} /target/test_output.log")
         os.system('chmod 664 /target/test_output.log')
@@ -78,10 +88,14 @@ def run_test_script():
         os.system(f"chown {uid_gid_output} /target/k8s_event.log")
         os.system('chmod 664 /target/k8s_event.log')
         proc_k8s_pod_changelog = subprocess.Popen(['/bin/bash', '-c', 'kubectl get pods --all-namespaces -o yaml --watch > /target/k8s_pod_change.log'])
+        proc_k8s_pod_changelog_short = subprocess.Popen(['/bin/bash', '-c', 'kubectl get pods --all-namespaces --watch > /target/k8s_pod_change_short.log'])
         proc_k8s_eventlog = subprocess.Popen(['/bin/bash', '-c', 'kubectl get events --all-namespaces -o yaml --watch > /target/k8s_event.log'])
+        proc_k8s_eventlog_short = subprocess.Popen(['/bin/bash', '-c', 'kubectl get events --all-namespaces --watch > /target/k8s_event_short.log'])
         os.system('(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee /target/test_output.log')
         proc_k8s_pod_changelog.terminate()
+        proc_k8s_pod_changelog_short.terminate()
         proc_k8s_eventlog.terminate()
+        proc_k8s_eventlog_short.terminate()
         with open ("/test_exit_code", "r") as f:
             return int(f.read().strip())
     else:
@@ -113,17 +127,19 @@ def launch():
 
     if(not "publicKeys" in cluster_definition_yaml or not isinstance(cluster_definition_yaml["publicKeys"], list)):
         log("Error: The cluster definition file does not contain a valid 'publicKeys' section.")
-        exit(1)
+        exit(EXIT_CODE_LAUNCH_FAILED)
     cluster_definition_yaml["publicKeys"].append(public_key)        
     with open (f"{CLUSTER_FOLDER}/_cluster.yaml", "w") as f:
         f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
         f.close()
 
+    log(f"\n\ncluster.yaml:\n\n{yaml.dump(cluster_definition_yaml, default_flow_style=False)}\n\n")
+
     start_time = time.time()        
     cluster = create_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], yaml.dump(cluster_definition_yaml, default_flow_style=False))    
     if(not cluster):
         log("Error: Failed to create cluster via API.")
-        exit(0)
+        exit(EXIT_CODE_LAUNCH_FAILED)
 
     log(f"Created cluster '{cluster['id']}'. Waiting for cluster to be up and running...")
 
@@ -134,11 +150,11 @@ def launch():
 
     if(cluster['status']['failed']):
         log("Cluster launch failed.")
-        exit(0)
+        exit(EXIT_CODE_LAUNCH_FAILED)
 
     if(TIMEOUT_SECONDS <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
-        exit(0)
+        exit(EXIT_CODE_LAUNCH_FAILED)
 
     log(f"Cluster '{cluster['id']}' is up and running.")
 
@@ -158,7 +174,7 @@ def terminate():
     cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], uuid)    
     if(not cluster):
         log("Failed to terminate cluster via API.")
-        exit(1)
+        exit(EXIT_CODE_TERMINATION_FAILED)
 
     log(f"Started termination of cluster '{cluster['id']}'. Waiting for cluster to be terminated...")
     cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
@@ -168,11 +184,11 @@ def terminate():
 
     if(cluster['status']['failed']):
         log("Cluster termination failed.")
-        exit(1)
+        exit(EXIT_CODE_TERMINATION_FAILED)
 
     if(TIMEOUT_SECONDS <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
-        exit(1)
+        exit(EXIT_CODE_TERMINATION_FAILED)
 
     log(f"Cluster '{cluster['id']}' is terminated.")
 
@@ -308,7 +324,7 @@ def create_kubeconfig_for_ssh_tunnel(kubeconfig_file, kubeconfig_target_file):
 
     if not match:
         print('Error: No API address found in kubeconfig')
-        exit(1)
+        exit(EXIT_CODE_LAUNCH_FAILED)
 
     original_api_hostname = match.group(1)
     original_api_port = match.group(2)
@@ -333,6 +349,11 @@ def provide_version_information_sheet():
 
     log('Stackable version information not available in this cluster.')
 
+
+def ex_post_logs():
+
+    if(os.path.exists("/download/ssh-config") and os.path.exists("/download/stackable.sh")):
+        os.system(r"""cat /root/.ssh/config | grep 'Host main' | cut -d ' ' -f 2 | awk -F'/' '{print "stackable "$1" '\''journalctl -u k3s-agent'\'' > /target/"$1"-k3s-agent.log"}' | sh""")
 
 
 if __name__ == "__main__":
@@ -390,6 +411,7 @@ if __name__ == "__main__":
     os.system(f"chown -R {uid_gid_output} /target/")
 
     if not dry_run:
+        ex_post_logs()
         log(f"Terminating the test cluster...")
         close_ssh_tunnel()
         terminate()

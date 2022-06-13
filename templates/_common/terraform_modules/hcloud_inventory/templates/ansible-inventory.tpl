@@ -21,7 +21,7 @@ orchestrator ansible_host=${element(orchestrator.network[*].ip, 0)}
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} k8s_node=${node.labels["k8s_node"]}
+${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} k8s_node=${node.labels["k8s_node"]} node_number=${index+1}
 %{ endfor ~}
 
 [protected:children]

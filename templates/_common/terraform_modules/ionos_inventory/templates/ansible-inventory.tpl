@@ -17,7 +17,7 @@ private_network_interface_name=ens6
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.name} ansible_host=${node.primary_ip} k8s_node=${node_configuration[node.name]["k8s_node"]}
+${node.name} ansible_host=${node.primary_ip} k8s_node=${node_configuration[node.name]["k8s_node"]} node_number=${index+1}
 %{ endfor ~}
 
 [orchestrators]
