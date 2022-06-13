@@ -15,4 +15,4 @@
   notify: restart k3s-agent
 
 - name: Set node number label
-  shell: kubectl label node {{ inventory_name }}.{{ domain }} node={{ node_number }}
+  shell: kubectl label node {{ inventory_hostname }}.{{ domain }} node={{ node_number }}
