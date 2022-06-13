@@ -27,11 +27,16 @@
 - hosts: nodes
   roles:
   - wait
-  - kubeconfig
   - k3s_agent
+  - kubeconfig
 - hosts: orchestrators  
   roles:
   - k8s_ready
+- hosts: nodes
+  roles:
+  - k3s_label_nodes
+- hosts: orchestrators  
+  roles:
   - stackable_operators
   - stackable_collect_versions
   - stackable_deploy_services
