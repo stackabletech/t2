@@ -16,3 +16,5 @@
 
 - name: Set node number label
   shell: kubectl label node {{ inventory_hostname }}.{{ domain }} node={{ node_number }}
+  vars:
+    ansible_become: false

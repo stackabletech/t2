@@ -31,8 +31,8 @@
 - hosts: nodes
   roles:
   - wait
-  - k3s_agent
   - kubeconfig
+  - k3s_agent
 - hosts: orchestrators  
   roles:
   - k8s_ready
