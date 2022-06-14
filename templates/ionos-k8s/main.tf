@@ -53,11 +53,11 @@ resource "ionoscloud_k8s_node_pool" "node_pool" {
   k8s_cluster_id    = ionoscloud_k8s_cluster.cluster.id
   cpu_family        = "INTEL_SKYLAKE"
   availability_zone = "AUTO"
-  storage_type      = "SSD"
+  storage_type      = can(yamldecode(file("cluster.yaml"))["spec"]["diskType"]) ? yamldecode(file("cluster.yaml"))["spec"]["diskType"] : "SSD"
   node_count        = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
-  cores_count       = 2
-  ram_size          = 2048
-  storage_size      = 40
+  cores_count       = can(yamldecode(file("cluster.yaml"))["spec"]["numberOfCores"]) ? yamldecode(file("cluster.yaml"))["spec"]["numberOfCores"] : 4
+  ram_size          = can(yamldecode(file("cluster.yaml"))["spec"]["memoryMb"]) ? yamldecode(file("cluster.yaml"))["spec"]["memoryMb"] : 4096
+  storage_size      = can(yamldecode(file("cluster.yaml"))["spec"]["diskSizeGb"]) ? yamldecode(file("cluster.yaml"))["spec"]["diskSizeGb"] : 250
 }
 
 data "ionoscloud_k8s_cluster" "cluster" {
