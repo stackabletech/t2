@@ -271,6 +271,10 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.node_count |# of nodes in the cluster 3+|
 |spec.vm_size |one of the VM sizes that the cloud vendor provides (optional) | e.g. `Standard_D2_v2` (which is also the default) 2+| not available
 |spec.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below | not available
+|spec.numberOfCores |(optional) # of cores each node should have 2+| not available | default: `4`
+|spec.memoryMb |(optional) amount of memory each node should have in MB 2+| not available | default: `4096`
+|spec.diskType |(optional) type of disk each node should have 2+| not available | default: `SSD`
+|spec.diskSizeGb |(optional) size of the disk of the given node in GB 2+| not available | default: `250`
 |spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 3+|
 |services |Map of service descriptions as embedded YAMLs. See below for available services. 3+|
 |=======
