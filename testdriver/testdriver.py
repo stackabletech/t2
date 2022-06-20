@@ -13,20 +13,19 @@ PRIVATE_KEY_FILE = f"{CLUSTER_FOLDER}key"
 PUBLIC_KEY_FILE = f"{CLUSTER_FOLDER}key.pub"
 TIMEOUT_SECONDS = 3600
 
-EXIT_CODE_LAUNCH_FAILED = 255
-EXIT_CODE_TERMINATION_FAILED = 254
+EXIT_CODE_CLUSTER_FAILED = 255
 
 def prerequisites():
     """ Checks the prerequisites of this script and fails if they are not satisfied. """
     if not 'T2_TOKEN' in os.environ:
         print("Error: Please supply T2_TOKEN as an environment variable.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
     if not 'T2_URL' in os.environ:
         print("Error: Please supply T2_URL as an environment variable.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
     if not os.path.isfile("/cluster.yaml"):
         print("Error Please supply cluster definition as file in /cluster.yaml.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
 
 def init_log():
@@ -127,7 +126,7 @@ def launch():
 
     if(not "publicKeys" in cluster_definition_yaml or not isinstance(cluster_definition_yaml["publicKeys"], list)):
         log("Error: The cluster definition file does not contain a valid 'publicKeys' section.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
     cluster_definition_yaml["publicKeys"].append(public_key)        
     with open (f"{CLUSTER_FOLDER}/_cluster.yaml", "w") as f:
         f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
@@ -139,7 +138,7 @@ def launch():
     cluster = create_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], yaml.dump(cluster_definition_yaml, default_flow_style=False))    
     if(not cluster):
         log("Error: Failed to create cluster via API.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Created cluster '{cluster['id']}'. Waiting for cluster to be up and running...")
 
@@ -150,11 +149,11 @@ def launch():
 
     if(cluster['status']['failed']):
         log("Cluster launch failed.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     if(TIMEOUT_SECONDS <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Cluster '{cluster['id']}' is up and running.")
 
@@ -174,7 +173,7 @@ def terminate():
     cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], uuid)    
     if(not cluster):
         log("Failed to terminate cluster via API.")
-        exit(EXIT_CODE_TERMINATION_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Started termination of cluster '{cluster['id']}'. Waiting for cluster to be terminated...")
     cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
@@ -184,11 +183,11 @@ def terminate():
 
     if(cluster['status']['failed']):
         log("Cluster termination failed.")
-        exit(EXIT_CODE_TERMINATION_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     if(TIMEOUT_SECONDS <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
-        exit(EXIT_CODE_TERMINATION_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Cluster '{cluster['id']}' is terminated.")
 
@@ -324,7 +323,7 @@ def create_kubeconfig_for_ssh_tunnel(kubeconfig_file, kubeconfig_target_file):
 
     if not match:
         print('Error: No API address found in kubeconfig')
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     original_api_hostname = match.group(1)
     original_api_port = match.group(2)
