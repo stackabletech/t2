@@ -5,7 +5,7 @@ RUN mkdir -p /var/t2/workspace/
 
 # install helpful tools
 RUN apt-get update
-RUN apt-get install curl python3 python3-pip unzip wget vim git gcc pkg-config ansible jq openjdk-11-jdk -y
+RUN apt-get install curl python3 python3-pip unzip wget vim git gcc pkg-config jq openjdk-11-jdk gnupg -y
 
 # install Terraform
 RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
@@ -43,6 +43,12 @@ RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd6
 RUN sh -c "echo 'deb http://deb.debian.org/debian buster-backports main contrib non-free' > /etc/apt/sources.list.d/buster-backports.list"
 RUN apt update
 RUN apt install wireguard -y
+
+# install ansible
+RUN sh -c "echo 'deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main' >> /etc/apt/sources.list"
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+RUN apt update
+RUN apt install ansible -y
 
 # add template directory
 ADD templates/ /var/t2/templates/
