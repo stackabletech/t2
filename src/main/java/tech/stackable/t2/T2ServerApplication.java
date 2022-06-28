@@ -102,7 +102,7 @@ public class T2ServerApplication {
             try {
             	LOGGER.info("Initializing tools...");
                 ProcessBuilder processBuilder = new ProcessBuilder()
-                        .command("sh", "-c", "init_tools.sh")
+                        .command("sh", "-c", "/init_tools.sh")
                         .directory(Paths.get("/").toFile());
                 Process process = processBuilder.redirectErrorStream(true).start();
                 int exitCode = process.waitFor();
