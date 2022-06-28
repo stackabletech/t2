@@ -54,6 +54,9 @@ RUN apk add aws-cli
 # add template directory
 ADD templates/ /var/t2/templates/
 
+# add script to init tools
+COPY --chmod=0755 init_tools.sh /
+
 # add SpringBoot executable JAR
 ARG JAR_FILE
 ADD target/${JAR_FILE} /var/t2/t2-server.jar
