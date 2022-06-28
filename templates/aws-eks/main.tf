@@ -42,6 +42,41 @@ provider "aws" {
   secret_key  = var.aws_secret_access_key
 }
 
+resource "aws_iam_user" "cluster_admin" {
+  name = "${var.cluster_name}-cluster-admin"
+}
+
+data "template_file" "cluster_admin_user_policy" {
+  template = "${file("cluster_admin_user_policy.tpl")}"
+  vars = {
+    cluster_arn = data.aws_eks_cluster.cluster.arn 
+  }
+}
+
+resource "aws_iam_user_policy" "cluster_admin_policy" {
+  name = "${var.cluster_name}-cluster-admin-policy"
+  user = aws_iam_user.cluster_admin.name
+
+  policy = data.template_file.cluster_admin_user_policy.rendered
+}
+
+resource "aws_iam_access_key" "cluster_admin" {
+  user = aws_iam_user.cluster_admin.name
+}
+
+resource "local_file" "aws-credentials" {
+  filename = "resources/credentials.yaml"
+  content = templatefile("credentials.tpl",
+    {
+      arn = aws_iam_user.cluster_admin.arn
+      unique_id = aws_iam_user.cluster_admin.unique_id
+      aws_key = aws_iam_access_key.cluster_admin.id
+      aws_secret_key = aws_iam_access_key.cluster_admin.secret
+    }
+  )
+  file_permission = "0440"
+} 
+
 data "aws_availability_zones" "available" {}
 
 module "vpc" {
@@ -126,22 +161,25 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
 }
 
-# write kubeconfig to file and replace AWS IAM auth by generated token afterwards
-resource "local_file" "kubeconfig" {
-  filename = "resources/kubeconfig"
-  content = module.eks.kubeconfig
-  file_permission = "0400"
+resource "null_resource" "kubeconfig" {
   provisioner "local-exec" {
-    command = <<EOC
-      AWS_EKS_K8S_TOKEN=$(aws eks get-token --cluster-name ${var.cluster_name} | jq .status.token)
-      yq e -i "del(.users[0].user.exec) | .users[0].user.token=$AWS_EKS_K8S_TOKEN" resources/kubeconfig
-    EOC
-    environment = {
-      AWS_ACCESS_KEY_ID = var.aws_access_key
-      AWS_SECRET_ACCESS_KEY = var.aws_secret_access_key
-    }
+    command = "aws eks update-kubeconfig --name ${var.cluster_name} --region eu-central-1 --kubeconfig resources/kubeconfig"
   }
-} 
+  depends_on = [
+    data.aws_eks_cluster.cluster
+  ]
+}
+
+resource "null_resource" "patch_aws_auth" {
+  provisioner "local-exec" {
+    command = <<EOT
+      sleep 60 && kubectl --kubeconfig resources/kubeconfig patch configmap -n kube-system aws-auth -p '{"data":{"mapUsers":"[{\"userarn\": \"${aws_iam_user.cluster_admin.arn}\", \"username\": \"${var.cluster_name}-cluster-admin\", \"groups\": [\"system:masters\"]}]"}}'
+    EOT
+  }
+  depends_on = [
+    null_resource.kubeconfig
+  ]
+}
 
 # create file w/ stackable component versions for Ansible inventory
 module "stackable_component_versions" {
