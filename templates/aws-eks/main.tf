@@ -64,7 +64,7 @@ resource "aws_iam_access_key" "cluster_admin" {
   user = aws_iam_user.cluster_admin.name
 }
 
-resource "local_file" "aws-credentials" {
+resource "local_file" "credentials" {
   filename = "resources/credentials.yaml"
   content = templatefile("credentials.tpl",
     {
