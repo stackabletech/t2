@@ -55,7 +55,8 @@ RUN apk add aws-cli
 ADD templates/ /var/t2/templates/
 
 # add script to init tools
-COPY --chmod=0755 init_tools.sh /
+COPY init_tools.sh /
+RUN chmod 755 /init_tools.sh
 
 # add SpringBoot executable JAR
 ARG JAR_FILE
