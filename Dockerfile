@@ -49,7 +49,10 @@ RUN apk add jq
 RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
 # install AWS CLI
-RUN apk add aws-cli
+RUN mkdir /tmp/awscli
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" > /tmp/awscli/awscliv2.zip
+RUN unzip /tmp/awscli/awscliv2.zip -d /tmp/awscli/
+RUN /tmp/awscli/aws/install
 
 # add template directory
 ADD templates/ /var/t2/templates/
