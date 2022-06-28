@@ -280,6 +280,20 @@ public class TerraformAnsibleClusterService {
         }
     }
 
+    public String getCredentialsFile(UUID id) {
+        Cluster cluster = this.clusters.get(id);
+        if (cluster == null) {
+            return null;
+        }
+        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
+        try {
+            return FileUtils.readFileToString(clusterBaseFolder.resolve("resources/credentials.yaml").toFile(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            LOGGER.warn("credentials file could not be read", e);
+            return null;
+        }
+    }
+
     public String getLogs(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {

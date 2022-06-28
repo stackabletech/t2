@@ -180,6 +180,24 @@ public class ClusterController {
         return kubeconfig;
     }
 
+    @GetMapping("{id}/credentials")
+    @ResponseBody
+    @Operation(summary = "read credentials file", description = "Reads the credentials file which contains information to access the cluster.")
+    public String getCredentialsFile(
+            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
+            @RequestHeader(name = "t2-token", required = false) String token) {
+        checkToken(token);
+        Cluster cluster = clusterService.getCluster(id);
+        if (cluster == null) {
+            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
+        }
+        String credentialsFile = this.clusterService.getCredentialsFile(id);
+        if (credentialsFile == null) {
+            throw new ClusterNotFoundException(String.format("No credentials file found for cluster with id '%s'.", id));
+        }
+        return credentialsFile;
+    }
+
     @GetMapping("{id}/log")
     @ResponseBody
     @Operation(summary = "read logs", description = "Reads the logs for the given cluster")
