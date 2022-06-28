@@ -26,10 +26,6 @@ RUN helm repo add stackable-dev https://repo.stackable.tech/repository/helm-dev/
 RUN helm repo add stackable-stable https://repo.stackable.tech/repository/helm-stable/
 RUN helm repo update
 
-# install python packages
-RUN pip3 install netaddr
-RUN pip3 install ipaddress
-
 # install AWS CLI
 RUN mkdir /tmp/awscli
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" > /tmp/awscli/awscliv2.zip
@@ -49,6 +45,11 @@ RUN sh -c "echo 'deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
 RUN apt update
 RUN apt install ansible -y
+
+# install python packages
+RUN apt install python-pip -y
+RUN pip install netaddr
+RUN pip install ipaddress
 
 # add template directory
 ADD templates/ /var/t2/templates/
