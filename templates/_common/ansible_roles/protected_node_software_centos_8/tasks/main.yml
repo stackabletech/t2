@@ -4,13 +4,13 @@
   dnf:
     name: "*"
     state: latest
-    nobest: yes
+    skip_broken: yes
 
 - name: Ensure important and useful packages are installed
   dnf:
     name: "{{ packages }}"
     state: latest
-    nobest: yes
+    skip_broken: yes
   vars:
     packages:
       - unzip

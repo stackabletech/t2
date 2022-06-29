@@ -336,9 +336,9 @@ If you'd like a cluster without any operators, you can set the version of `_-ope
 
 The service descriptions depend on the used services. Please refer to the documentation of the operator for the product. You find the links to the components in the table above.
 
-== Docker image to use T2
+== T2 Testdriver (T2 client Docker image)
 
-We provide the Docker image `docker.stackable.tech/t2-testdriver` to make the usage of T2 in CI pipelines and the like easier.
+We provide the Docker image `docker.stackable.tech/t2-testdriver` to make the usage of T2 in CI pipelines and for developers easier.
 
 The Container does the following:
 
@@ -376,6 +376,7 @@ The following files are created in the directory mounted into `/target/`:
 
 === Return code
 
-The return code of the Docker container process is the return code of the test script!
+* If the T2 testdriver is not able to create or tear down the cluster, it returns `255`.
+* Otherwise, the return code of the Docker container process is the return code of the test script which was injected into it.
 
 

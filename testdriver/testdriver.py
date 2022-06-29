@@ -13,20 +13,19 @@ PRIVATE_KEY_FILE = f"{CLUSTER_FOLDER}key"
 PUBLIC_KEY_FILE = f"{CLUSTER_FOLDER}key.pub"
 TIMEOUT_SECONDS = 3600
 
-EXIT_CODE_LAUNCH_FAILED = 255
-EXIT_CODE_TERMINATION_FAILED = 254
+EXIT_CODE_CLUSTER_FAILED = 255
 
 def prerequisites():
     """ Checks the prerequisites of this script and fails if they are not satisfied. """
     if not 'T2_TOKEN' in os.environ:
         print("Error: Please supply T2_TOKEN as an environment variable.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
     if not 'T2_URL' in os.environ:
         print("Error: Please supply T2_URL as an environment variable.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
     if not os.path.isfile("/cluster.yaml"):
         print("Error Please supply cluster definition as file in /cluster.yaml.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
 
 def init_log():
@@ -90,8 +89,9 @@ def run_test_script():
         proc_k8s_pod_changelog = subprocess.Popen(['/bin/bash', '-c', 'kubectl get pods --all-namespaces -o yaml --watch > /target/k8s_pod_change.log'])
         proc_k8s_pod_changelog_short = subprocess.Popen(['/bin/bash', '-c', 'kubectl get pods --all-namespaces --watch > /target/k8s_pod_change_short.log'])
         proc_k8s_eventlog = subprocess.Popen(['/bin/bash', '-c', 'kubectl get events --all-namespaces -o yaml --watch > /target/k8s_event.log'])
-        proc_k8s_eventlog_short = subprocess.Popen(['/bin/bash', '-c', 'kubectl get events --all-namespaces --watch > /target/k8s_event_short.log'])
+        proc_k8s_eventlog_short = subprocess.Popen(['/bin/bash', '-c', "kubectl get events --all-namespaces --watch -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > /target/k8s_event_short.log"])
         os.system('(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee /target/test_output.log')
+        time.sleep(15)
         proc_k8s_pod_changelog.terminate()
         proc_k8s_pod_changelog_short.terminate()
         proc_k8s_eventlog.terminate()
@@ -127,7 +127,7 @@ def launch():
 
     if(not "publicKeys" in cluster_definition_yaml or not isinstance(cluster_definition_yaml["publicKeys"], list)):
         log("Error: The cluster definition file does not contain a valid 'publicKeys' section.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
     cluster_definition_yaml["publicKeys"].append(public_key)        
     with open (f"{CLUSTER_FOLDER}/_cluster.yaml", "w") as f:
         f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
@@ -139,7 +139,7 @@ def launch():
     cluster = create_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], yaml.dump(cluster_definition_yaml, default_flow_style=False))    
     if(not cluster):
         log("Error: Failed to create cluster via API.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Created cluster '{cluster['id']}'. Waiting for cluster to be up and running...")
 
@@ -150,11 +150,11 @@ def launch():
 
     if(cluster['status']['failed']):
         log("Cluster launch failed.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     if(TIMEOUT_SECONDS <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Cluster '{cluster['id']}' is up and running.")
 
@@ -174,7 +174,7 @@ def terminate():
     cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], uuid)    
     if(not cluster):
         log("Failed to terminate cluster via API.")
-        exit(EXIT_CODE_TERMINATION_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Started termination of cluster '{cluster['id']}'. Waiting for cluster to be terminated...")
     cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
@@ -184,11 +184,11 @@ def terminate():
 
     if(cluster['status']['failed']):
         log("Cluster termination failed.")
-        exit(EXIT_CODE_TERMINATION_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     if(TIMEOUT_SECONDS <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
-        exit(EXIT_CODE_TERMINATION_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Cluster '{cluster['id']}' is terminated.")
 
@@ -254,6 +254,8 @@ def download_cluster_files(t2_url, t2_token, id):
     download_cluster_file(t2_url, t2_token, id, "stackable-versions", "/download/stackable-versions.txt")
     log("Downloading kubeconfig from T2...")
     download_cluster_file(t2_url, t2_token, id, "kubeconfig", "/download/kubeconfig")
+    log("Downloading credentials file from T2...")
+    download_cluster_file(t2_url, t2_token, id, "credentials", "/download/credentials.yaml")
 
 
 def install_stackable_client_script():
@@ -292,6 +294,21 @@ def configure_k8s_access():
         log("Successfully set up kubeconfig to access cluster through SSH tunnel.")
     
     else:
+
+        # Currently, the credentials file is only available for AWS EKS
+        # TODO We'll have to use the credentials file as a general way of 
+        # telling the testdriver how to connect
+        if(os.path.exists("/download/credentials.yaml")):
+            with open ("/download/credentials.yaml", "r") as f:
+                credentials_string = f.read()
+            credentials_yaml = yaml.load(credentials_string, Loader=yaml.FullLoader)
+            aws_access_key = credentials_yaml[0]['data']['aws_access_key']
+            aws_secret_access_key = credentials_yaml[0]['data']['aws_secret_access_key']
+            os.system(f"aws configure set aws_access_key_id {aws_access_key}")
+            os.system(f"aws configure set aws_secret_access_key {aws_secret_access_key}")
+            os.system(f"aws configure set region eu-central-1")
+            log("Successfully set up aws cli")
+
         os.system('cp /download/kubeconfig /root/.kube/config')
         log("Successfully set up kubeconfig to access cluster.")
 
@@ -324,7 +341,7 @@ def create_kubeconfig_for_ssh_tunnel(kubeconfig_file, kubeconfig_target_file):
 
     if not match:
         print('Error: No API address found in kubeconfig')
-        exit(EXIT_CODE_LAUNCH_FAILED)
+        exit(EXIT_CODE_CLUSTER_FAILED)
 
     original_api_hostname = match.group(1)
     original_api_port = match.group(2)
