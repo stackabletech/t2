@@ -1,58 +1,62 @@
-FROM eclipse-temurin:11-jre-alpine
+FROM debian:10
 
+# create T2 workspace directory
 RUN mkdir -p /var/t2/workspace/
 
-# install curl
-RUN apk add curl
+# install helpful tools
+RUN apt-get update
+RUN apt-get install curl python3 python3-pip unzip wget vim git gcc pkg-config jq openjdk-11-jdk gnupg -y
 
-# install openssl
-RUN apk add openssl
-
-# install Terraform 
-RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.1.4/terraform_1.1.4_linux_amd64.zip
-RUN unzip /tmp/terraform.zip -d /tmp/
-RUN mv /tmp/terraform /usr/bin/
+# install Terraform
+RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
+RUN mkdir /tmp/terraform/
+RUN unzip /tmp/terraform.zip -d /tmp/terraform/
+RUN install -o root -g root -m 0755 /tmp/terraform/terraform /usr/local/bin/terraform
+RUN rm /tmp/terraform.zip
+RUN rm -rf /tmp/terraform/
 
 # install kubectl
 RUN wget -O /tmp/kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-RUN install -o root -g root -m 0755 /tmp/kubectl /usr/bin/kubectl
+RUN install -o root -g root -m 0755 /tmp/kubectl /usr/local/bin/kubectl
 RUN rm /tmp/kubectl
 
 # install Helm and the Stackable Helm repos
-RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sh -s -
+RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s -
 RUN helm repo add stackable-dev https://repo.stackable.tech/repository/helm-dev/
 RUN helm repo add stackable-stable https://repo.stackable.tech/repository/helm-stable/
-RUN helm repo add stackable-test https://repo.stackable.tech/repository/helm-test/
+RUN helm repo update
 
-# install Python
-RUN apk add python3
-RUN apk add py3-pip
-RUN pip install netaddr
-RUN pip install ipaddress
-
-# install Ansible
-RUN apk add ansible
-
-# install Wireguard Tools to generate key
-RUN apk add wireguard-tools
-
-# install ssh
-RUN apk add openssh
-
-# install git
-RUN apk add git
-
-# install jq (JSON Parser)
-RUN apk add jq
+# install AWS CLI
+RUN mkdir /tmp/awscli
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" > /tmp/awscli/awscliv2.zip
+RUN unzip /tmp/awscli/awscliv2.zip -d /tmp/awscli/
+RUN /tmp/awscli/aws/install
 
 # install yq (YAML Parser)
 RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
-# install AWS CLI
-RUN apk add aws-cli
+# install wireguard
+RUN sh -c "echo 'deb http://deb.debian.org/debian buster-backports main contrib non-free' > /etc/apt/sources.list.d/buster-backports.list"
+RUN apt update
+RUN apt install wireguard -y
+
+# install ansible
+RUN sh -c "echo 'deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main' >> /etc/apt/sources.list"
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+RUN apt update
+RUN apt install ansible -y
+
+# install python packages
+RUN apt install python-pip -y
+RUN pip install netaddr
+RUN pip install ipaddress
 
 # add template directory
 ADD templates/ /var/t2/templates/
+
+# add script to init tools
+COPY init_tools.sh /
+RUN chmod 755 /init_tools.sh
 
 # add SpringBoot executable JAR
 ARG JAR_FILE
