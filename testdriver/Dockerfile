@@ -67,6 +67,12 @@ RUN wget -O /tmp/kubectl-kuttl https://github.com/kudobuilder/kuttl/releases/dow
 RUN install -o root -g root -m 0755 /tmp/kubectl-kuttl /usr/local/bin/kubectl-kuttl
 RUN rm /tmp/kubectl-kuttl
 
+# install AWS CLI
+RUN mkdir /tmp/awscli
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" > /tmp/awscli/awscliv2.zip
+RUN unzip /tmp/awscli/awscliv2.zip -d /tmp/awscli/
+RUN /tmp/awscli/aws/install
+
 # Testdriver script
 COPY testdriver.py /
 

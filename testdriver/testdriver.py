@@ -254,6 +254,8 @@ def download_cluster_files(t2_url, t2_token, id):
     download_cluster_file(t2_url, t2_token, id, "stackable-versions", "/download/stackable-versions.txt")
     log("Downloading kubeconfig from T2...")
     download_cluster_file(t2_url, t2_token, id, "kubeconfig", "/download/kubeconfig")
+    log("Downloading credentials file from T2...")
+    download_cluster_file(t2_url, t2_token, id, "credentials", "/download/credentials.yaml")
 
 
 def install_stackable_client_script():
@@ -292,6 +294,21 @@ def configure_k8s_access():
         log("Successfully set up kubeconfig to access cluster through SSH tunnel.")
     
     else:
+
+        # Currently, the credentials file is only available for AWS EKS
+        # TODO We'll have to use the credentials file as a general way of 
+        # telling the testdriver how to connect
+        if(os.path.exists("/download/credentials.yaml")):
+            with open ("/download/credentials.yaml", "r") as f:
+                credentials_string = f.read()
+            credentials_yaml = yaml.load(credentials_string, Loader=yaml.FullLoader)
+            aws_access_key = credentials_yaml[0]['data']['aws_access_key']
+            aws_secret_access_key = credentials_yaml[0]['data']['aws_secret_access_key']
+            os.system(f"aws configure set aws_access_key_id {aws_access_key}")
+            os.system(f"aws configure set aws_secret_access_key {aws_secret_access_key}")
+            os.system(f"aws configure set region eu-central-1")
+            log("Successfully set up aws cli")
+
         os.system('cp /download/kubeconfig /root/.kube/config')
         log("Successfully set up kubeconfig to access cluster.")
 
