@@ -8,7 +8,6 @@ metadata:
 domain: stackable.test
 publicKeys: []
 spec:
-  region: nbg1
   wireguard: false
   nodes:
     main:

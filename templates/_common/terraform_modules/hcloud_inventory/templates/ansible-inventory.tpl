@@ -13,8 +13,6 @@ ansible_ssh_private_key_file=${ssh_key_private_path}
 wireguard=${wireguard}
 ansible_become=yes
 internal_ip=${edge_node_internal_ip}
-public_network_interface_name=eth0
-private_network_interface_name=ens10
 
 [orchestrators]
 orchestrator ansible_host=${element(orchestrator.network[*].ip, 0)}
@@ -33,4 +31,3 @@ ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o Use
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 ansible_become=yes
-private_network_interface_name=ens10

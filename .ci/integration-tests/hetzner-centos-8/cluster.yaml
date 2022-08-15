@@ -8,8 +8,9 @@ metadata:
 domain: stackable.test
 publicKeys: []
 spec:
-  region: nbg1
   wireguard: false
+  orchestrator:
+    serverType: cpx41
   nodes:
     main:
       numberOfNodes: 3

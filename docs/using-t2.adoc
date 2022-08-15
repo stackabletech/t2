@@ -229,7 +229,7 @@ To keep the following informations somewhat handy, they are split in the options
 |domain |domain for DNS inside the cluster or when accessing through VPN 4+| 
 |publicKeys |list of SSH public keys to allow access to cluster nodes 4+| 
 |spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1` 2+| not available
-|spec.location |one of the locations that the cloud vendor provides 3+| not available | e.g. `nbg1`, `hel1`
+|spec.location |one of the locations that the cloud vendor provides 3+| not available | HCloud datacenter location, e.g. `fsn1`, `nbg1`, `hel1`. If omitted (recommended and default), one location in central Europe is selected.
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 3+| not available
 |spec.wireguard |(boolean, optional, defaults to `false`) Should a wireguard server be started on the bastion host? Leaving wireguard switched off when you don't need it speeds up the start of the cluster. | | not available | not available |
 |spec.k8sVersion |The K3s release to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.21`, `v1.22` etc. Special channels are `stable` and `latest`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are the latest versions of each channel. 4+| 
@@ -293,15 +293,18 @@ These are operators that Stackable currently provides. You can specify their ver
 [options="header"]
 |=======
 |Name |key
-|https://github.com/stackabletech/druid-operator[Stackable Operator for Apache Druid ] |`druid-operator`
-|https://github.com/stackabletech/hbase-operator[Stackable Operator for Apache HBase ] |`hbase-operator`
+|https://github.com/stackabletech/commons-operator[Stackable Commons Operator] |`commons-operator`
+|https://github.com/stackabletech/secret-operator[Stackable Secret Operator] |`secret-operator`
+|https://github.com/stackabletech/airflow-operator[Stackable Operator for Apache Airflow] |`airflow-operator`
+|https://github.com/stackabletech/druid-operator[Stackable Operator for Apache Druid] |`druid-operator`
+|https://github.com/stackabletech/hbase-operator[Stackable Operator for Apache HBase] |`hbase-operator`
 |https://github.com/stackabletech/hdfs-operator[Stackable Operator for Apache HDFS] |`hdfs-operator`
 |https://github.com/stackabletech/hive-operator[Stackable Operator for Apache Hive] |`hive-operator`
 |https://github.com/stackabletech/kafka-operator[Stackable Operator for Apache Kafka] |`kafka-operator`
 |https://github.com/stackabletech/monitoring-operator[Stackable Operator for Monitoring and Metrics] |`monitoring-operator`
 |https://github.com/stackabletech/nifi-operator[Stackable Operator for Apache NiFi] |`nifi-operator`
 |https://github.com/stackabletech/opa-operator[Stackable Operator for OpenPolicyAgent (OPA)] |`opa-operator`
-|https://github.com/stackabletech/spark-operator[Stackable Operator for Apache Spark] |`spark-operator`
+|https://github.com/stackabletech/spark-k8s-operator[Stackable Operator for Apache Spark] |`spark-k8s-operator`
 |https://github.com/stackabletech/superset-operator[Stackable Operator for Apache Superset] |`superset-operator`
 |https://github.com/stackabletech/trino-operator[Stackable Operator for Trino] |`trino-operator`
 |https://github.com/stackabletech/zookeeper-operator[Stackable Operator for Apache ZooKeeper] |`zookeeper-operator`
