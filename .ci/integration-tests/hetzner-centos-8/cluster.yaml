@@ -9,6 +9,8 @@ domain: stackable.test
 publicKeys: []
 spec:
   wireguard: false
+  orchestrator:
+    serverType: cpx41
   nodes:
     main:
       numberOfNodes: 3
