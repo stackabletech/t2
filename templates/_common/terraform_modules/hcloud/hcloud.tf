@@ -6,7 +6,7 @@ terraform {
   required_providers {
     hcloud = {
       source = "hetznercloud/hcloud"
-      version = "1.33.1"
+      version = "1.35.1"
     }
   }
 }
@@ -34,7 +34,7 @@ locals {
     ]
   ]): node.name => node }
 
-  location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : "nbg1"
+  location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : null
 }
 
 locals {
