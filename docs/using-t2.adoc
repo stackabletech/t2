@@ -229,7 +229,7 @@ To keep the following informations somewhat handy, they are split in the options
 |domain |domain for DNS inside the cluster or when accessing through VPN 4+| 
 |publicKeys |list of SSH public keys to allow access to cluster nodes 4+| 
 |spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1` 2+| not available
-|spec.location |one of the locations that the cloud vendor provides 3+| not available | e.g. `nbg1`, `hel1`
+|spec.location |one of the locations that the cloud vendor provides 3+| not available | HCloud datacenter location, e.g. `fsn1`, `nbg1`, `hel1`. If omitted (recommended and default), one location in central Europe is selected.
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 3+| not available
 |spec.wireguard |(boolean, optional, defaults to `false`) Should a wireguard server be started on the bastion host? Leaving wireguard switched off when you don't need it speeds up the start of the cluster. | | not available | not available |
 |spec.k8sVersion |The K3s release to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.21`, `v1.22` etc. Special channels are `stable` and `latest`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are the latest versions of each channel. 4+| 

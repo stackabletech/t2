@@ -2,6 +2,7 @@
 - hosts: all
   roles:
   - distribute_ssh_keys
+  - collect_network_interface_facts
 - hosts: edge
   roles: 
   - centos_epel_9
