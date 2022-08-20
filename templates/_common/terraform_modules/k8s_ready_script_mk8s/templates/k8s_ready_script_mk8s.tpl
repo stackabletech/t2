@@ -13,7 +13,7 @@ while
     if (( node_count == target_node_count )); then
         echo ""
         echo "tagging nodes with sequential numbers (some tests might need this) ..."
-        kubectl --kubeconfig ${j2_kubeconfig_path} get nodes --no-headers | cut -d ' ' -f 1 | nl | awk '{print "kubectl --kubeconfig ${j2_kubeconfig_path} label node "$2" node="$1}' | sh
+        kubectl --kubeconfig ${j2_kubeconfig_path} get nodes --no-headers | cut -d ' ' -f 1 | nl | awk '{print "kubectl --kubeconfig ${j2_kubeconfig_path} label node --overwrite=true label "$2" node="$1" location=${j2_location}"}' | sh
         exit 0
     fi
     sleep 5

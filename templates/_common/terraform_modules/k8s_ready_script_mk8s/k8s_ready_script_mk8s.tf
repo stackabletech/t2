@@ -15,6 +15,11 @@ variable "kubeconfig_path" {
   description = "Path to kubeconfig file relative to script location"
 }
 
+variable "location" {
+  type = string
+  description = "Location of the cluster as labelled by cloud provider"
+}
+
 # K8s readiness check script
 resource "local_file" "k8s_ready" {
   filename = "wait_for_k8s_nodes_to_be_ready.sh"
@@ -23,6 +28,7 @@ resource "local_file" "k8s_ready" {
       j2_node_count = var.node_count
       j2_timeout = var.timeout
       j2_kubeconfig_path = var.kubeconfig_path
+      j2_location = var.location
     }
   )
   file_permission = "0770"
