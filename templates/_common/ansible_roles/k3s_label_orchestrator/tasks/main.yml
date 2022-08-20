@@ -1,0 +1,6 @@
+# Label orchestrator with location
+---
+- name: Set node number label
+  shell: kubectl label node --overwrite=true {{ inventory_hostname }}.{{ domain }} location={{ location | default(none) }}
+  vars:
+    ansible_become: false
