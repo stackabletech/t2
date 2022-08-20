@@ -1,0 +1,6 @@
+# Label nodes with number and location
+---
+- name: Set node number label
+  shell: kubectl label node --overwrite=true {{ inventory_hostname }}.{{ domain }} node={{ node_number | default(none) }} location={{ location | default(none) }}
+  vars:
+    ansible_become: false

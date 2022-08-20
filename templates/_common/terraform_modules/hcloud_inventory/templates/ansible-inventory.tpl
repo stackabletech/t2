@@ -15,11 +15,11 @@ ansible_become=yes
 internal_ip=${edge_node_internal_ip}
 
 [orchestrators]
-orchestrator ansible_host=${element(orchestrator.network[*].ip, 0)}
+orchestrator ansible_host=${element(orchestrator.network[*].ip, 0)} location=${orchestrator.datacenter}
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} k8s_node=${node.labels["k8s_node"]} node_number=${index+1}
+${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} k8s_node=${node.labels["k8s_node"]} node_number=${index+1} location=${node.datacenter}
 %{ endfor ~}
 
 [protected:children]

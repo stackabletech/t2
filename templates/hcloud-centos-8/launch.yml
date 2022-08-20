@@ -34,9 +34,10 @@
   - k8s_ready
 - hosts: nodes
   roles:
-  - k3s_label_nodes
+  - k3s_label_node
 - hosts: orchestrators  
   roles:
+  - k3s_label_orchestrator
   - stackable_operators
   - stackable_collect_versions
   - stackable_deploy_services
