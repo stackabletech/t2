@@ -192,4 +192,5 @@ module "k8s_ready_script_mk8s" {
   node_count = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
   timeout = "600"
   kubeconfig_path = "resources/kubeconfig"
+  location = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "eu-central-1"
 }

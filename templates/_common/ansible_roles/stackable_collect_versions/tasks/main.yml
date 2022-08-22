@@ -4,7 +4,7 @@
   shell: |
     kubectl get nodes > /tmp/stackable-versions.txt
     echo '' >> /tmp/stackable-versions.txt
-    kubectl get nodes -o custom-columns=NAME:metadata.name,TAINTS:spec.taints --sort-by=metadata.name >> /tmp/stackable-versions.txt
+    kubectl get nodes -o custom-columns=NAME:metadata.name,TAINTS:spec.taints,LOCATION:metadata.labels.location,NODE_LABEL:metadata.labels.node --sort-by=metadata.name >> /tmp/stackable-versions.txt
     echo '' >> /tmp/stackable-versions.txt
     echo '' >> /tmp/stackable-versions.txt
   ignore_errors: True

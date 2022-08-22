@@ -1,4 +1,6 @@
 # Install K3s
+# advertise-address: internal address (?) (from the docs: "IP address that apiserver uses to advertise to members of the cluster")
+# node-ip: similar for node (which orchestrator also hosts) (?) (from the docs: "IP address to advertise for node")
 ---
 - name: Install K3s Server/API w/ rancher script
   shell: |
@@ -6,6 +8,8 @@
       INSTALL_K3S_CHANNEL={{ k8s_version }} INSTALL_K3S_SKIP_SELINUX_RPM=true \
       sh -s - \
       --tls-san orchestrator.{{ domain }} \
+      --tls-san {{ ansible_host }} \
+      --tls-san {{ public_ip }} \
       --advertise-address {{ ansible_host }} \
       --node-ip {{ ansible_host }} \
       --flannel-iface {{ private_network_interface_name }} \
@@ -15,21 +19,24 @@
     creates: /etc/rancher/k3s/k3s.yaml
   notify: restart k3s
 
-- name: generate config for other k8s nodes
-  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig
-
-- name: copy config to be picked up for other users on this host
+- name: copy original config to be picked up for other users on this host
   shell: |
-    cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig-user 
-    chmod 444 /tmp/kubeconfig-user
+    cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig.original
+    chmod 444 /tmp/kubeconfig.original
 
-- name: provide kubeconfig at standard location
+- name: provide kubeconfig at standard location on this host
   shell: |
     mkdir -p {{ stackable_user_home }}.kube/
-    cp /tmp/kubeconfig-user {{ stackable_user_home }}.kube/config
+    cp /tmp/kubeconfig.original {{ stackable_user_home }}.kube/config
     chmod 600 {{ stackable_user_home }}.kube/config
   vars:
     ansible_become: false
+
+- name: generate kubeconfig for cluster-internal use
+  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig_internal
+
+- name: generate kubeconfig for public use
+  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ public_ip }}/g > /tmp/kubeconfig.public
 
 - name: set env variable to point to kubeconfig for Stackable user
   lineinfile:
@@ -43,9 +50,15 @@
   vars:
     ansible_become: false
 
-- name: Fetch the kubeconfig to (1) distribute it to the other nodes later and (2) provide it to the cluster users
+- name: Fetch the cluster-internal kubeconfig
   fetch: 
-    src: /tmp/kubeconfig
+    src: /tmp/kubeconfig_internal
+    dest: resources/kubeconfig_internal
+    flat: yes
+
+- name: Fetch the public kubeconfig
+  fetch: 
+    src: /tmp/kubeconfig.public
     dest: resources/kubeconfig
     flat: yes
 

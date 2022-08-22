@@ -55,14 +55,6 @@ if [ "orchestrator" = "$host" ]; then
     ip="${orchestrator_ip}"
 fi
 
-if [ "api-tunnel" = "$host" ]; then
-    ip="${orchestrator_ip}"
-fi
-
-if [ "close-api-tunnel" = "$host" ]; then
-    ip="${orchestrator_ip}"
-fi
-
 if [ -z "$ip" ]; then
     echo "Host '$host' unknown in this Stackable cluster."
     exit 1
@@ -75,20 +67,8 @@ fi
 # -T no pseudo-terminal allocation
 # -L forward local port to host/port ($command contains the port in that case)
 if [ -n "$private_key_file" ]; then
-    if [ "api-tunnel" = "$host" ]; then
-        ssh -4 -fMNT -S /tmp/ssh_socket_api_tunnel -i $private_key_file -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L $command:$ip:$command ${username}@${cluster_ip}
-    elif [ "close-api-tunnel" = "$host" ]; then
-        ssh -S /tmp/ssh_socket_api_tunnel -O exit ${cluster_ip}
-    else
-        ssh ${username}@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
-    fi
+    ssh ${username}@"$ip" -i "$private_key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand='ssh -i '"$private_key_file"' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
 else 
-    if [ "api-tunnel" = "$host" ]; then
-        ssh -4 -fMNT -S /tmp/ssh_socket_api_tunnel -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L $command:$ip:$command ${username}@${cluster_ip}
-    elif [ "close-api-tunnel" = "$host" ]; then
-        ssh -S /tmp/ssh_socket_api_tunnel -O exit ${cluster_ip}
-    else
-        ssh ${username}@"$ip" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
-    fi
+    ssh ${username}@"$ip" -o StrictHostKeyChecking=no -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p -q ${username}@${cluster_ip}' $command
 fi
 
