@@ -15,7 +15,7 @@ ansible_become=yes
 internal_ip=${edge_node_internal_ip}
 
 [orchestrators]
-orchestrator ansible_host=${element(orchestrator.network[*].ip, 0)} location=${orchestrator.datacenter}
+orchestrator ansible_host=${element(orchestrator.network[*].ip, 0)} location=${orchestrator.datacenter} public_ip=${orchestrator.ipv4_address}
 
 [nodes]
 %{ for index, node in nodes ~}
