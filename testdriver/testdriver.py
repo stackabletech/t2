@@ -288,71 +288,24 @@ def configure_k8s_access():
         log("No kubeconfig available for this cluster")
         return
 
-    if(os.path.exists("/download/ssh-config") and os.path.exists("/download/stackable.sh")):
-        (_, api_port) = create_kubeconfig_for_ssh_tunnel("/download/kubeconfig", "/root/.kube/config")
-        os.system(f"stackable -i {PRIVATE_KEY_FILE} api-tunnel {api_port}")
-        log("Successfully set up kubeconfig to access cluster through SSH tunnel.")
-    
-    else:
+    # Currently, the credentials file is only available for AWS EKS
+    # TODO We'll have to use the credentials file as a general way of 
+    # telling the testdriver how to connect
+    if(os.path.exists("/download/credentials.yaml")):
+        with open ("/download/credentials.yaml", "r") as f:
+            credentials_string = f.read()
+        credentials_yaml = yaml.load(credentials_string, Loader=yaml.FullLoader)
+        aws_access_key = credentials_yaml[0]['data']['aws_access_key']
+        aws_secret_access_key = credentials_yaml[0]['data']['aws_secret_access_key']
+        os.system(f"aws configure set aws_access_key_id {aws_access_key}")
+        os.system(f"aws configure set aws_secret_access_key {aws_secret_access_key}")
+        os.system(f"aws configure set region eu-central-1")
+        log("Successfully set up aws cli")
 
-        # Currently, the credentials file is only available for AWS EKS
-        # TODO We'll have to use the credentials file as a general way of 
-        # telling the testdriver how to connect
-        if(os.path.exists("/download/credentials.yaml")):
-            with open ("/download/credentials.yaml", "r") as f:
-                credentials_string = f.read()
-            credentials_yaml = yaml.load(credentials_string, Loader=yaml.FullLoader)
-            aws_access_key = credentials_yaml[0]['data']['aws_access_key']
-            aws_secret_access_key = credentials_yaml[0]['data']['aws_secret_access_key']
-            os.system(f"aws configure set aws_access_key_id {aws_access_key}")
-            os.system(f"aws configure set aws_secret_access_key {aws_secret_access_key}")
-            os.system(f"aws configure set region eu-central-1")
-            log("Successfully set up aws cli")
-
-        os.system('cp /download/kubeconfig /root/.kube/config')
-        log("Successfully set up kubeconfig to access cluster.")
+    os.system('cp /download/kubeconfig /root/.kube/config')
+    log("Successfully set up kubeconfig to access cluster.")
 
     os.system("chmod 600 /root/.kube/config")
-
-
-def close_ssh_tunnel():
-
-    if(os.path.exists("/download/ssh-config") and os.path.exists("/download/stackable.sh")):
-        os.system(f"stackable -i {PRIVATE_KEY_FILE} close-api-tunnel")
-        log("Successfully closed SSH tunnel.")
-
-
-def create_kubeconfig_for_ssh_tunnel(kubeconfig_file, kubeconfig_target_file):
-    """
-        Creates a kubeconfig in which the Server URL is modified to use a locally set up SSH tunnel. (using 127.0.0.1 as an address)
-
-        Returns a tuple consisting of: 
-            - the original IP/Servername of the K8s API
-            - the original Port of the K8s API
-    """
-    with open (kubeconfig_file, "r") as f:
-        kubeconfig = yaml.load(f.read(), Loader=yaml.FullLoader)
-
-    original_server_address = kubeconfig["clusters"][0]["cluster"]["server"]
-
-    address_pattern = re.compile('https://([^:]*):([0-9]+)')
-
-    match = address_pattern.match(original_server_address)
-
-    if not match:
-        print('Error: No API address found in kubeconfig')
-        exit(EXIT_CODE_CLUSTER_FAILED)
-
-    original_api_hostname = match.group(1)
-    original_api_port = match.group(2)
-
-    kubeconfig["clusters"][0]["cluster"]["server"] = f"https://127.0.0.1:{original_api_port}"
-
-    with open (kubeconfig_target_file, "w") as f:
-        f.write(yaml.dump(kubeconfig, default_flow_style=False))
-        f.close()
-
-    return (original_api_hostname, original_api_port)        
 
 
 def provide_version_information_sheet():
@@ -430,7 +383,6 @@ if __name__ == "__main__":
     if not dry_run:
         ex_post_logs()
         log(f"Terminating the test cluster...")
-        close_ssh_tunnel()
         terminate()
 
     log("T2 test driver finished.")
