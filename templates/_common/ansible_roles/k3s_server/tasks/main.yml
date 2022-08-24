@@ -15,7 +15,7 @@
       sh -s - \
       --tls-san orchestrator.{{ domain }} \
       --tls-san {{ ansible_host }} \
-      --tls-san {{ public_ip }} \
+      --tls-san {{ hostvars['edge']['ansible_host'] }} \
       --advertise-address {{ ansible_host }} \
       --node-ip {{ ansible_host }} \
       --flannel-iface {{ private_network_interface_name }} \
@@ -42,7 +42,7 @@
   shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig_internal
 
 - name: generate kubeconfig for public use
-  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ public_ip }}/g > /tmp/kubeconfig.public
+  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ hostvars['edge']['ansible_host'] }}/g > /tmp/kubeconfig.public
 
 - name: set env variable to point to kubeconfig for Stackable user
   lineinfile:
