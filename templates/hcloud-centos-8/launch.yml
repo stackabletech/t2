@@ -11,6 +11,7 @@
   - role: edge_wireguard_host
     when: wireguard|bool
   - edge_bind
+  - api_reverse_proxy
 - hosts: protected
   roles:
   - protected_node_common_centos
