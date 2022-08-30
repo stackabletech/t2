@@ -12,8 +12,6 @@ ansible_user=${stackable_user}
 ansible_ssh_private_key_file=${ssh_key_private_path}
 wireguard=${wireguard}
 ansible_become=yes
-public_network_interface_name=ens6
-private_network_interface_name=ens6
 
 [nodes]
 %{ for index, node in nodes ~}
@@ -31,4 +29,5 @@ orchestrators
 ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${ssh_key_private_path} -W %h:%p -q ${stackable_user}@${cluster_ip}'
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
-private_network_interface_name=ens6
+gateway_ip=${nat_gateway_ip}
+nameservers=['8.8.8.8', '8.8.4.4']

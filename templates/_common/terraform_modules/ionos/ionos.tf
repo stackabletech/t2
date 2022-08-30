@@ -6,7 +6,7 @@ terraform {
   required_providers {
     ionoscloud = {
       source = "ionos-cloud/ionoscloud"
-      version = "6.2.0"
+      version = "6.3.1"
     }
   }
 }
@@ -86,6 +86,7 @@ module "ionos_inventory" {
   node_configuration            = local.node_configuration
   protected_nodes               = module.ionos_protected_nodes.protected_nodes
   orchestrator                  = module.ionos_protected_nodes.orchestrator
+  nat_gateway_ip                = module.ionos_network.gateway_ip
   cluster_public_key_filename   = "cluster_key.pub"
   cluster_private_key_filename  = "cluster_key"
 }
@@ -122,4 +123,3 @@ module "wireguard" {
   allowed_ips               = concat([ for node in module.ionos_protected_nodes.protected_nodes: node.primary_ip ], [module.ionos_protected_nodes.orchestrator.primary_ip])
   endpoint_ip               = module.ionos_edge_node.cluster_ip
 }
-
