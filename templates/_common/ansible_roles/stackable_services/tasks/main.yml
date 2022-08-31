@@ -1,6 +1,12 @@
 # Deploy the Stackable services as requested in the cluster definition
 ---
+- name: Get stats of the services/ folder
+  stat:
+    path: services/
+  register: services_folder
+
 - name: Apply service definitions 
   shell: kubectl --kubeconfig resources/kubeconfig apply -f services/
   args:
     warn: no
+  when: services_folder.stat.isdir is defined and services_folder.stat.isdir
