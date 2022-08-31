@@ -3,6 +3,7 @@
 ---
 - name: Set label(s) on orchestrator
   shell: kubectl --kubeconfig resources/kubeconfig label node --overwrite=true orchestrator.{{ domain }} location={{ hostvars['orchestrator']['location'] | default(none) }}
+  when: "'orchestrators' in groups"
 
 # This is for an inventory with a [node] list (K3s clusters)
 - name: Set label(s) on nodes
@@ -11,14 +12,13 @@
   when: "'nodes' in groups"
 
 # This is for an inventory with a [node] list (mK8s clusters)
-# TODO: add location for mK8s clusters
-#- name: Set label(s) on nodes
-#  shell: |
-#    kubectl --kubeconfig resources/kubeconfig get nodes --no-headers \
-#      | grep -v orchestrator \
-#      | sort \
-#      | cut -d ' ' -f 1 \
-#      | nl \
-#      | awk '{print "kubectl --kubeconfig resources/kubeconfig label node --overwrite=true "$2" node="$1}' \
-#      | sh
-#  when: "'nodes' not in groups"
+- name: Set label(s) on nodes
+  shell: |
+    kubectl --kubeconfig resources/kubeconfig get nodes --no-headers \
+      | grep -v orchestrator \
+      | sort \
+      | cut -d ' ' -f 1 \
+      | nl \
+      | awk '{print "kubectl --kubeconfig resources/kubeconfig label node --overwrite=true "$2" node="$1" location={{ location }}"}' \
+      | sh
+  when: "'nodes' not in groups"
