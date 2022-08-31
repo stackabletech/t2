@@ -6,7 +6,7 @@ terraform {
   required_providers {
     ionoscloud = {
       source = "ionos-cloud/ionoscloud"
-      version = "6.2.0"
+      version = "6.3.1"
     }
   }
 }
@@ -28,6 +28,10 @@ variable "cluster_name" {
   type        = string
 }
 
+locals {
+  region = yamldecode(file("cluster.yaml"))["spec"]["region"]
+}
+
 provider "ionoscloud" {
   username = var.ionos_username
   password = var.ionos_password
@@ -41,7 +45,7 @@ resource "ionoscloud_k8s_cluster" "cluster" {
 # Datacenter
 resource "ionoscloud_datacenter" "datacenter" {
   name = "${var.cluster_name}-k8s-nodes"
-  location = yamldecode(file("cluster.yaml"))["spec"]["region"]
+  location = local.region
   description = "Datacenter containing nodes for cluster ${var.cluster_name}-k8s"
 }
 
@@ -81,11 +85,18 @@ module "stackable_component_versions" {
   source = "./terraform_modules/stackable_component_versions"
 }
 
-# create script to check K8s node readiness
-module "k8s_ready_script_mk8s" {
-  source = "./terraform_modules/k8s_ready_script_mk8s"
-  node_count = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
-  timeout = "600"
-  kubeconfig_path = "resources/kubeconfig"
-  location = replace(yamldecode(file("cluster.yaml"))["spec"]["region"], "/", "_")
+# extract service definitions from the cluster definition
+module "stackable_service_definitions" {
+  source = "./terraform_modules/stackable_service_definitions"
+}
+
+# inventory file for Ansible
+resource "local_file" "ansible-inventory" {
+  filename = "inventory/inventory"
+  content = templatefile("inventory.tpl",
+    {
+      location = replace(local.region, "/", "_")
+    }
+  )
+  file_permission = "0440"
 }

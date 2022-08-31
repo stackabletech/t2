@@ -1,0 +1,43 @@
+---
+- hosts: all
+  roles:
+  - hostname
+  - ssh_keys_distributed
+  - facts_network
+  - selinux_disabled
+  - ipv6_disabled
+  - ionos_fix_centos_8_eol
+- hosts: edge
+  roles:
+  - epel_centos_8
+  - up_to_date_centos
+  - bind_centos
+  - api_reverse_proxy
+- hosts: protected
+  roles:
+  - kernel_tuning
+  - transparent_hugepages_disabled
+  - gateway
+  - dns
+  - epel_centos_8
+  - up_to_date_centos
+  - nodes_mutual_access
+  - useful_software_for_node_centos_8
+  - chrony
+  - k9s
+- hosts: orchestrators  
+  roles:
+  - wait
+  - k3s_server
+- hosts: nodes
+  roles:
+  - wait
+  - k3s_agent
+  - kubeconfig
+- hosts: localhost
+  roles:
+  - k8s_ready
+  - k8s_labelled
+  - stackable_operators
+  - cluster_info_sheet
+  - stackable_services

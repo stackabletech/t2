@@ -1,0 +1,8 @@
+# Set hostname
+---
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}.{{ domain }}"
+
+- name: Update facts to reflect new hostname
+  setup:

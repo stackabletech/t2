@@ -1,3 +1,4 @@
+# Install NGINX as a TCP-level reverse proxy for the K8s API (edge -> orchestrator)
 ---
 - name: install nginx
   package:

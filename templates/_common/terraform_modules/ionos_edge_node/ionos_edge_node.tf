@@ -6,7 +6,7 @@ terraform {
   required_providers {
     ionoscloud = {
       source = "ionos-cloud/ionoscloud"
-      version = "6.2.0"
+      version = "6.3.1"
     }
   }
 }
@@ -30,7 +30,7 @@ variable "cluster_private_key_filename" {
 
 data "ionoscloud_image" "os_image_edge_node" {
   name     = "CentOS"
-  version  = "8-cloud-init.qcow2"
+  version  = "8-cloud-init"
   type     = "HDD"
   location = var.datacenter.location
 }
@@ -55,6 +55,7 @@ resource "ionoscloud_server" "edge" {
   }
 
   nic {
+    name = "edge-external-nic"
     lan = var.external_lan.id
     dhcp = true
     firewall_active = false
@@ -63,10 +64,10 @@ resource "ionoscloud_server" "edge" {
 
 # internal network interface for edge_node
 resource "ionoscloud_nic" "edge_internal" {
+  name = "edge-internal-nic"
   datacenter_id = var.datacenter.id
   lan = var.internal_lan.id
   server_id = ionoscloud_server.edge.id
-
   dhcp = true
   firewall_active = false
 }

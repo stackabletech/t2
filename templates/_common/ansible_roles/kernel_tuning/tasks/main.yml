@@ -1,0 +1,12 @@
+# Kernel tuning
+# 
+# see https://linuxhint.com/understanding_vm_swappiness/
+---
+- name: Ensure that common sysctl tunables are set
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    ignoreerrors: yes
+  loop:
+    - { name: 'vm.swappiness', value: 1 }
