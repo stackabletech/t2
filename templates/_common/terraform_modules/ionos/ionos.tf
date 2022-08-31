@@ -33,10 +33,10 @@ locals {
     for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
       for i in range(1, definition.numberOfNodes + 1): {
         name = "${type}-${i}" 
-        numberOfCores = definition.numberOfCores
-        memoryMb = definition.memoryMb
-        diskType = definition.diskType
-        diskSizeGb = definition.diskSizeGb
+        numberOfCores = can(definition.numberOfCores) ? definition.numberOfCores : 4
+        memoryMb = can(definition.memoryMb) ? definition.memoryMb : 4096
+        diskType = can(definition.diskType) ? definition.diskType : "SSD"
+        diskSizeGb = can(definition.diskSizeGb) ? definition.diskSizeGb: 500
         k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
