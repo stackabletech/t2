@@ -4,11 +4,11 @@
   - hostname
   - ssh_keys_distributed
   - facts_network
-  - selinux_disabled
   - ipv6_disabled
-  - ionos_fix_centos_8_eol
 - hosts: edge
   roles:
+  - ionos_fix_centos_8_eol
+  - selinux_disabled
   - epel_centos_8
   - up_to_date_centos
   - bind_centos
@@ -16,13 +16,12 @@
 - hosts: protected
   roles:
   - kernel_tuning
-  - transparent_hugepages_disabled_centos
+  - transparent_hugepages_disabled_debian
   - gateway
   - dns
-  - epel_centos_8
-  - up_to_date_centos
+  - up_to_date_debian
   - nodes_mutual_access
-  - useful_software_for_node_centos_8
+  - useful_software_for_node_debian
   - chrony
   - k9s
 - hosts: orchestrators  

@@ -6,7 +6,7 @@ terraform {
   required_providers {
     ionoscloud = {
       source = "ionos-cloud/ionoscloud"
-      version = "6.2.0"
+      version = "6.3.1"
     }
   }
 }
@@ -41,6 +41,5 @@ module "ionos" {
   source                        = "./terraform_modules/ionos"
   datacenter_name               = var.cluster_name
   os_name                       = "Debian"
-  os_version                    = "10-server-2022-03-01"
+  os_version                    = "10-genericcloud-amd64-20220328-962"
 }
-
