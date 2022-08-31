@@ -89,6 +89,7 @@ module "ionos_inventory" {
   nat_gateway_ip                = module.ionos_network.gateway_ip
   cluster_public_key_filename   = "cluster_key.pub"
   cluster_private_key_filename  = "cluster_key"
+  location                      = local.datacenter_location
 }
 
 module "stackable_client_script" {

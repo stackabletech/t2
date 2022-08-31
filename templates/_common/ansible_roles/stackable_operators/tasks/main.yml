@@ -7,67 +7,33 @@
     helm repo add stackable-test https://repo.stackable.tech/repository/helm-test/
   args:
     warn: no
-  vars:
-    ansible_become: false
-  when: "'localhost' not in inventory_hostname"
 
 - name: Update Helm repositories
   shell: |
     helm repo update
-  vars:
-    ansible_become: false
-
-# This role can be called in two different situations:
-#
-# (1) managed K8s: 
-#     We're installing the Stackable Operators on a managed K8s from the outside.
-#     In this case we have to execute the installation from the host where the Ansible controller is running ('localhost').
-#     We assume to find the kubeconfig in resources/kubeconfig in this case.
-# (2) k3s:
-#     We're installing the Stackable Operators from the orchestrator node which hosts the control-plane.
-#     In this case we assume that we don't need to configure the kubeconfig location as every node in the k3s based
-#     T2 clusters has a kubeconfig in the default location.
-#
-- name: Set the kubeconfig param for the Helm call (localhost)
-  set_fact:
-    helm_kubeconfig_param: "--kubeconfig resources/kubeconfig"
-  when: 
-    - "'localhost' in inventory_hostname"
-
-- name: Set the kubeconfig param for the Helm call (remote host)
-  set_fact:
-    helm_kubeconfig_param: ""
-  when: 
-    - "'localhost' not in inventory_hostname"
 
 - name: install operators (when specific version is set)
   shell: |
-    helm {{ helm_kubeconfig_param }} install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
+    helm --kubeconfig resources/kubeconfig install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
   loop: "{{ stackable_operators }}"
   when: 
     - item in stackable_component_versions.keys()
     - "'NONE' not in stackable_component_versions[item]['version']"
-  vars:
-    ansible_become: false
 
 - name: install operators (from default version, _-operator)
   shell: |
-    helm {{ helm_kubeconfig_param }} install stackable-{{ item }} {{stackable_component_versions['_-operator']['repository']}}/{{ item }} --version '{{stackable_component_versions['_-operator']['version']}}' || true
+    helm --kubeconfig resources/kubeconfig install stackable-{{ item }} {{stackable_component_versions['_-operator']['repository']}}/{{ item }} --version '{{stackable_component_versions['_-operator']['version']}}' || true
   loop: "{{ stackable_operators }}"
   when: 
     - item not in stackable_component_versions.keys()
     - "'_-operator' in stackable_component_versions.keys()"
     - "'NONE' not in stackable_component_versions['_-operator']['version']"
-  vars:
-    ansible_become: false
 
 - name: install operators (nothing specified, install RELEASE)
   shell: |
-    helm {{ helm_kubeconfig_param }} install stackable-{{ item }} stackable-stable/{{ item }} || true
+    helm --kubeconfig resources/kubeconfig install stackable-{{ item }} stackable-stable/{{ item }} || true
   loop: "{{ stackable_operators }}"
   when: 
     - item not in stackable_component_versions.keys()
     - "'_-operator' not in stackable_component_versions.keys()"
-  vars:
-    ansible_become: false
 

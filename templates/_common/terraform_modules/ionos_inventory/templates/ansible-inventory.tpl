@@ -15,11 +15,11 @@ ansible_become=yes
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.name} ansible_host=${node.primary_ip} k8s_node=${node_configuration[node.name]["k8s_node"]} node_number=${index+1}
+${node.name} ansible_host=${node.primary_ip} k8s_node=${node_configuration[node.name]["k8s_node"]} node_number=${index+1} location=${location}
 %{ endfor ~}
 
 [orchestrators]
-orchestrator ansible_host=${orchestrator.primary_ip}
+orchestrator ansible_host=${orchestrator.primary_ip} location=${location}
 
 [protected:children]
 nodes
@@ -30,4 +30,4 @@ ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o Use
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 gateway_ip=${nat_gateway_ip}
-nameservers=['8.8.8.8', '8.8.4.4']
+nameservers=['${edge_node_internal_ip}']

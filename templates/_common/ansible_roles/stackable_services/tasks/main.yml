@@ -1,0 +1,6 @@
+# Deploy the Stackable services as requested in the cluster definition
+---
+- name: Apply service definitions 
+  shell: kubectl --kubeconfig resources/kubeconfig apply -f services/
+  args:
+    warn: no

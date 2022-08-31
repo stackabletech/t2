@@ -1,29 +1,30 @@
 ---
 - hosts: all
   roles:
-  - distribute_ssh_keys
+  - hostname
+  - ssh_keys_distributed
+  - facts_network
+  - selinux_disabled
+  - ipv6_disabled
+  - ionos_fix_centos_8_eol
 - hosts: edge
-  roles: 
-  - ionos_fix_centos8_eol
-  - centos_epel_8
-  - role: edge_ip_forwarding
-    when: not (wireguard|bool)
-  - role: edge_ip_forwarding_for_wireguard
-    when: wireguard|bool
-  - role: edge_wireguard_host
-    when: wireguard|bool
-  - edge_bind
+  roles:
+  - epel_centos_8
+  - up_to_date_centos
+  - bind_centos
+  - api_reverse_proxy
 - hosts: protected
   roles:
-  - ionos_fix_centos8_eol
-  - protected_node_common_centos
-  - protected_node_edge_as_gateway
-  - protected_node_edge_as_dns
-  - protected_node_mutual_access
-  - protected_node_software_centos_8
-  - protected_node_chrony
+  - kernel_tuning
+  - transparent_hugepages_disabled
+  - gateway
+  - dns
+  - epel_centos_8
+  - up_to_date_centos
+  - nodes_mutual_access
+  - useful_software_for_node_centos_8
+  - chrony
   - k9s
-  - helm
 - hosts: orchestrators  
   roles:
   - wait
@@ -33,9 +34,10 @@
   - wait
   - k3s_agent
   - kubeconfig
-- hosts: orchestrators  
+- hosts: localhost
   roles:
   - k8s_ready
+  - k8s_labelled
   - stackable_operators
-  - stackable_collect_versions
-  - stackable_deploy_services
+  - cluster_info_sheet
+  - stackable_services

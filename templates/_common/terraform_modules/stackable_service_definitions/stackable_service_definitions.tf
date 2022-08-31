@@ -15,7 +15,7 @@ locals {
 # service definition files
 resource "local_file" "service-definition" {
   count = length(local.service_definitions)
-  filename = "ansible_roles/files/services/${local.service_definitions[count.index].name}.yaml"
+  filename = "services/${local.service_definitions[count.index].name}.yaml"
   file_permission = "0440"
   content = local.service_definitions[count.index].content
 }

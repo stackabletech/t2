@@ -1,6 +1,5 @@
-# Install BIND (DNS server) as service on the host.
+# Install BIND (DNS server) as service on the (CentOS) host.
 # configure DNS zones ("normal" and reverse) for the cluster.
-# works for CentOs 8
 ---
 - name: Ensure BIND is installed
   yum:

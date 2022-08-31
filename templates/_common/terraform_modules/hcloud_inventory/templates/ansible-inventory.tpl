@@ -31,3 +31,4 @@ ansible_ssh_common_args= -o ProxyCommand='ssh -o StrictHostKeyChecking=no -o Use
 ansible_ssh_private_key_file=${ssh_key_private_path}
 ansible_user=${stackable_user}
 ansible_become=yes
+nameservers=['${edge_node_internal_ip}']
