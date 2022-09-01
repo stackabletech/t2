@@ -1,0 +1,4 @@
+---
+- name: Wait 30 secs...
+  pause:
+    seconds: 30
