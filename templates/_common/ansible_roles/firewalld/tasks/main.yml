@@ -1,7 +1,0 @@
-# Disable the local firewall service
----
-- name: Disable local firewall
-  service:
-    name: firewalld
-    state: stopped
-    enabled: false

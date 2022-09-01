@@ -16,7 +16,7 @@
 - hosts: protected
   roles:
   - kernel_tuning
-  - transparent_hugepages_disabled
+  - transparent_hugepages_disabled_centos
   - gateway
   - dns
   - epel_centos_8

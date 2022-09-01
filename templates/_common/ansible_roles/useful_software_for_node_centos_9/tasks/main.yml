@@ -1,4 +1,4 @@
-# Install usefull stuff on CentOS 8 nodes
+# Install usefull stuff on CentOS 9 nodes
 ---
 - name: Add Kubernetes repository
   yum_repository:

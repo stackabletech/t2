@@ -1,6 +1,7 @@
 ---
 - hosts: localhost
   roles:
+  - wait30
   - k8s_ready
   - k8s_labelled
   - stackable_operators

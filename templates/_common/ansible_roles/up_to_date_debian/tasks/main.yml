@@ -1,0 +1,7 @@
+# Ensure system is up to date
+---
+- name: Ensure system is up to date
+  apt:
+    name: "*"
+    state: latest
+

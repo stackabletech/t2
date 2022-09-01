@@ -1,7 +1,0 @@
-# see https://github.com/k3s-io/k3s/issues/3560
-# see https://www.linux-community.de/nachrichten/aktualisierter-networkmanager-mit-neuem-logo-und-cloud-setup-tool/
----
-- name: Disable nm-cloud-setup
-  service:
-    name: nm-cloud-setup
-    enabled: false
