@@ -198,13 +198,15 @@ The following table lists the currently available templates:
 [options="header"]
 |=======
 |Type|key |Cloud provider| Linux distribution
-.7+|K3s |ionos-centos-7¹ | IONOS Cloud | CentOS 7
-|ionos-centos-8¹ | IONOS Cloud | CentOS 8
+.9+|K3s |ionos-centos-8 | IONOS Cloud | CentOS 8
 |ionos-debian-10¹ | IONOS Cloud | Debian 10
-|aws-centos-8 | Amazon EC2 | CentOS 8
+|ionos-debian-11 | IONOS Cloud | Debian 11
+|aws-centos-8¹ | Amazon EC2 | CentOS 8
 |hcloud-centos-8 | Hetzner Cloud | CentOS 8
+|hcloud-centos-9 | Hetzner Cloud | CentOS 9
 |hcloud-debian-10 | Hetzner Cloud | Debian 10
-|pluscloud-open-centos-8 | PlusCloud Open (Plusserver, SCS implementation, based on OpenStack) | CentOS 8
+|hcloud-debian-11 | Hetzner Cloud | Debian 11
+|pluscloud-open-centos-8¹ | PlusCloud Open (Plusserver, SCS implementation, based on OpenStack) | CentOS 8
 .3+|managed K8s |azure-aks | Microsoft Azure | 
 |aws-eks | Amazon AWS | 
 |ionos-k8s | IONOS Cloud |
@@ -244,10 +246,10 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.orchestrator.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cx41` 
 |spec.nodes |map of node types with their specification 4+| 
 |spec.nodes.<type>.numberOfNodes |# of nodes of the given type 4+|
-|spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have | e.g. `8` 3+| not available
-|spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have in MB | e.g. `8192` 3+| not available
-|spec.nodes.<type>.diskType | type of disk each node of the given type should have | e.g.: `SSD` | default: `gp2` (general purpose SSD), see links below 2+| not available
-|spec.nodes.<type>.diskSizeGb |size of the disk of the given node in GB | e.g. `500` | default: `50` 2+| not available
+|spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have | default: `4` 3+| not available
+|spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have in MB | default `4096` 3+| not available
+|spec.nodes.<type>.diskType | type of disk each node of the given type should have | default: `SSD` | default: `gp2` (general purpose SSD), see links below 2+| not available
+|spec.nodes.<type>.diskSizeGb |size of the disk of the given node in GB | default: `500` | default: `50` 2+| not available
 |spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below 2+| not available
 |spec.nodes.<type>.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `2C-4GB-20GB` | not available
 |spec.nodes.<type>.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cx21`

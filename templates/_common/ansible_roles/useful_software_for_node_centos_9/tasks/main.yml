@@ -1,0 +1,29 @@
+# Install usefull stuff on CentOS 9 nodes
+---
+- name: Add Kubernetes repository
+  yum_repository:
+    name: Kubernetes
+    description: Kubernetes YUM repo
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgcheck: yes
+    repo_gpgcheck: yes
+    gpgkey: "https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"
+
+- name: Ensure important and useful packages are installed
+  dnf:
+    name: "{{ packages }}"
+    state: latest
+    skip_broken: yes
+  vars:
+    packages:
+      - unzip
+      - chrony
+      - python3-libselinux
+      - man
+      - tmux
+      - vim-enhanced
+      - wget
+      - java-11-openjdk-devel
+      - gnupg
+      - tar
+      - kubectl

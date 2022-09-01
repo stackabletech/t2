@@ -1,0 +1,42 @@
+# Install usefull stuff on Debian nodes
+---
+- name: Ensure important and useful packages are installed (1)
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+  vars:
+    packages:
+      - unzip
+      - chrony
+      - curl
+      - dnsutils
+      - man-db
+      - tmux
+      - openjdk-11-jdk
+      - gnupg
+      - sudo
+      - tar
+      - apparmor
+      - apparmor-utils
+
+- name: Add key for Kubernetes repository
+  apt_key:
+    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+    state: present
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Ensure important and useful packages are installed (2)
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+  vars:
+    packages:
+      - kubectl
+
+

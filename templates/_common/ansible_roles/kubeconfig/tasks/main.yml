@@ -1,10 +1,5 @@
-# Ensure kubectl is installed
+# Set kubeconfig on node for cluster-internal use
 ---
-- name: Ensure kubectl is installed
-  package:
-    name: kubectl
-    state: present
-
 - name: kubeconfig for the user - create directory
   file:
     path: "{{ stackable_user_home }}.kube"

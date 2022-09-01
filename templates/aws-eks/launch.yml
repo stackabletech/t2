@@ -1,6 +1,9 @@
 ---
 - hosts: localhost
   roles:
-  - k8s_ready_mk8s
+  - wait30
+  - k8s_ready
+  - k8s_labelled
   - stackable_operators
-  - stackable_collect_versions_localhost
+  - cluster_info_sheet
+  - stackable_services

@@ -1,0 +1,15 @@
+# Install NGINX as a TCP-level reverse proxy for the K8s API (edge -> orchestrator)
+---
+- name: install nginx
+  package:
+    name:
+      - nginx
+      - nginx-mod-stream
+    state: present
+  notify: restart nginx
+
+- name: configure nginx
+  template: 
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: restart nginx

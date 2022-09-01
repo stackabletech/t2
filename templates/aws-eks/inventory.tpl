@@ -1,0 +1,2 @@
+[all:vars]
+location=${location}

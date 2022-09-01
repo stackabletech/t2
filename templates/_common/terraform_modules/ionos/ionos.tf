@@ -6,7 +6,7 @@ terraform {
   required_providers {
     ionoscloud = {
       source = "ionos-cloud/ionoscloud"
-      version = "6.2.0"
+      version = "6.3.1"
     }
   }
 }
@@ -33,10 +33,10 @@ locals {
     for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
       for i in range(1, definition.numberOfNodes + 1): {
         name = "${type}-${i}" 
-        numberOfCores = definition.numberOfCores
-        memoryMb = definition.memoryMb
-        diskType = definition.diskType
-        diskSizeGb = definition.diskSizeGb
+        numberOfCores = can(definition.numberOfCores) ? definition.numberOfCores : 4
+        memoryMb = can(definition.memoryMb) ? definition.memoryMb : 4096
+        diskType = can(definition.diskType) ? definition.diskType : "SSD"
+        diskSizeGb = can(definition.diskSizeGb) ? definition.diskSizeGb: 500
         k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
@@ -86,8 +86,10 @@ module "ionos_inventory" {
   node_configuration            = local.node_configuration
   protected_nodes               = module.ionos_protected_nodes.protected_nodes
   orchestrator                  = module.ionos_protected_nodes.orchestrator
+  nat_gateway_ip                = module.ionos_network.gateway_ip
   cluster_public_key_filename   = "cluster_key.pub"
   cluster_private_key_filename  = "cluster_key"
+  location                      = local.datacenter_location
 }
 
 module "stackable_client_script" {
@@ -122,4 +124,3 @@ module "wireguard" {
   allowed_ips               = concat([ for node in module.ionos_protected_nodes.protected_nodes: node.primary_ip ], [module.ionos_protected_nodes.orchestrator.primary_ip])
   endpoint_ip               = module.ionos_edge_node.cluster_ip
 }
-

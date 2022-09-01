@@ -1,0 +1,6 @@
+# Disable SELinux (see https://www.redhat.com/en/topics/linux/what-is-selinux)
+---
+- name: Ensure SELinux is disabled
+  selinux:
+    state: disabled
+  notify: reboot

@@ -1,4 +1,4 @@
-# Install K3s
+# Install K3s Agent
 ---
 - name: Download K3s binary
   get_url:

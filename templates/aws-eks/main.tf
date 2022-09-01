@@ -2,17 +2,17 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 3.20.0"
+      version = "4.28.0"
     }
 
     local = {
       source  = "hashicorp/local"
-      version = "2.1.0"
+      version = "2.2.3"
     }
 
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">= 2.0.1"
+      version = "2.13.1"
     }
   }
 
@@ -36,8 +36,12 @@ variable "cluster_name" {
   type        = string
 }
 
-provider "aws" {
+locals {
   region = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "eu-central-1"
+}
+
+provider "aws" {
+  region = local.region
   access_key  = var.aws_access_key
   secret_key  = var.aws_secret_access_key
 }
@@ -163,7 +167,7 @@ provider "kubernetes" {
 
 resource "null_resource" "kubeconfig" {
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${var.cluster_name} --region eu-central-1 --kubeconfig resources/kubeconfig"
+    command = "aws eks update-kubeconfig --name ${var.cluster_name} --region ${local.region} --kubeconfig resources/kubeconfig"
   }
   depends_on = [
     data.aws_eks_cluster.cluster
@@ -186,11 +190,18 @@ module "stackable_component_versions" {
   source = "./terraform_modules/stackable_component_versions"
 }
 
-# create script to check K8s node readiness
-module "k8s_ready_script_mk8s" {
-  source = "./terraform_modules/k8s_ready_script_mk8s"
-  node_count = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
-  timeout = "600"
-  kubeconfig_path = "resources/kubeconfig"
-  location = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "eu-central-1"
+# extract service definitions from the cluster definition
+module "stackable_service_definitions" {
+  source = "./terraform_modules/stackable_service_definitions"
+}
+
+# inventory file for Ansible
+resource "local_file" "ansible-inventory" {
+  filename = "inventory/inventory"
+  content = templatefile("inventory.tpl",
+    {
+      location = local.region
+    }
+  )
+  file_permission = "0440"
 }

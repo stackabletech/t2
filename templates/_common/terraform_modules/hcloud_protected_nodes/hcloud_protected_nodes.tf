@@ -84,19 +84,6 @@ resource "hcloud_firewall" "protected_nodes" {
   }
 }
 
-resource "hcloud_firewall" "protected_nodes_api" {
-  name = "${var.cluster_name}-protected-nodes-api-firewall"
-  rule {
-    direction = "in"
-    protocol  = "tcp"
-    port      = "6443"
-    source_ips = [
-      "0.0.0.0/0",
-      "::/0"
-    ]
-  }
-}
-
 # Create the orchestrator compute instance
 resource "hcloud_server" "orchestrator" {
   name        = "${var.cluster_name}-orchestrator"
@@ -109,7 +96,7 @@ resource "hcloud_server" "orchestrator" {
     network_id = var.network.id
   }
 
-  firewall_ids = [ hcloud_firewall.protected_nodes.id,hcloud_firewall.protected_nodes_api.id ]
+  firewall_ids = [ hcloud_firewall.protected_nodes.id ]
 
   depends_on = [
     var.network,
