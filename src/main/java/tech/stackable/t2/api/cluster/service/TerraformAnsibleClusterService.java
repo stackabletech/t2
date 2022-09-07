@@ -12,13 +12,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +30,6 @@ import tech.stackable.t2.ansible.AnsibleResult;
 import tech.stackable.t2.ansible.AnsibleService;
 import tech.stackable.t2.api.cluster.domain.Cluster;
 import tech.stackable.t2.api.cluster.domain.Status;
-import tech.stackable.t2.dns.DnsService;
 import tech.stackable.t2.templates.TemplateService;
 import tech.stackable.t2.terraform.TerraformResult;
 import tech.stackable.t2.terraform.TerraformService;
@@ -54,9 +51,6 @@ public class TerraformAnsibleClusterService {
     @Autowired
     @Qualifier("credentials")
     private Properties credentials;
-
-    @Autowired
-    private Optional<DnsService> dnsService;
 
     @Autowired
     private TemplateService templateService;
@@ -110,9 +104,6 @@ public class TerraformAnsibleClusterService {
             // This thread must be started if the cluster launch fails after terraform apply has started as there may be created resources
             // which have to be torn down...
             Thread tearDownOnFailure = new Thread(() -> {
-                if(this.dnsService.isPresent() && StringUtils.isNotEmpty(cluster.getHostname())) {
-                    this.dnsService.get().removeSubdomain(cluster.getShortId());
-                }
                 this.terraformService.destroy(workingDirectory, clusterName(cluster));
             });
             
@@ -144,18 +135,6 @@ public class TerraformAnsibleClusterService {
 
                 cluster.setIpV4Address(this.terraformService.getIpV4(workingDirectory));
 
-                if(this.dnsService.isPresent()) {
-                    cluster.setStatus(Status.DNS_WRITE_RECORD);
-                    String hostname = this.dnsService.get().addSubdomain(cluster.getShortId(), cluster.getIpV4Address());
-                    if (hostname == null) {
-                        cluster.setStatus(Status.DNS_WRITE_RECORD_FAILED);
-                        tearDownOnFailure.start();
-                        return;
-                    }
-                    
-                    cluster.setHostname(hostname);
-                }
-
                 cluster.setStatus(Status.ANSIBLE_PROVISIONING);
                 
                 AnsibleResult ansibleResult = this.ansibleService.run(workingDirectory);
@@ -183,15 +162,6 @@ public class TerraformAnsibleClusterService {
             cluster.setStatus(Status.DELETION_STARTED);
 
             new Thread(() -> {
-
-                if(this.dnsService.isPresent()) {
-                    cluster.setStatus(Status.DNS_DELETE_RECORD);
-                    boolean dnsRemovalSucceded = this.dnsService.get().removeSubdomain(cluster.getShortId());
-                    if (!dnsRemovalSucceded) {
-                        cluster.setStatus(Status.DNS_DELETE_RECORD_FAILED);
-                        return;
-                    }
-                }
 
                 Path terraformFolder = workspaceDirectory.resolve(cluster.getId().toString());
 
