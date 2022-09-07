@@ -49,10 +49,6 @@ public class TerraformAnsibleClusterService {
     private Path workspaceDirectory;
 
     @Autowired
-    @Qualifier("credentials")
-    private Properties credentials;
-
-    @Autowired
     private TemplateService templateService;
 
     @Autowired
