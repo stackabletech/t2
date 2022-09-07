@@ -7,4 +7,3 @@ t2:
     directory: /var/t2/templates/
   security:
     token-file: /var/t2/security-token
-    credential-file: /var/t2/credentials.properties

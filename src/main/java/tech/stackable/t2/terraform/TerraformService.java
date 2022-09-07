@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -26,10 +25,6 @@ public class TerraformService {
     @Autowired
     @Qualifier("workspaceDirectory")
     private Path workspaceDirectory;
-
-    @Autowired
-    @Qualifier("credentials")
-    private Properties credentials;
 
     private final Set<Process> runningProcesses = new HashSet<Process>();
     
@@ -88,9 +83,6 @@ public class TerraformService {
             ProcessBuilder processBuilder = new ProcessBuilder()
                     .command("sh", "-c", String.format("terraform %s %s -no-color", command, params))
                     .directory(workingDirectory.toFile());
-            this.credentials.forEach((key, value) -> {
-                processBuilder.environment().put(String.format("TF_VAR_%s", key), value.toString());
-            });
             processBuilder.environment().put("TF_VAR_cluster_name", clusterName);
             Process process = processBuilder.redirectErrorStream(true).start();
             this.runningProcesses.add(process);

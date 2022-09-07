@@ -1,12 +1,7 @@
 package tech.stackable.t2.security;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Properties;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
@@ -33,30 +28,6 @@ public class SecurityConfiguration {
             LOGGER.error("Could not read security token from file '{}'", tokenFile, e);
             throw new BeanCreationException("Security token could not be created.");
         }
-    }
-
-    @Bean(name = "credentials")
-    public Properties credentials(@Value("${t2.security.credential-file:}") String credentialFile) {
-
-        Path path = Path.of(credentialFile); 
-        if(credentialFile.startsWith("~")) {
-        	path = Path.of(StringUtils.replace(credentialFile, "~", System.getProperty("user.home"), 1));
-        }
-    	
-        Properties credentials = new Properties();
-        if (!Files.exists(path) || !Files.isRegularFile(path) || !Files.isReadable(path)) {
-            LOGGER.info("No credentials read, as the path {} does not exist.", path);
-            return credentials;
-        }
-        try {
-            credentials.load(new StringReader(Files.readString(path)));
-        } catch (IOException e) {
-            LOGGER.error("No credentials read from path {} due to an error.", path, e);
-        }
-
-        LOGGER.info("Credentials read from {}.", path);
-        
-        return credentials;
     }
 
 }
