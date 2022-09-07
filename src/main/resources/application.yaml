@@ -19,10 +19,6 @@ t2:
   security:
     token-file: security-token
     credential-file: ~/t2-credentials.properties
-  dns:
-    enabled: false
-    cluster-domain: stackable.tech
-    livedns-api-url: https://api.gandi.net/v5/livedns
 ---
 management:
   endpoint:
