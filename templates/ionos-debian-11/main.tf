@@ -40,6 +40,6 @@ module "stackable_component_versions" {
 module "ionos" {
   source                        = "./terraform_modules/ionos"
   datacenter_name               = var.cluster_name
-  os_name                       = "Debian"
+  os_name                       = "debian"
   os_version                    = "11-genericcloud-amd64-20220723-1073"
 }
