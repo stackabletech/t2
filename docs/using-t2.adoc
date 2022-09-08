@@ -243,7 +243,7 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator in GB | default: `50` | default: `50` 2+| not available 
 |spec.orchestrator.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below 2+| not available
 |spec.orchestrator.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `8C-16GB-60GB` | not available
-|spec.orchestrator.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cx41` 
+|spec.orchestrator.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cpx41` 
 |spec.nodes |map of node types with their specification 4+| 
 |spec.nodes.<type>.numberOfNodes |# of nodes of the given type 4+|
 |spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have | default: `4` 3+| not available
@@ -252,7 +252,7 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.nodes.<type>.diskSizeGb |size of the disk of the given node in GB | default: `500` | default: `50` 2+| not available
 |spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below 2+| not available
 |spec.nodes.<type>.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `2C-4GB-20GB` | not available
-|spec.nodes.<type>.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cx21`
+|spec.nodes.<type>.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cpx21`
 |spec.nodes.<type>.k8s_node |(boolean, optional, defaults to `true`) Should this node work as a Kubernetes node? 4+|
 |services |Map of service descriptions as embedded YAMLs. See below for available services. 4+|
 |=======
