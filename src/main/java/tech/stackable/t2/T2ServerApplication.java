@@ -7,14 +7,12 @@ import static java.nio.file.Files.isWritable;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -91,28 +89,4 @@ public class T2ServerApplication {
 
     }
     
-    @Bean
-    CommandLineRunner commandLineRunner() {
-      return new CommandLineRunner() {
-        @Override
-        public void run(String... args) throws Exception {
-            try {
-            	LOGGER.info("Initializing tools...");
-                ProcessBuilder processBuilder = new ProcessBuilder()
-                        .command("sh", "-c", "/init_tools.sh")
-                        .directory(Paths.get("/").toFile());
-                Process process = processBuilder.redirectErrorStream(true).start();
-                int exitCode = process.waitFor();
-                if (exitCode!=0) {
-                    LOGGER.error("Error while initializing tools");
-                    throw new RuntimeException("Error while initializing tools");
-                }
-            } catch (IOException | InterruptedException e) {
-                LOGGER.error("Error while initializing tools", e);
-                throw new RuntimeException("Error while initializing tools", e);
-            }
-        }
-      };
-    }
-
 }
