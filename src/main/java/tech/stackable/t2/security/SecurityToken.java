@@ -1,8 +1,5 @@
 package tech.stackable.t2.security;
 
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,10 +14,6 @@ public class SecurityToken {
             throw new IllegalArgumentException("SecurityToken must not be empty.");
         }
         this.token = StringUtils.trim(token);
-    }
-
-    static SecurityToken fromFile(String file) throws IOException {
-        return new SecurityToken(Files.readString(FileSystems.getDefault().getPath(file)));
     }
 
     static SecurityToken of(String token) {

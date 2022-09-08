@@ -17,8 +17,8 @@ t2:
   templates:
     directory: templates/
   security:
-    token-file: security-token
-    credential-file: ~/t2-credentials.properties
+    token: t2-secret-token
+    tool-init-script: tool-init.sh
 ---
 management:
   endpoint:

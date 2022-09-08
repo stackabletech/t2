@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -35,10 +34,6 @@ public class TemplateService {
     @Autowired
     @Qualifier("templateDirectory")
     private Path templateDirectory;
-
-    @Autowired
-    @Qualifier("credentials")
-    private Properties credentials;
 
     /**
      * Creates a working directory for the given cluster, using the given cluster

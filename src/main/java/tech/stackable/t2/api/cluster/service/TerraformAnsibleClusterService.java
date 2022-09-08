@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -47,10 +46,6 @@ public class TerraformAnsibleClusterService {
     @Autowired
     @Qualifier("workspaceDirectory")
     private Path workspaceDirectory;
-
-    @Autowired
-    @Qualifier("credentials")
-    private Properties credentials;
 
     @Autowired
     private TemplateService templateService;
@@ -133,8 +128,6 @@ public class TerraformAnsibleClusterService {
                     return;
                 }
 
-                cluster.setIpV4Address(this.terraformService.getIpV4(workingDirectory));
-
                 cluster.setStatus(Status.ANSIBLE_PROVISIONING);
                 
                 AnsibleResult ansibleResult = this.ansibleService.run(workingDirectory);
@@ -171,7 +164,6 @@ public class TerraformAnsibleClusterService {
                     cluster.setStatus(Status.TERRAFORM_DESTROY_FAILED);
                     return;
                 }
-                cluster.setIpV4Address(null);
                 cluster.setStatus(Status.TERMINATED);
                 this.clustersTerminatedCounter.increment();
             }).start();

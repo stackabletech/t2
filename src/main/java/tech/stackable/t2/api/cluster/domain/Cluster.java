@@ -28,12 +28,6 @@ public class Cluster {
     @Schema(description = "History of events in the cluster's lifecycle", required = false)
     private List<ClusterHistoryEvent> history;
 
-    @Schema(description = "IP V4 address", required = false)
-    private String ipV4Address;
-
-    @Schema(description = "hostname", required = false)
-    private String hostname;
-
     public Cluster() {
         this(UUID.randomUUID());
     }
@@ -88,22 +82,6 @@ public class Cluster {
         }
     }
 
-    public String getIpV4Address() {
-        return ipV4Address;
-    }
-
-    public void setIpV4Address(String ipV4Address) {
-        this.ipV4Address = ipV4Address;
-    }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -131,6 +109,6 @@ public class Cluster {
 
     @Override
     public String toString() {
-        return "Cluster [id=" + id + ", status=" + status + ", dateTimeCreated=" + dateTimeCreated + ", history=" + history + ", ipV4Address=" + ipV4Address + "]";
+        return "Cluster [id=" + id + ", status=" + status + ", dateTimeCreated=" + dateTimeCreated + ", history=" + history + "]";
     }
 }
