@@ -87,7 +87,7 @@ resource "hcloud_firewall" "protected_nodes" {
 # Create the orchestrator compute instance
 resource "hcloud_server" "orchestrator" {
   name        = "${var.cluster_name}-orchestrator"
-  server_type = can(yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["serverType"]) ? yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["serverType"] : "cx41"
+  server_type = can(yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["serverType"]) ? yamldecode(file("cluster.yaml"))["spec"]["orchestrator"]["serverType"] : "cpx41"
   image       = var.os_image
   location    = var.location
   ssh_keys    = [ var.keypair.id ]
