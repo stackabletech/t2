@@ -6,5 +6,5 @@ t2:
   templates:
     directory: /var/t2/templates/
   security:
-    token-file: /var/t2/security-token
-    credential-file: /var/t2/credentials.properties
+    token: ${SECURITY_TOKEN}
+    tool-init-script: /var/t2/tool-init.sh

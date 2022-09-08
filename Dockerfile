@@ -52,19 +52,23 @@ RUN apt install python-pip -y
 RUN pip install netaddr
 RUN pip install ipaddress
 
+# install GCloud CLI
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-cli -y
+
 # add template directory
 ADD templates/ /var/t2/templates/
-
-# add script to init tools
-COPY init_tools.sh /
-RUN chmod 755 /init_tools.sh
 
 # add SpringBoot executable JAR
 ARG JAR_FILE
 ADD target/${JAR_FILE} /var/t2/t2-server.jar
 
+# add T2 start script
+COPY t2.sh /
+RUN chmod 755 /t2.sh
+
 ARG T2_DISPLAY_VERSION=
 ENV T2_DISPLAY_VERSION=${T2_DISPLAY_VERSION}
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-Dspring.profiles.active=docker", "-jar", "/var/t2/t2-server.jar"]
+ENTRYPOINT ["/t2.sh"]
+
 
 
