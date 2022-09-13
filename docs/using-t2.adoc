@@ -357,7 +357,7 @@ The testdriver is not operating on a Kubernetes cluster at all. This mode is mos
 
 === Cluster mode EXISTING
 
-The testdriver operates on a cluster which exists independently from itself. The testdriver neither creates nor terminates any cluster.
+The testdriver operates on a cluster which exists independently from the testdriver. The testdriver neither creates nor terminates any cluster.
 
 === Cluster mode MANAGED
 
