@@ -345,26 +345,54 @@ The service descriptions depend on the used services. Please refer to the docume
 
 We provide the Docker image `docker.stackable.tech/t2-testdriver` to make the usage of T2 in CI pipelines and for developers easier.
 
-The Container does the following:
+The T2 testdriver offers 3 "cluster modes" which are selected by setting the `CLUSTER` environment variable to either `NONE`, `EXISTING` or `MANAGED`. 
 
-* Launch a cluster according to your cluster definition (if no dry run)
-* Execute the provided test script and record its output
-* Tear down the cluster after the test script has terminated
+Independent of the "cluster mode", you can select if the testdriver is running "interactively" by setting the `INTERACTIVE_MODE` flag.
 
-=== Input
+The following sections describe the meaning of the modes followed by a table describing all options.
+
+=== Cluster mode NONE
+
+The testdriver is not operating on a Kubernetes cluster at all. This mode is mostely useful for test and development purposes.
+
+=== Cluster mode EXISTING
+
+The testdriver operates on a cluster which exists independently from itself. The testdriver neither creates nor terminates any cluster.
+
+=== Cluster mode MANAGED
+
+The testdriver creates a cluster as defined in the cluster definition file and tears it down once the testdriver is about to be shut down.
+
+=== Interactive or not interactive?
+
+The "normal" use case of the testdriver is the following: The testdriver executes the given test script against the (existing or managed) cluster, records the results and some other logfiles and then shuts down the cluster (if managed) and terminates.
+
+If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
+
+  docker exec -it <container_name> bash
+
+Once you're done with the work, you should terminate the container running the `stop-session` command either from a terminal session like created above or directly by executing the command on the container.
+
+  docker exec -it <container_name> stop-session
+
+This way of terminating is preferred to just terminating the container because the grace period of `docker stop` usually is too short to allow for an unproblematic cluster shutdown.
+
+=== Options
+
+The following table describes all the options that can/must be set when using the testdriver.
 
 [options="header"]
 |=======
 |Feature |How to use |Description
-|Target directory | Map as volume to `/target/` | The target directory for the output
-|Cluster definition | Map as file to `/cluster.yaml` | The cluster definition as described above
-|Test script | Map as file to `/test.sh` | The script containing the test to be run once the cluster is up and running
-|T2 URL | mandatory as environment variable `T2_URL` | The URL of T2 to use
-|T2 Token | mandatory as environment variable `T2_TOKEN` | The token to access T2
-|User/Group for target directory | optional as environment variable `UID_GID` (format `<UID>:<GID>`), defaults to `0:0` (root) | All stuff which is written into the target dir is owned by this user/group combination.
-|Dry run | optional as environment variable `DRY_RUN`, defaults to `false` | If set to `true`, the container does not create a cluster but starts with the test script right away.
-|Interactive mode | optional as environment variable `INTERACTIVE_MODE`, defaults to `false` | If set to `true`, the container does halt after the creation of the cluster and does *not* execute the test script. 
-The idea is that you can execute whatever you like interactively by `docker exec`-ing into the container. To allow the container to shut down the cluster properly, you should create a file `/cluster_lock` to notify the container to go ahead and terminate the cluster, otherwise you may end up with a dangling (and expensive) cluster...
+|Cluster mode | environment variable `CLUSTER` (`NONE`, `EXISTING` or `MANAGED`) | *(mandatory)* See sections above...
+|Interactive mode | environment variable `INTERACTIVE_MODE` | *(optional)*, defaults to `false`
+|User/Group for target directory | environment variable `UID_GID` (format `<UID>:<GID>`), defaults to `0:0` (root) | *(optional)* All stuff which is written into the target dir is owned by this user/group combination.
+|T2 URL | environment variable `T2_URL` | *(mandatory for managed clusters)* The URL of T2 to use
+|T2 Token | environment variable `T2_TOKEN` | *(mandatory for managed clusters)* The token to access T2
+|Cluster definition | map as file to `/cluster.yaml` | *(mandatory for managed clusters)* The cluster definition as described above
+|Target directory | map as volume to `/target/` | *(mandatory)* The target directory for the output
+|Kubernetes config file | map as file to `/root/.kube/config` | *(mandatory if using existing clusters)* The K8s config file to access the existing cluster
+|Test script | map as file to `/test.sh` | *(mandatory if not running in interactive mode)*. The script containing the test to be run once the cluster is up and running
 |=======
 
 === Output files
@@ -374,9 +402,15 @@ The following files are created in the directory mounted into `/target/`:
 [options="header"]
 |=======
 |File |Description
-|`test_output.log` |Output of the test script
 |`testdriver.log` | Log file of the testdriver container itself
-|`stackable-versions.txt` | Text file containing the versions of the installed Stackable components in the cluster
+|`k8s-event.log` | Event stream of the Kubernetes cluster (one YAML per event)
+|`k8s-event-short.log` | Event stream of the Kubernetes cluster (one line per event)
+|`k8s-pod-change.log` | Pod changes stream of the Kubernetes cluster (one YAML per change)
+|`k8s-pod-change-short.log` | Pod changes stream of the Kubernetes cluster (one line per change)
+|`k8s-ping.log` | The testdriver "pings" (`kubectl get pods ...`) the (existing or managed) cluster every 5 seconds to document/test its connectivity. This file contains the results of these pings
+|`k8s-summary.log` | The summary of the K8s "pings" mentioned above (counts grouped by result type)
+|`stackable-versions.txt` | Text file containing the versions of the installed Stackable components in the cluster (if managed)
+|`test-output.log` | Output of the test script
 |=======
 
 === Return code
