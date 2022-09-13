@@ -153,7 +153,7 @@ def ping_k8s():
             proc.kill()
             out, error = proc.communicate()
         if proc.returncode == 0:
-            append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} OK.\n")
+            append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} OK ({len(out)} bytes).\n")
             summary[proc.returncode] = summary[proc.returncode] + 1
         elif proc.returncode < 0:
             append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} Timeout after 10 seconds.\n")
