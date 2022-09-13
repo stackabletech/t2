@@ -73,6 +73,10 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" > /tmp/awscl
 RUN unzip /tmp/awscli/awscliv2.zip -d /tmp/awscli/
 RUN /tmp/awscli/aws/install
 
+# install command to stop interactive session
+COPY stop-session.sh /tmp/stop-session.sh
+RUN install -o root -g root -m 0755 /tmp/stop-session.sh /usr/bin/stop-session
+
 # Testdriver script
 COPY testdriver.py /
 
