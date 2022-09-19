@@ -233,6 +233,12 @@ def log(msg=""):
 
 
 def run_test_script():
+    if os.path.isfile("/test.sh"):
+        log(f"\n\ntest.sh:\n\n")
+        with open ("/test.sh", "r") as f:
+            log(f.read())
+        log("\n\n")
+
     os.system(f"(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee {TEST_OUTPUT_LOGFILE}")
     time.sleep(15)
     with open ("/test_exit_code", "r") as f:
