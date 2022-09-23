@@ -51,11 +51,13 @@ K8S_MONITORING_LOGFILE = f"{TARGET_FOLDER}k8s-ping.log"
 K8S_MONITORING_SUMMARY_FILE = f"{TARGET_FOLDER}k8s-summary.txt"
 K8S_POD_CHANGE_LOGFILE = f"{TARGET_FOLDER}k8s-pod-change.log"
 K8S_POD_CHANGE_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-pod-change-short.log"
-K8S_EVENT_LOGFILE = f"{TARGET_FOLDER}k8s-event.log"
-K8S_EVENT_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-event-short.log"
+K8S_EVENT_WATCH_LOGFILE = f"{TARGET_FOLDER}k8s-event-watch.log"
+K8S_EVENT_WATCH_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-event-watch-short.log"
+K8S_EVENT_LIST_LOGFILE = f"{TARGET_FOLDER}k8s-event-list.log"
+K8S_EVENT_LIST_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-event-list-short.log"
 OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, K8S_MONITORING_LOGFILE, 
                     K8S_MONITORING_SUMMARY_FILE, K8S_POD_CHANGE_LOGFILE, K8S_POD_CHANGE_LOGFILE_SHORT,
-                    K8S_EVENT_LOGFILE, K8S_EVENT_LOGFILE_SHORT, STACKABLE_VERSIONS_FILE]
+                    K8S_EVENT_WATCH_LOGFILE, K8S_EVENT_WATCH_LOGFILE_SHORT, K8S_EVENT_LIST_LOGFILE, K8S_EVENT_LIST_LOGFILE_SHORT, STACKABLE_VERSIONS_FILE]
 
 # misc constants
 CLUSTER_LAUNCH_TIMEOUT = 3600
@@ -186,8 +188,8 @@ def start_k8s_monitoring():
     threading.Thread(target=ping_k8s, args=()).start()
     background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get pods --all-namespaces -o yaml --watch > {K8S_POD_CHANGE_LOGFILE}"]))
     background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get pods --all-namespaces --watch > {K8S_POD_CHANGE_LOGFILE_SHORT}"]))
-    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o yaml --watch > {K8S_EVENT_LOGFILE}"]))
-    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces --watch -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > {K8S_EVENT_LOGFILE_SHORT}"]))
+    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o yaml --watch > {K8S_EVENT_WATCH_LOGFILE}"]))
+    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces --watch -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > {K8S_EVENT_WATCH_LOGFILE_SHORT}"]))
 
 
 def stop_all_background_tasks():
@@ -463,7 +465,19 @@ def configure_k8s_access():
     os.system("chmod 600 /root/.kube/config")
 
 
-def ex_post_logs():
+def write_retrospective_logs():
+
+    try:
+        process_dump_events_1 = Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o yaml > {K8S_EVENT_LIST_LOGFILE}"])
+        process_dump_events_1.wait(timeout=120)
+    except TimeoutExpired:
+        pass
+
+    try:
+        process_dump_events_2 = Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > {K8S_EVENT_LIST_LOGFILE_SHORT}"])
+        process_dump_events_2.wait(timeout=120)
+    except TimeoutExpired:
+        pass
 
     if(os.path.exists("/usr/bin/stackable")):
         os.system(r"""cat /root/.ssh/config | grep 'Host main' | cut -d ' ' -f 2 | awk -F'/' '{print "stackable "$1" '\''journalctl -u k3s-agent'\'' > /target/"$1"-k3s-agent.log"}' | sh""")
@@ -514,9 +528,11 @@ if __name__ == "__main__":
         stop_all_background_tasks()
         log("All background tasks are stopped.")        
 
+        log("Log stuff after_execution")
+        write_retrospective_logs()
+
     # Stop managed K8s cluster
     if(cluster_mode == Cluster.MANAGED):
-        ex_post_logs()
         terminate_cluster(cluster_id)
 
     # Set output file ownership recursively 
