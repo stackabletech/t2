@@ -59,10 +59,17 @@ aws sts get-caller-identity
 # Project-ID is provided to Terraform as environment variable
 export TF_VAR_google_cloud_project_id=`cat /var/t2/t2-config.yaml | yq -e '.gcloud.project-id' 2>/dev/null`
 
-# Extract credential file for glcoud CLI from T2 config and let environment variable point to it
+# Extract credential file for glcoud CLI from T2 config
 cat /var/t2/t2-config.yaml | yq -e '.gcloud.cred-file' 2>/dev/null > /var/t2/gcloud-credentials.json
+
+# let environment variable point to GCloud credential file for use in Terraform
 export GOOGLE_APPLICATION_CREDENTIALS=/var/t2/gcloud-credentials.json
 
+# Log into GCloud
+gcloud auth login --cred-file=/var/t2/gcloud-credentials.json
+
+echo "GCloud CLI login:"
+gcloud info
 
 # Start Java application
 # 'exec' => java process takes over and gets the signals
