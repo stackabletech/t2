@@ -64,13 +64,6 @@ resource "google_container_cluster" "cluster" {
   node_config {
     machine_type = can(yamldecode(file("cluster.yaml"))["spec"]["machineType"]) ? yamldecode(file("cluster.yaml"))["spec"]["machineType"] : "e2-standard-2"
   }
-  private_cluster_config {
-    enable_private_nodes = true
-    enable_private_endpoint = false 
-    master_ipv4_cidr_block = "10.5.0.0/28"
-  }
-  ip_allocation_policy {
-  }
 }
 
 # Create kubeconfig
