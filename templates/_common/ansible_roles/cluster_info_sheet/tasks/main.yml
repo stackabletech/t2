@@ -1,5 +1,10 @@
 # Collect version information to file
 ---
+- name: create resources directory
+  file:
+    path: "resources"
+    state: directory
+
 - name: Collect cluster info into file
   shell: |
     kubectl --kubeconfig kubeconfig get nodes > resources/stackable-versions.txt
