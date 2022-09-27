@@ -114,6 +114,11 @@ resource "google_service_account" "cluster_admin" {
   }
 }
 
+data "local_file" "gcloud_credentials" {
+    filename = "gcloud_credentials.json"
+    depends_on = [ google_service_account.cluster_admin ]
+}
+
 resource "google_project_iam_member" "project" {
   project = var.google_cloud_project_id
   role    = "roles/editor"
@@ -127,6 +132,5 @@ resource "local_file" "gke_coordinates" {
     project: var.google_cloud_project_id
     zone: local.zone
     cluster_name: var.cluster_name
-    gcloud_credentials: file("gcloud_credentials.json")
   })
 }

@@ -52,6 +52,7 @@ if __name__ == "__main__":
 
     gke_coordinates = read_gke_coordinates()
     gcloud_credentials = read_gcloud_credentials()
+    gke_coordinates['gcloud_credentials'] = gcloud_credentials
 
     access_script = ACCESS_SCRIPT_TEMPLATE.format(**gke_coordinates)
     readme_txt = README_TXT_TEMPLATE.format(**gke_coordinates)
