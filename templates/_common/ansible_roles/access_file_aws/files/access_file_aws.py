@@ -33,7 +33,7 @@ README_TXT_TEMPLATE = """#  This file describes how to access a T2 Kubernetes cl
 #  To be machine-processable, this file also contains...
 #
 #  - ...a script 'access.sh' to execute all the aforementioned commands in one go (under .access_script)
-#  - ...the values of all the params you will need if you want to use a different way to access the cluster (under .values.<key>)
+#  - ...the information you will need if you want to use a different way to access the cluster (under .data.<key>)
 #
 """
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     access_script = ACCESS_SCRIPT_TEMPLATE.format(**aws_credentials)
     readme_txt = README_TXT_TEMPLATE.format(**aws_credentials)
 
-    access_yaml = { 'access_script': access_script, 'values': aws_credentials }
+    access_yaml = { 'access_script': access_script, 'data': aws_credentials }
 
     with open ("resources/access.yaml", "w") as f:
         f.write(readme_txt)

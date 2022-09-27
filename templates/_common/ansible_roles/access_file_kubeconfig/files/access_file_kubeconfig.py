@@ -6,7 +6,7 @@ def read_kubeconfig():
 
 if __name__ == "__main__":
 
-    readme_txt = """#  To access the cluster, use the kubeconfig which is contained in this file as .resources.kubeconfig.
+    readme_txt = """#  To access the cluster, use the kubeconfig which is contained in this file as .kubeconfig.
 #  It is self-contained, so you do not need further credentials or tools.
 #
 """

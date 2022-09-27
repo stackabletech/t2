@@ -132,3 +132,7 @@ module "wireguard" {
   endpoint_ip               = module.hcloud_edge_node.cluster_ip
 }
 
+module "access_file_kubeconfig" {
+  source = "../access_file_kubeconfig"
+  kubeconfig = file("launch.yml")
+}

@@ -106,10 +106,10 @@ resource "google_service_account" "cluster_admin" {
   account_id   = "${var.cluster_name}-cluster-admin"
   display_name = "Cluster Admin for ${var.cluster_name}"
   provisioner "local-exec" {
-    command = "gcloud --project ${var.google_cloud_project_id} iam service-accounts keys create resources/credentials.json --iam-account=${google_service_account.cluster_admin.email}"
+    command = "gcloud --project ${var.google_cloud_project_id} iam service-accounts keys create gcloud_credentials.json --iam-account=${google_service_account.cluster_admin.email}"
   }
   provisioner "local-exec" {
-    command = "rm resources/credentials.json"
+    command = "rm gcloud_credentials.json"
     when = destroy
   }
 }
@@ -118,4 +118,15 @@ resource "google_project_iam_member" "project" {
   project = var.google_cloud_project_id
   role    = "roles/editor"
   member  = "serviceAccount:${google_service_account.cluster_admin.email}"
+}
+
+# File which contains the GKE coordinates needed to access the cluster
+resource "local_file" "gke_coordinates" {
+  filename = "gke_coordinates.yaml"
+  content = yamlencode({ 
+    project: var.google_cloud_project_id
+    zone: local.zone
+    cluster_name: var.cluster_name
+    gcloud_credentials: file("gcloud_credentials.json")
+  })
 }
