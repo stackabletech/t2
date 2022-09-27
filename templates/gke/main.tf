@@ -69,13 +69,13 @@ resource "google_container_cluster" "cluster" {
 # Create kubeconfig
 resource "null_resource" "kubeconfig" {
   provisioner "local-exec" {
-    command = "KUBECONFIG=resources/kubeconfig gcloud container clusters get-credentials ${google_container_cluster.cluster.name} --zone ${local.zone} --project ${var.google_cloud_project_id}"
+    command = "KUBECONFIG=kubeconfig gcloud container clusters get-credentials ${google_container_cluster.cluster.name} --zone ${local.zone} --project ${var.google_cloud_project_id}"
   }
   depends_on = [
     google_container_cluster.cluster
   ]
   provisioner "local-exec" {
-    command = "rm resources/kubeconfig"
+    command = "rm kubeconfig"
     when = destroy
   }
 }

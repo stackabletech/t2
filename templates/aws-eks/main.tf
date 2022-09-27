@@ -167,7 +167,7 @@ provider "kubernetes" {
 
 resource "null_resource" "kubeconfig" {
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${var.cluster_name} --region ${local.region} --kubeconfig resources/kubeconfig"
+    command = "aws eks update-kubeconfig --name ${var.cluster_name} --region ${local.region} --kubeconfig kubeconfig"
   }
   depends_on = [
     data.aws_eks_cluster.cluster
@@ -177,7 +177,7 @@ resource "null_resource" "kubeconfig" {
 resource "null_resource" "patch_aws_auth" {
   provisioner "local-exec" {
     command = <<EOT
-      sleep 60 && kubectl --kubeconfig resources/kubeconfig patch configmap -n kube-system aws-auth -p '{"data":{"mapUsers":"[{\"userarn\": \"${aws_iam_user.cluster_admin.arn}\", \"username\": \"${var.cluster_name}-cluster-admin\", \"groups\": [\"system:masters\"]}]"}}'
+      sleep 60 && kubectl --kubeconfig kubeconfig patch configmap -n kube-system aws-auth -p '{"data":{"mapUsers":"[{\"userarn\": \"${aws_iam_user.cluster_admin.arn}\", \"username\": \"${var.cluster_name}-cluster-admin\", \"groups\": [\"system:masters\"]}]"}}'
     EOT
   }
   depends_on = [

@@ -78,7 +78,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
 
 # write kubeconfig to file
 resource "local_file" "kubeconfig" {
-  filename = "resources/kubeconfig"
+  filename = "kubeconfig"
   content = azurerm_kubernetes_cluster.kubernetes-cluster.kube_config_raw
   file_permission = "0400"
 } 
