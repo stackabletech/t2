@@ -68,19 +68,6 @@ resource "aws_iam_access_key" "cluster_admin" {
   user = aws_iam_user.cluster_admin.name
 }
 
-resource "local_file" "credentials" {
-  filename = "resources/credentials.yaml"
-  content = templatefile("credentials.tpl",
-    {
-      arn = aws_iam_user.cluster_admin.arn
-      unique_id = aws_iam_user.cluster_admin.unique_id
-      aws_key = aws_iam_access_key.cluster_admin.id
-      aws_secret_key = aws_iam_access_key.cluster_admin.secret
-    }
-  )
-  file_permission = "0440"
-} 
-
 data "aws_availability_zones" "available" {}
 
 module "vpc" {
@@ -204,4 +191,15 @@ resource "local_file" "ansible-inventory" {
     }
   )
   file_permission = "0440"
+}
+
+# File which contains the AWS credentials and params needed to access the cluster
+resource "local_file" "aws_credentials" {
+  filename = "aws_credentials.yaml"
+  content = yamlencode({ 
+    cluster_name: var.cluster_name
+    aws_access_key: aws_iam_access_key.cluster_admin.id
+    aws_secret_access_key: aws_iam_access_key.cluster_admin.secret
+    location: local.region
+  })
 }
