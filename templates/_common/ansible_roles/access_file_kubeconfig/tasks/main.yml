@@ -1,0 +1,5 @@
+---
+- name: Create access file for a self-contained kubeconfig
+  script: access_file_kubeconfig.py
+  args:
+    executable: python3
