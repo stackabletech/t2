@@ -200,6 +200,6 @@ resource "local_file" "aws_credentials" {
     cluster_name: var.cluster_name
     aws_access_key: aws_iam_access_key.cluster_admin.id
     aws_secret_access_key: aws_iam_access_key.cluster_admin.secret
-    location: local.region
+    region: local.region
   })
 }
