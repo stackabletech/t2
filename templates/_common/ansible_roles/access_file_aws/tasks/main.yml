@@ -1,0 +1,5 @@
+---
+- name: Create access file for an AWS EKS cluster
+  script: access_file_aws.py
+  args:
+    executable: python3
