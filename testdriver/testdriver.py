@@ -42,6 +42,8 @@ TARGET_FOLDER = "/target/"
 CLUSTER_DEFINITION_FILE = "/cluster.yaml"
 TEST_SCRIPT_FILE = "/test.sh"
 K8S_CONFIG_FILE = "/root/.kube/config"
+CLUSTER_ACCESS_FILE = "/access.yaml"
+CLUSTER_ACCESS_SCRIPT = "/access.sh"
 
 # constants for file handles (logfiles and the like)
 TESTDRIVER_LOGFILE = f"{TARGET_FOLDER}testdriver.log"
@@ -103,8 +105,8 @@ def process_input():
             exit(EXIT_CODE_CLUSTER_FAILED)
 
     if cluster_mode == Cluster.EXISTING:
-        if not os.path.isfile(K8S_CONFIG_FILE):
-            print(f"Error: For cluster mode EXISTING, please supply a Kubernetes config file as {K8S_CONFIG_FILE}")
+        if not (os.path.isfile(K8S_CONFIG_FILE) or os.path.isfile(CLUSTER_ACCESS_FILE)):
+            print(f"Error: For cluster mode EXISTING, please supply either a T2 cluster access file as {CLUSTER_ACCESS_FILE} or a Kubernetes config file as {K8S_CONFIG_FILE}")
             exit(EXIT_CODE_CLUSTER_FAILED)
 
     if not interactive_mode:
@@ -246,6 +248,37 @@ def run_test_script():
     with open ("/test_exit_code", "r") as f:
         return int(f.read().strip())
 
+
+def connect_to_existing_cluster():
+    if os.path.isfile(K8S_CONFIG_FILE):
+        log(f"A kubeconfig file was supplied as {K8S_CONFIG_FILE}. The testdriver will use it to connect to the cluster")
+        return
+
+    log(f"A T2 cluster access file was supplied as {CLUSTER_ACCESS_FILE}.")
+    with open (CLUSTER_ACCESS_FILE, "r") as f:
+        cluster_access_file = yaml.load(f.read(), Loader=yaml.FullLoader)
+
+        if 'access_script' in cluster_access_file:
+            log("The T2 cluster access file contains an access script.")
+            log("Writing access script to file...")
+            with open (CLUSTER_ACCESS_SCRIPT, "w") as f:
+                f.write(cluster_access_file['access_script'])
+                f.close()
+            os.system(f"chmod o+x {CLUSTER_ACCESS_SCRIPT}")
+            log(f"Written access script to {CLUSTER_ACCESS_SCRIPT}.")
+            log("Executing access script...")
+            os.system(CLUSTER_ACCESS_SCRIPT)
+            log("Executed access script.")
+        elif 'kubeconfig' in cluster_access_file:
+            log("The T2 cluster access file contains a kubeconfig.")
+            log("Writing kubeconfig to file...")
+            with open (K8S_CONFIG_FILE, "w") as f:
+                f.write(cluster_access_file['kubeconfig'])
+                f.close()
+            log(f"Written access script to {K8S_CONFIG_FILE}.")
+        else:
+            log("Invalid T2 cluster access file.")
+            exit(1)
 
 def prepare_managed_cluster():
 
@@ -412,10 +445,6 @@ def download_cluster_files(t2_url, t2_token, id):
     download_cluster_file(t2_url, t2_token, id, "ssh-config", "/tmp/ssh-config")
     log("Downloading Stackable version information sheet for cluster from T2...")
     download_cluster_file(t2_url, t2_token, id, "stackable-versions", STACKABLE_VERSIONS_FILE)
-    log("Downloading kubeconfig from T2...")
-    download_cluster_file(t2_url, t2_token, id, "kubeconfig", K8S_CONFIG_FILE)
-    log("Downloading credentials file from T2...")
-    download_cluster_file(t2_url, t2_token, id, "credentials", "/tmp/credentials.yaml")
 
 
 def install_stackable_client_script():
@@ -440,29 +469,6 @@ def configure_ssh():
         return
 
     log('SSH not configurable in this cluster.')
-
-
-def configure_k8s_access():
-
-    if(not os.path.exists(K8S_CONFIG_FILE)):
-        log("No kubeconfig available for this cluster")
-        return
-
-    # Currently, the credentials file is only available for AWS EKS
-    # TODO We'll have to use the credentials file as a general way of 
-    # telling the testdriver how to connect
-    if(os.path.exists("/tmp/credentials.yaml")):
-        with open ("/tmp/credentials.yaml", "r") as f:
-            credentials_string = f.read()
-        credentials_yaml = yaml.load(credentials_string, Loader=yaml.FullLoader)
-        aws_access_key = credentials_yaml[0]['data']['aws_access_key']
-        aws_secret_access_key = credentials_yaml[0]['data']['aws_secret_access_key']
-        os.system(f"aws configure set aws_access_key_id {aws_access_key}")
-        os.system(f"aws configure set aws_secret_access_key {aws_secret_access_key}")
-        os.system(f"aws configure set region eu-central-1")
-        log("Successfully set up aws cli")
-
-    os.system("chmod 600 /root/.kube/config")
 
 
 def write_retrospective_logs():
@@ -495,6 +501,7 @@ if __name__ == "__main__":
         log("Testdriver operates without any cluster.")
     elif cluster_mode == Cluster.EXISTING:
         log("Testdriver operates on existing cluster.")
+        connect_to_existing_cluster()
     else:
         log("Testdriver launches new managed cluster...")
         prepare_managed_cluster()
@@ -502,7 +509,6 @@ if __name__ == "__main__":
         download_cluster_files(t2_url, t2_token, cluster_id)
         install_stackable_client_script()
         configure_ssh()
-        configure_k8s_access()
 
 
     # Start K8s cluster monitoring
