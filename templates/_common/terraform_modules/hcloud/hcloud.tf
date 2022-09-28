@@ -131,8 +131,3 @@ module "wireguard" {
   allowed_ips               = concat([ for node in module.hcloud_protected_nodes.nodes: element(node.network[*].ip, 0) ], [element(module.hcloud_protected_nodes.orchestrator.network[*].ip, 0)])
   endpoint_ip               = module.hcloud_edge_node.cluster_ip
 }
-
-module "access_file_kubeconfig" {
-  source = "../access_file_kubeconfig"
-  kubeconfig = file("launch.yml")
-}
