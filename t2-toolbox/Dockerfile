@@ -43,3 +43,6 @@ RUN helm repo add stackable-dev https://repo.stackable.tech/repository/helm-dev/
 RUN helm repo add stackable-test https://repo.stackable.tech/repository/helm-test/
 RUN helm repo add stackable-stable https://repo.stackable.tech/repository/helm-stable/
 RUN helm repo update
+
+# install yq (YAML Parser)
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
