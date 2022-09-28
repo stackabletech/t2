@@ -249,15 +249,9 @@ def run_test_script():
         return int(f.read().strip())
 
 
-def connect_to_existing_cluster():
-    if os.path.isfile(K8S_CONFIG_FILE):
-        log(f"A kubeconfig file was supplied as {K8S_CONFIG_FILE}. The testdriver will use it to connect to the cluster")
-        return
-
-    log(f"A T2 cluster access file was supplied as {CLUSTER_ACCESS_FILE}.")
+def connect_with_cluster_access_file():
     with open (CLUSTER_ACCESS_FILE, "r") as f:
         cluster_access_file = yaml.load(f.read(), Loader=yaml.FullLoader)
-
         if 'access_script' in cluster_access_file:
             log("The T2 cluster access file contains an access script.")
             log("Writing access script to file...")
@@ -269,16 +263,28 @@ def connect_to_existing_cluster():
             log("Executing access script...")
             os.system(CLUSTER_ACCESS_SCRIPT)
             log("Executed access script.")
+            return True
         elif 'kubeconfig' in cluster_access_file:
             log("The T2 cluster access file contains a kubeconfig.")
             log("Writing kubeconfig to file...")
             with open (K8S_CONFIG_FILE, "w") as f:
                 f.write(cluster_access_file['kubeconfig'])
                 f.close()
-            log(f"Written access script to {K8S_CONFIG_FILE}.")
-        else:
-            log("Invalid T2 cluster access file.")
-            exit(1)
+            log(f"Written kubeconfig to {K8S_CONFIG_FILE}.")
+            return True
+
+        log("Invalid T2 cluster access file.")
+        return False
+
+
+def connect_to_existing_cluster():
+    if os.path.isfile(K8S_CONFIG_FILE):
+        log(f"A kubeconfig file was supplied as {K8S_CONFIG_FILE}. The testdriver will use it to connect to the cluster")
+        return True
+
+    log(f"A T2 cluster access file was supplied as {CLUSTER_ACCESS_FILE}.")
+    return connect_with_cluster_access_file()
+
 
 def prepare_managed_cluster():
 
@@ -445,6 +451,8 @@ def download_cluster_files(t2_url, t2_token, id):
     download_cluster_file(t2_url, t2_token, id, "ssh-config", "/tmp/ssh-config")
     log("Downloading Stackable version information sheet for cluster from T2...")
     download_cluster_file(t2_url, t2_token, id, "stackable-versions", STACKABLE_VERSIONS_FILE)
+    log("Downloading cluster access file for cluster from T2...")
+    download_cluster_file(t2_url, t2_token, id, "access", CLUSTER_ACCESS_FILE)
 
 
 def install_stackable_client_script():
@@ -501,7 +509,7 @@ if __name__ == "__main__":
         log("Testdriver operates without any cluster.")
     elif cluster_mode == Cluster.EXISTING:
         log("Testdriver operates on existing cluster.")
-        connect_to_existing_cluster()
+        cluster_connection_successful = connect_to_existing_cluster()
     else:
         log("Testdriver launches new managed cluster...")
         prepare_managed_cluster()
@@ -509,33 +517,36 @@ if __name__ == "__main__":
         download_cluster_files(t2_url, t2_token, cluster_id)
         install_stackable_client_script()
         configure_ssh()
+        cluster_connection_successful = connect_with_cluster_access_file()
 
+    # If we have a working connection to a cluster, we proceed with the test or interactive session
+    if (cluster_mode == Cluster.NONE) or cluster_connection_successful:
 
-    # Start K8s cluster monitoring
-    if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
-        log("Start Kubernetes cluster monitoring...")
-        start_k8s_monitoring()
-        log("Started Kubernetes cluster monitoring.")
+        # Start K8s cluster monitoring
+        if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
+            log("Start Kubernetes cluster monitoring...")
+            start_k8s_monitoring()
+            log("Started Kubernetes cluster monitoring.")
 
-    exit_code = 0
+        exit_code = 0
 
-    if interactive_mode:
-        log("Testdriver started in interactive mode.")
-        log("To stop the cluster, please execute the stop-session command in the container.")
-        interactive_mode_wait()
-    else:
-        log("Starting test script...")
-        exit_code = run_test_script()
-        log(f"Test script terminated with exit code {exit_code}")
+        if interactive_mode:
+            log("Testdriver started in interactive mode.")
+            log("To stop the cluster, please execute the stop-session command in the container.")
+            interactive_mode_wait()
+        else:
+            log("Starting test script...")
+            exit_code = run_test_script()
+            log(f"Test script terminated with exit code {exit_code}")
 
-    # Stop K8s cluster monitoring
-    if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
-        log("Stopping all background tasks...")        
-        stop_all_background_tasks()
-        log("All background tasks are stopped.")        
+        # Stop K8s cluster monitoring
+        if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
+            log("Stopping all background tasks...")        
+            stop_all_background_tasks()
+            log("All background tasks are stopped.")        
 
-        log("Log stuff after_execution")
-        write_retrospective_logs()
+            log("Log stuff after_execution")
+            write_retrospective_logs()
 
     # Stop managed K8s cluster
     if(cluster_mode == Cluster.MANAGED):
