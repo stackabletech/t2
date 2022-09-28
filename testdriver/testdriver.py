@@ -3,46 +3,227 @@ import os.path
 import datetime
 import time
 import sys
+from turtle import back
 import yaml
 import requests
 import re
-import subprocess
+import threading
+from datetime import datetime
+from subprocess import PIPE, TimeoutExpired, Popen
+from enum import Enum
 
+class Cluster(Enum):
+    NONE = "NONE"
+    EXISTING = "EXISTING"
+    MANAGED = "MANAGED"
+
+# vars representing input
+cluster_mode = None
+interactive_mode = False
+uid_gid_output = '0:0'
+t2_url = None
+t2_token = None
+
+# thread communication
+thread_stop_signal = False
+k8s_ping_terminated = False
+
+# system processes running in the background (!= Python threads!)
+background_processes = []
+
+# cluster
+cluster_id = None
+
+# constants for file handles
 CLUSTER_FOLDER = ".cluster/"
 PRIVATE_KEY_FILE = f"{CLUSTER_FOLDER}key"
 PUBLIC_KEY_FILE = f"{CLUSTER_FOLDER}key.pub"
-TIMEOUT_SECONDS = 3600
+TARGET_FOLDER = "/target/"
+CLUSTER_DEFINITION_FILE = "/cluster.yaml"
+TEST_SCRIPT_FILE = "/test.sh"
+K8S_CONFIG_FILE = "/root/.kube/config"
+CLUSTER_ACCESS_FILE = "/access.yaml"
+CLUSTER_ACCESS_SCRIPT = "/access.sh"
 
+# constants for file handles (logfiles and the like)
+TESTDRIVER_LOGFILE = f"{TARGET_FOLDER}testdriver.log"
+TEST_OUTPUT_LOGFILE = f"{TARGET_FOLDER}test-output.log"
+STACKABLE_VERSIONS_FILE = f"{TARGET_FOLDER}stackable-versions.txt"
+K8S_MONITORING_LOGFILE = f"{TARGET_FOLDER}k8s-ping.log"
+K8S_MONITORING_SUMMARY_FILE = f"{TARGET_FOLDER}k8s-summary.txt"
+K8S_POD_CHANGE_LOGFILE = f"{TARGET_FOLDER}k8s-pod-change.log"
+K8S_POD_CHANGE_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-pod-change-short.log"
+K8S_EVENT_WATCH_LOGFILE = f"{TARGET_FOLDER}k8s-event-watch.log"
+K8S_EVENT_WATCH_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-event-watch-short.log"
+K8S_EVENT_LIST_LOGFILE = f"{TARGET_FOLDER}k8s-event-list.log"
+K8S_EVENT_LIST_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-event-list-short.log"
+OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, K8S_MONITORING_LOGFILE, 
+                    K8S_MONITORING_SUMMARY_FILE, K8S_POD_CHANGE_LOGFILE, K8S_POD_CHANGE_LOGFILE_SHORT,
+                    K8S_EVENT_WATCH_LOGFILE, K8S_EVENT_WATCH_LOGFILE_SHORT, K8S_EVENT_LIST_LOGFILE, K8S_EVENT_LIST_LOGFILE_SHORT, STACKABLE_VERSIONS_FILE]
+
+# misc constants
+CLUSTER_LAUNCH_TIMEOUT = 3600
 EXIT_CODE_CLUSTER_FAILED = 255
 
-def prerequisites():
-    """ Checks the prerequisites of this script and fails if they are not satisfied. """
-    if not 'T2_TOKEN' in os.environ:
-        print("Error: Please supply T2_TOKEN as an environment variable.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-    if not 'T2_URL' in os.environ:
-        print("Error: Please supply T2_URL as an environment variable.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-    if not os.path.isfile("/cluster.yaml"):
-        print("Error Please supply cluster definition as file in /cluster.yaml.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
+def process_input():
+    """ 'input' means environment variables and volumes, because this script is the entrypoint of
+        a Docker container.
 
-
-def init_log():
-    """ Inits the log files.
-        a) remove the files that will be written later
-        b) create the empty testdriver log and make it accessible
+        The input is checked for valid combinations/completeness and the values are processed.
     """
-    os.system('rm -rf /target/testdriver.log || true')
-    os.system('rm -rf /target/k8s_pod_change.log || true')
-    os.system('rm -rf /target/k8s_pod_change_short.log || true')
-    os.system('rm -rf /target/k8s_event.log || true')
-    os.system('rm -rf /target/k8s_event_short.log || true')
-    os.system('touch /target/testdriver.log')
-    os.system(f"chown {uid_gid_output} /target/testdriver.log")
-    os.system('chmod 664 /target/testdriver.log')
-    os.system('rm -rf /target/test_output.log || true')
-    os.system('rm -rf /target/stackable-versions.txt || true')
+    global cluster_mode
+    global interactive_mode
+    global uid_gid_output
+    global t2_url
+    global t2_token
+
+    if not ('CLUSTER' in os.environ and os.environ['CLUSTER'] in Cluster._member_map_):
+        print('Error: Please supply CLUSTER (values: NONE, EXISTING, MANAGED) as an environment variable.')
+        exit(EXIT_CODE_CLUSTER_FAILED)
+    
+    cluster_mode = Cluster._member_map_[os.environ['CLUSTER']]
+
+    interactive_mode = 'INTERACTIVE_MODE' in os.environ and os.environ['INTERACTIVE_MODE'].capitalize() == str(True)
+
+    if 'UID_GID' in os.environ:
+        uid_gid_output = os.environ['UID_GID']
+
+    if cluster_mode == Cluster.MANAGED:
+        if not ('T2_URL' in os.environ and 'T2_TOKEN' in os.environ):
+            print('Error: For cluster mode MANAGED, please supply T2_URL and T2_TOKEN as environment variables.')
+            exit(EXIT_CODE_CLUSTER_FAILED)
+        t2_url = os.environ['T2_URL']
+        t2_token = os.environ['T2_TOKEN']
+
+    if not os.path.isdir(TARGET_FOLDER):
+        print(f"Error: A target folder volume has to be supplied as {TARGET_FOLDER}. ")
+        exit(EXIT_CODE_CLUSTER_FAILED)
+
+    if cluster_mode == Cluster.MANAGED:
+        if not os.path.isfile(CLUSTER_DEFINITION_FILE):
+            print(f"Error: For cluster mode MANAGED, please supply a cluster definition as {CLUSTER_DEFINITION_FILE}")
+            exit(EXIT_CODE_CLUSTER_FAILED)
+
+    if cluster_mode == Cluster.EXISTING:
+        if not (os.path.isfile(K8S_CONFIG_FILE) or os.path.isfile(CLUSTER_ACCESS_FILE)):
+            print(f"Error: For cluster mode EXISTING, please supply either a T2 cluster access file as {CLUSTER_ACCESS_FILE} or a Kubernetes config file as {K8S_CONFIG_FILE}")
+            exit(EXIT_CODE_CLUSTER_FAILED)
+
+    if not interactive_mode:
+        if not os.path.isfile(TEST_SCRIPT_FILE):
+            print('Error: Please supply a test script as /test.sh')
+            exit(EXIT_CODE_CLUSTER_FAILED)
+
+
+def set_target_folder_owner():
+    """
+        The target folder must be owned by the user/group given as UID_GID.
+    """
+    os.system(f"chown -R {uid_gid_output} {TARGET_FOLDER}")
+
+
+def interactive_mode_wait():
+    """ Waits for the termination of the interactive mode.
+    """
+    while not os.path.exists('/session_stopped'):
+        time.sleep(1)
+    log("Interactive session terminated")
+
+
+def append_bytes(file, content):
+    with open (file, "ab") as f:
+        f.write(content)
+        f.close()
+
+
+def append_string(file, content):
+    with open (file, "a") as f:
+        f.write(content)
+        f.close()
+
+
+def timestamp():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def ping_k8s():
+    global k8s_ping_terminated
+    summary = { 0: 0, -1: 0}
+    while not thread_stop_signal:
+        proc = Popen(['/bin/bash', '-c', 'kubectl get pods --no-headers --all-namespaces --field-selector status.phase=Running'], stdout=PIPE, stderr=PIPE)
+        try:
+            out, error = proc.communicate(timeout=10)
+        except TimeoutExpired:
+            proc.kill()
+            out, error = proc.communicate()
+        if proc.returncode == 0:
+            append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} OK ({len(out)} bytes).\n")
+            summary[proc.returncode] = summary[proc.returncode] + 1
+        elif proc.returncode < 0:
+            append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} Timeout after 10 seconds.\n")
+            summary[-1] = summary[-1] + 1
+        else:
+            append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} Error. exit code={proc.returncode}.\n")
+            append_bytes(K8S_MONITORING_LOGFILE, error)
+            if proc.returncode in summary:
+                summary[proc.returncode] = summary[proc.returncode] + 1
+            else:
+                summary[proc.returncode] = 1
+        time.sleep(5)
+
+    summary_text = f"""Ping statistics (kubectl get pods)
+
+total # of pings:       {str(sum(summary.values())).rjust(8)}
+# of successful pings:  {str(summary[0]).rjust(8)}
+# of timed out pings:   {str(summary[-1]).rjust(8)}
+# of errors:            {str(sum(summary.values()) - (summary[0] + summary[-1])).rjust(8)}
+"""
+
+    with open (K8S_MONITORING_SUMMARY_FILE, "w") as f:
+        f.write(summary_text)
+        f.close()
+
+    k8s_ping_terminated = True
+
+
+def start_k8s_monitoring():
+    threading.Thread(target=ping_k8s, args=()).start()
+    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get pods --all-namespaces -o yaml --watch > {K8S_POD_CHANGE_LOGFILE}"]))
+    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get pods --all-namespaces --watch > {K8S_POD_CHANGE_LOGFILE_SHORT}"]))
+    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o yaml --watch > {K8S_EVENT_WATCH_LOGFILE}"]))
+    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces --watch -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > {K8S_EVENT_WATCH_LOGFILE_SHORT}"]))
+
+
+def stop_all_background_tasks():
+    """ Sets the stop signal to all background tasks and waits for them to be terminated.
+        Must only be called from the MAIN thread.
+        Furthermore, this method stops the system processes running in the background.
+    """
+    global thread_stop_signal
+    
+    for p in background_processes:
+        p.terminate()
+
+    thread_stop_signal = True
+    while(not (k8s_ping_terminated)):
+        time.sleep(1)
+
+
+def init_output_files():
+    """ Inits all the output files of the testdriver
+
+        'init' means
+        a) remove the files (to cleanup leftovers when a target folder is reused)
+        b) create them as new, empty files
+        c) change the owner according to the UID/GID given
+        d) make it writable for the owner and world-readable
+    """
+
+    for file in OUTPUT_FILES:    
+        os.system(f"rm -rf {file} || true")
+        os.system(f"touch {file}")
+        os.system(f"chown {uid_gid_output} {file}")
+        os.system(f"chmod 664 {file}")
 
 
 def log(msg=""):
@@ -50,24 +231,9 @@ def log(msg=""):
     print(msg)
     sys.stdout.flush()
     f = open("/target/testdriver.log", "a")
-    f.write('{:%Y-%m-%d %H:%M:%S.%s} :: '.format(datetime.datetime.now()))
+    f.write('{:%Y-%m-%d %H:%M:%S.%s} :: '.format(datetime.now()))
     f.write(f"{msg}\n")
     f.close()    
-
-
-def is_dry_run():
-    """ Checks if the testdriver should be executed as a 'dry run', which means
-        that the cluster is not created.
-    """
-    return 'DRY_RUN' in os.environ and os.environ['DRY_RUN']=='true'
-
-
-def is_interactive_mode():
-    """ Checks if the testdriver should be run in 'interactive mode', which means
-        that the cluster is created and after that, the script waits for the file
-        '/cluster_lock' to be deleted.
-    """
-    return 'INTERACTIVE_MODE' in os.environ and os.environ['INTERACTIVE_MODE']=='true'
 
 
 def run_test_script():
@@ -77,33 +243,65 @@ def run_test_script():
             log(f.read())
         log("\n\n")
 
-        os.system('touch /target/test_output.log')
-        os.system(f"chown {uid_gid_output} /target/test_output.log")
-        os.system('chmod 664 /target/test_output.log')
-        os.system('touch /target/k8s_pod_change.log')
-        os.system(f"chown {uid_gid_output} /target/k8s_pod_change.log")
-        os.system('chmod 664 /target/k8s_pod_change.log')
-        os.system('touch /target/k8s_event.log')
-        os.system(f"chown {uid_gid_output} /target/k8s_event.log")
-        os.system('chmod 664 /target/k8s_event.log')
-        proc_k8s_pod_changelog = subprocess.Popen(['/bin/bash', '-c', 'kubectl get pods --all-namespaces -o yaml --watch > /target/k8s_pod_change.log'])
-        proc_k8s_pod_changelog_short = subprocess.Popen(['/bin/bash', '-c', 'kubectl get pods --all-namespaces --watch > /target/k8s_pod_change_short.log'])
-        proc_k8s_eventlog = subprocess.Popen(['/bin/bash', '-c', 'kubectl get events --all-namespaces -o yaml --watch > /target/k8s_event.log'])
-        proc_k8s_eventlog_short = subprocess.Popen(['/bin/bash', '-c', "kubectl get events --all-namespaces --watch -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > /target/k8s_event_short.log"])
-        os.system('(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee /target/test_output.log')
-        time.sleep(15)
-        proc_k8s_pod_changelog.terminate()
-        proc_k8s_pod_changelog_short.terminate()
-        proc_k8s_eventlog.terminate()
-        proc_k8s_eventlog_short.terminate()
-        with open ("/test_exit_code", "r") as f:
-            return int(f.read().strip())
-    else:
-        log("No test script supplied.")
-        return 0
+    os.system(f"(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee {TEST_OUTPUT_LOGFILE}")
+    time.sleep(15)
+    with open ("/test_exit_code", "r") as f:
+        return int(f.read().strip())
 
 
-def launch(): 
+def connect_with_cluster_access_file():
+    with open (CLUSTER_ACCESS_FILE, "r") as f:
+        cluster_access_file = yaml.load(f.read(), Loader=yaml.FullLoader)
+        if 'access_script' in cluster_access_file:
+            log("The T2 cluster access file contains an access script.")
+            log("Writing access script to file...")
+            with open (CLUSTER_ACCESS_SCRIPT, "w") as f:
+                f.write(cluster_access_file['access_script'])
+                f.close()
+            os.system(f"chmod o+x {CLUSTER_ACCESS_SCRIPT}")
+            log(f"Written access script to {CLUSTER_ACCESS_SCRIPT}.")
+            log("Executing access script...")
+            os.system(CLUSTER_ACCESS_SCRIPT)
+            log("Executed access script.")
+            return True
+        elif 'kubeconfig' in cluster_access_file:
+            log("The T2 cluster access file contains a kubeconfig.")
+            log("Writing kubeconfig to file...")
+            with open (K8S_CONFIG_FILE, "w") as f:
+                f.write(cluster_access_file['kubeconfig'])
+                f.close()
+            log(f"Written kubeconfig to {K8S_CONFIG_FILE}.")
+            return True
+
+        log("Invalid T2 cluster access file.")
+        return False
+
+
+def connect_to_existing_cluster():
+    if os.path.isfile(K8S_CONFIG_FILE):
+        log(f"A kubeconfig file was supplied as {K8S_CONFIG_FILE}. The testdriver will use it to connect to the cluster")
+        return True
+
+    log(f"A T2 cluster access file was supplied as {CLUSTER_ACCESS_FILE}.")
+    return connect_with_cluster_access_file()
+
+
+def prepare_managed_cluster():
+
+    # Create folder which holds cluster metadata
+    os.system(f"rm -rf {CLUSTER_FOLDER} || true")
+    os.mkdir(CLUSTER_FOLDER)
+
+    # copy cluster definition and substitute environment variables
+    os.system(f"envsubst < {CLUSTER_DEFINITION_FILE} > {CLUSTER_FOLDER}cluster.yaml")
+
+    # save a copy in the target folder for the users to see the final cluster definition
+    os.system(f"cp {CLUSTER_FOLDER}cluster.yaml {TARGET_FOLDER}cluster.yaml")
+    os.system(f"chown -R {uid_gid_output} {TARGET_FOLDER}cluster.yaml")
+
+
+
+def launch_cluster(): 
     """Launch a cluster.
     
     This function creates a folder .cluster/ where everything related to the cluster is stored.
@@ -113,15 +311,16 @@ def launch():
 
     If the cluster launch fails, this script exits. T2 takes care of the termination of partly created clusters.
 
-    Returns cluster UUID
+    Returns cluster ID (in UUID format)
     """
 
-    os.mkdir(CLUSTER_FOLDER)
+    # Generate SSH key
     os.system(f"ssh-keygen -f {PRIVATE_KEY_FILE} -q -N '' -C ''")
     with open (PUBLIC_KEY_FILE, "r") as f:
         public_key = f.read().strip()
 
-    with open ("/_cluster.yaml", "r") as f:
+    # Put SSH key in cluster definition file
+    with open (f"{TARGET_FOLDER}cluster.yaml", "r") as f:
         cluster_definition_string = f.read()
     cluster_definition_yaml = yaml.load(cluster_definition_string, Loader=yaml.FullLoader)
 
@@ -129,56 +328,57 @@ def launch():
         log("Error: The cluster definition file does not contain a valid 'publicKeys' section.")
         exit(EXIT_CODE_CLUSTER_FAILED)
     cluster_definition_yaml["publicKeys"].append(public_key)        
-    with open (f"{CLUSTER_FOLDER}/_cluster.yaml", "w") as f:
+    with open (f"{CLUSTER_FOLDER}/cluster.yaml", "w") as f:
         f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
         f.close()
 
+    # Dump cluster definiton 
     log(f"\n\ncluster.yaml:\n\n{yaml.dump(cluster_definition_yaml, default_flow_style=False)}\n\n")
 
+    # Create cluster using T2 API
     start_time = time.time()        
-    cluster = create_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], yaml.dump(cluster_definition_yaml, default_flow_style=False))    
+    cluster = create_cluster(t2_url, t2_token, yaml.dump(cluster_definition_yaml, default_flow_style=False))    
     if(not cluster):
         log("Error: Failed to create cluster via API.")
         exit(EXIT_CODE_CLUSTER_FAILED)
-
     log(f"Created cluster '{cluster['id']}'. Waiting for cluster to be up and running...")
 
+    # Wait for cluster to be up and running
     cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-    while(TIMEOUT_SECONDS > (time.time()-start_time) and cluster['status']['state'] != 'RUNNING' and  not cluster['status']['failed']):
+    while(CLUSTER_LAUNCH_TIMEOUT > (time.time()-start_time) and cluster['status']['state'] != 'RUNNING' and  not cluster['status']['failed']):
         time.sleep(5)
         cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
 
+    # Cluster launch failed
     if(cluster['status']['failed']):
         log("Cluster launch failed.")
         exit(EXIT_CODE_CLUSTER_FAILED)
 
-    if(TIMEOUT_SECONDS <= (time.time()-start_time)):
+    # Cluster launch exceeds timeout
+    if(CLUSTER_LAUNCH_TIMEOUT <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
         exit(EXIT_CODE_CLUSTER_FAILED)
 
+    # Cluster is up and running
     log(f"Cluster '{cluster['id']}' is up and running.")
-
-    with open(f"{CLUSTER_FOLDER}/uuid", "w") as uuid_text_file:
-        print(cluster['id'], file=uuid_text_file)
 
     return cluster['id']
 
 
-def terminate():
+def terminate_cluster(cluster_id):
     """Terminates the cluster identified by the data in the .cluster/ folder.
     """
-    with open (f"{CLUSTER_FOLDER}/uuid", "r") as f:
-        uuid = f.read().strip()
+    log(f"Terminating the test cluster...")
 
     start_time = time.time()        
-    cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], uuid)    
+    cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)    
     if(not cluster):
         log("Failed to terminate cluster via API.")
         exit(EXIT_CODE_CLUSTER_FAILED)
 
     log(f"Started termination of cluster '{cluster['id']}'. Waiting for cluster to be terminated...")
     cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-    while(TIMEOUT_SECONDS > (time.time()-start_time) and cluster['status']['state'] != 'TERMINATED' and  not cluster['status']['failed']):
+    while(CLUSTER_LAUNCH_TIMEOUT > (time.time()-start_time) and cluster['status']['state'] != 'TERMINATED' and  not cluster['status']['failed']):
         time.sleep(5)
         cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
 
@@ -186,7 +386,7 @@ def terminate():
         log("Cluster termination failed.")
         exit(EXIT_CODE_CLUSTER_FAILED)
 
-    if(TIMEOUT_SECONDS <= (time.time()-start_time)):
+    if(CLUSTER_LAUNCH_TIMEOUT <= (time.time()-start_time)):
         log("Timeout while launching cluster.")
         exit(EXIT_CODE_CLUSTER_FAILED)
 
@@ -245,22 +445,19 @@ def download_cluster_file(t2_url, t2_token, id, resource_name, destination_path)
 
 def download_cluster_files(t2_url, t2_token, id):
     """Downloads the various files belonging to the cluster using T2 REST API"""
-    os.system('mkdir -p /download')
     log("Downloading Stackable client script for cluster from T2...")
-    download_cluster_file(t2_url, t2_token, id, "stackable-client-script", "/download/stackable.sh")
+    download_cluster_file(t2_url, t2_token, id, "stackable-client-script", "/tmp/stackable.sh")
     log("Downloading SSH config from T2...")
-    download_cluster_file(t2_url, t2_token, id, "ssh-config", "/download/ssh-config")
+    download_cluster_file(t2_url, t2_token, id, "ssh-config", "/tmp/ssh-config")
     log("Downloading Stackable version information sheet for cluster from T2...")
-    download_cluster_file(t2_url, t2_token, id, "stackable-versions", "/download/stackable-versions.txt")
-    log("Downloading kubeconfig from T2...")
-    download_cluster_file(t2_url, t2_token, id, "kubeconfig", "/download/kubeconfig")
-    log("Downloading credentials file from T2...")
-    download_cluster_file(t2_url, t2_token, id, "credentials", "/download/credentials.yaml")
+    download_cluster_file(t2_url, t2_token, id, "stackable-versions", STACKABLE_VERSIONS_FILE)
+    log("Downloading cluster access file for cluster from T2...")
+    download_cluster_file(t2_url, t2_token, id, "access", CLUSTER_ACCESS_FILE)
 
 
 def install_stackable_client_script():
-    if(os.path.exists("/download/stackable.sh")):
-        os.system('install /download/stackable.sh /usr/bin/stackable')
+    if(os.path.exists("/tmp/stackable.sh")):
+        os.system('install /tmp/stackable.sh /usr/bin/stackable')
         log("Stackable client script installed as command 'stackable'")
         return
 
@@ -268,9 +465,9 @@ def install_stackable_client_script():
 
 
 def configure_ssh():
-    if(os.path.exists("/download/ssh-config")):
+    if(os.path.exists("/tmp/ssh-config")):
         os.system('mkdir -p /root/.ssh/')
-        os.system('cp /download/ssh-config /root/.ssh/config')
+        os.system('cp /tmp/ssh-config /root/.ssh/config')
         os.chmod("/root/.ssh/config", 0o600)
         os.system(f"cp {PRIVATE_KEY_FILE} /root/.ssh/id_rsa")
         os.system(f"cp {PUBLIC_KEY_FILE} /root/.ssh/id_rsa.pub")
@@ -282,109 +479,83 @@ def configure_ssh():
     log('SSH not configurable in this cluster.')
 
 
-def configure_k8s_access():
+def write_retrospective_logs():
 
-    if(not os.path.exists("/download/kubeconfig")):
-        log("No kubeconfig available for this cluster")
-        return
+    try:
+        process_dump_events_1 = Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o yaml > {K8S_EVENT_LIST_LOGFILE}"])
+        process_dump_events_1.wait(timeout=120)
+    except TimeoutExpired:
+        pass
 
-    # Currently, the credentials file is only available for AWS EKS
-    # TODO We'll have to use the credentials file as a general way of 
-    # telling the testdriver how to connect
-    if(os.path.exists("/download/credentials.yaml")):
-        with open ("/download/credentials.yaml", "r") as f:
-            credentials_string = f.read()
-        credentials_yaml = yaml.load(credentials_string, Loader=yaml.FullLoader)
-        aws_access_key = credentials_yaml[0]['data']['aws_access_key']
-        aws_secret_access_key = credentials_yaml[0]['data']['aws_secret_access_key']
-        os.system(f"aws configure set aws_access_key_id {aws_access_key}")
-        os.system(f"aws configure set aws_secret_access_key {aws_secret_access_key}")
-        os.system(f"aws configure set region eu-central-1")
-        log("Successfully set up aws cli")
+    try:
+        process_dump_events_2 = Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > {K8S_EVENT_LIST_LOGFILE_SHORT}"])
+        process_dump_events_2.wait(timeout=120)
+    except TimeoutExpired:
+        pass
 
-    os.system('cp /download/kubeconfig /root/.kube/config')
-    log("Successfully set up kubeconfig to access cluster.")
-
-    os.system("chmod 600 /root/.kube/config")
-
-
-def provide_version_information_sheet():
-
-    if(os.path.exists("/download/stackable-versions.txt")):
-        os.system('cp /download/stackable-versions.txt /target/')
-        os.system(f"chown {uid_gid_output} /target/stackable-versions.txt")
-        os.system('chmod 664 /target/stackable-versions.txt')
-        log('Stackable version information available in /target/stackable-versions.txt')
-        return
-
-    log('Stackable version information not available in this cluster.')
-
-
-def ex_post_logs():
-
-    if(os.path.exists("/download/ssh-config") and os.path.exists("/download/stackable.sh")):
+    if(os.path.exists("/usr/bin/stackable")):
         os.system(r"""cat /root/.ssh/config | grep 'Host main' | cut -d ' ' -f 2 | awk -F'/' '{print "stackable "$1" '\''journalctl -u k3s-agent'\'' > /target/"$1"-k3s-agent.log"}' | sh""")
 
 
 if __name__ == "__main__":
 
-    # check if we have everything to get started
-    prerequisites()
-
-    # exit code of the T2 testdriver
-    exit_code = 0
-
-    # determine user/group for output files (default: root/root)
-    uid_gid_output = "0:0"
-    if 'UID_GID' in os.environ:
-        uid_gid_output = os.environ['UID_GID']
-
-    # Set target folder ownership 
-    os.system(f"chown -R {uid_gid_output} /target/")
-
-    # clear/init log files
-    init_log()
+    process_input()
+    set_target_folder_owner()
+    init_output_files()
 
     log("Starting T2 test driver...")
 
-    dry_run = is_dry_run()
-    interactive_mode = is_interactive_mode()
-
-    # copy cluster.yaml and substitute environment variables
-    os.system('envsubst < cluster.yaml > _cluster.yaml')
-
-    if not dry_run:
-        log(f"Creating a cluster using T2 at {os.environ['T2_URL']}...")
-        cluster_id = launch()
-        download_cluster_files(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)
+    if cluster_mode == Cluster.NONE:
+        log("Testdriver operates without any cluster.")
+    elif cluster_mode == Cluster.EXISTING:
+        log("Testdriver operates on existing cluster.")
+        cluster_connection_successful = connect_to_existing_cluster()
+    else:
+        log("Testdriver launches new managed cluster...")
+        prepare_managed_cluster()
+        cluster_id = launch_cluster()
+        download_cluster_files(t2_url, t2_token, cluster_id)
         install_stackable_client_script()
         configure_ssh()
-        configure_k8s_access()
-        provide_version_information_sheet()
-    else:
-        log(f"DRY RUN: Not creating a cluster!")
-        os.system('cp /_cluster.yaml /target/cluster.yaml')
-        os.system(f"chown -R {uid_gid_output} /target/cluster.yaml")
+        cluster_connection_successful = connect_with_cluster_access_file()
 
-    if not interactive_mode:    
-        log("Running test script...")
-        exit_code = run_test_script()
-        log("Test script finished.")
-    else:
-        log("Interactive mode. The testdriver will be open for business until you stop it by creating the file /cluster_lock")
-        while not os.path.exists('/cluster_lock'):
-            time.sleep(1)
+    # If we have a working connection to a cluster, we proceed with the test or interactive session
+    if (cluster_mode == Cluster.NONE) or cluster_connection_successful:
+
+        # Start K8s cluster monitoring
+        if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
+            log("Start Kubernetes cluster monitoring...")
+            start_k8s_monitoring()
+            log("Started Kubernetes cluster monitoring.")
+
+        exit_code = 0
+
+        if interactive_mode:
+            log("Testdriver started in interactive mode.")
+            log("To stop the cluster, please execute the stop-session command in the container.")
+            interactive_mode_wait()
+        else:
+            log("Starting test script...")
+            exit_code = run_test_script()
+            log(f"Test script terminated with exit code {exit_code}")
+
+        # Stop K8s cluster monitoring
+        if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
+            log("Stopping all background tasks...")        
+            stop_all_background_tasks()
+            log("All background tasks are stopped.")        
+
+            log("Log stuff after_execution")
+            write_retrospective_logs()
+
+    # Stop managed K8s cluster
+    if(cluster_mode == Cluster.MANAGED):
+        terminate_cluster(cluster_id)
 
     # Set output file ownership recursively 
     # This is important as the test script might have added files which are not controlled
     # by this Python script and therefore most probably are owned by root
-    os.system(f"chown -R {uid_gid_output} /target/")
-
-    if not dry_run:
-        ex_post_logs()
-        log(f"Terminating the test cluster...")
-        terminate()
+    set_target_folder_owner()
 
     log("T2 test driver finished.")
-
     exit(exit_code)

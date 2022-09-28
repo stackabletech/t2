@@ -41,3 +41,4 @@
   - stackable_operators
   - cluster_info_sheet
   - stackable_services
+  - access_file_kubeconfig

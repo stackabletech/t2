@@ -7,4 +7,4 @@
   - stackable_operators
   - cluster_info_sheet
   - stackable_services
-  - access_file_aws
+  - access_file_gke

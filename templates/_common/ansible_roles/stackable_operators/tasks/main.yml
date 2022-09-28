@@ -14,7 +14,7 @@
 
 - name: install operators (when specific version is set)
   shell: |
-    helm --kubeconfig resources/kubeconfig install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
+    helm --kubeconfig kubeconfig install stackable-{{ item }} {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
   loop: "{{ stackable_operators }}"
   when: 
     - item in stackable_component_versions.keys()
@@ -22,7 +22,7 @@
 
 - name: install operators (from default version, _-operator)
   shell: |
-    helm --kubeconfig resources/kubeconfig install stackable-{{ item }} {{stackable_component_versions['_-operator']['repository']}}/{{ item }} --version '{{stackable_component_versions['_-operator']['version']}}' || true
+    helm --kubeconfig kubeconfig install stackable-{{ item }} {{stackable_component_versions['_-operator']['repository']}}/{{ item }} --version '{{stackable_component_versions['_-operator']['version']}}' || true
   loop: "{{ stackable_operators }}"
   when: 
     - item not in stackable_component_versions.keys()
@@ -31,7 +31,7 @@
 
 - name: install operators (nothing specified, install RELEASE)
   shell: |
-    helm --kubeconfig resources/kubeconfig install stackable-{{ item }} stackable-stable/{{ item }} || true
+    helm --kubeconfig kubeconfig install stackable-{{ item }} stackable-stable/{{ item }} || true
   loop: "{{ stackable_operators }}"
   when: 
     - item not in stackable_component_versions.keys()

@@ -8,7 +8,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.20.0"
+      version = "=3.24.0"
     }
   }
 }
@@ -78,7 +78,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
 
 # write kubeconfig to file
 resource "local_file" "kubeconfig" {
-  filename = "resources/kubeconfig"
+  filename = "kubeconfig"
   content = azurerm_kubernetes_cluster.kubernetes-cluster.kube_config_raw
   file_permission = "0400"
 } 

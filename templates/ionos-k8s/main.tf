@@ -75,7 +75,7 @@ data "ionoscloud_k8s_cluster" "cluster" {
 
 # write kubeconfig to file
 resource "local_file" "kubeconfig" {
-  filename = "resources/kubeconfig"
+  filename = "kubeconfig"
   content = data.ionoscloud_k8s_cluster.cluster.kube_config
   file_permission = "0400"
 } 

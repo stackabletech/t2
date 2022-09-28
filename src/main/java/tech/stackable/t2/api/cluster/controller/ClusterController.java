@@ -162,10 +162,10 @@ public class ClusterController {
         return stackableVersions;
     }
 
-    @GetMapping("{id}/kubeconfig")
+    @GetMapping("{id}/access")
     @ResponseBody
-    @Operation(summary = "read Kubeconfig", description = "Reads a Kubeconfig file to work with the cluster. In some cases you might need cloud provider credentials to use the config to access the cluster.")
-    public String getKubeconfig(
+    @Operation(summary = "read access file", description = "Reads the access file which contains information how to access the cluster.")
+    public String getAccessFile(
             @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
             @RequestHeader(name = "t2-token", required = false) String token) {
         checkToken(token);
@@ -173,29 +173,11 @@ public class ClusterController {
         if (cluster == null) {
             throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
         }
-        String kubeconfig = this.clusterService.getKubeconfigFile(id);
-        if (kubeconfig == null) {
-            throw new ClusterNotFoundException(String.format("No Kubeconfig found for cluster with id '%s'.", id));
+        String accessFile = this.clusterService.getAccessFile(id);
+        if (accessFile == null) {
+            throw new ClusterNotFoundException(String.format("No access file found for cluster with id '%s'.", id));
         }
-        return kubeconfig;
-    }
-
-    @GetMapping("{id}/credentials")
-    @ResponseBody
-    @Operation(summary = "read credentials file", description = "Reads the credentials file which contains information to access the cluster.")
-    public String getCredentialsFile(
-            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
-            @RequestHeader(name = "t2-token", required = false) String token) {
-        checkToken(token);
-        Cluster cluster = clusterService.getCluster(id);
-        if (cluster == null) {
-            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
-        }
-        String credentialsFile = this.clusterService.getCredentialsFile(id);
-        if (credentialsFile == null) {
-            throw new ClusterNotFoundException(String.format("No credentials file found for cluster with id '%s'.", id));
-        }
-        return credentialsFile;
+        return accessFile;
     }
 
     @GetMapping("{id}/log")
