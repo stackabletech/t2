@@ -9,7 +9,7 @@
 
 - name: kubeconfig for the Stackable user - copy file
   copy:
-    src: resources/kubeconfig_internal
+    src: kubeconfig_internal
     dest: "{{ stackable_user_home }}.kube/config"
     mode: 0600
   vars:

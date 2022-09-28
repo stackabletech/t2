@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "4.28.0"
+      version = "4.32.0"
     }
 
     local = {
@@ -68,24 +68,11 @@ resource "aws_iam_access_key" "cluster_admin" {
   user = aws_iam_user.cluster_admin.name
 }
 
-resource "local_file" "credentials" {
-  filename = "resources/credentials.yaml"
-  content = templatefile("credentials.tpl",
-    {
-      arn = aws_iam_user.cluster_admin.arn
-      unique_id = aws_iam_user.cluster_admin.unique_id
-      aws_key = aws_iam_access_key.cluster_admin.id
-      aws_secret_key = aws_iam_access_key.cluster_admin.secret
-    }
-  )
-  file_permission = "0440"
-} 
-
 data "aws_availability_zones" "available" {}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.2.0"
+  version = "3.16.0"
 
   name                 = "${var.cluster_name}-vpc"
   cidr                 = "10.0.0.0/16"
@@ -167,7 +154,7 @@ provider "kubernetes" {
 
 resource "null_resource" "kubeconfig" {
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${var.cluster_name} --region ${local.region} --kubeconfig resources/kubeconfig"
+    command = "aws eks update-kubeconfig --name ${var.cluster_name} --region ${local.region} --kubeconfig kubeconfig"
   }
   depends_on = [
     data.aws_eks_cluster.cluster
@@ -177,7 +164,7 @@ resource "null_resource" "kubeconfig" {
 resource "null_resource" "patch_aws_auth" {
   provisioner "local-exec" {
     command = <<EOT
-      sleep 60 && kubectl --kubeconfig resources/kubeconfig patch configmap -n kube-system aws-auth -p '{"data":{"mapUsers":"[{\"userarn\": \"${aws_iam_user.cluster_admin.arn}\", \"username\": \"${var.cluster_name}-cluster-admin\", \"groups\": [\"system:masters\"]}]"}}'
+      sleep 60 && kubectl --kubeconfig kubeconfig patch configmap -n kube-system aws-auth -p '{"data":{"mapUsers":"[{\"userarn\": \"${aws_iam_user.cluster_admin.arn}\", \"username\": \"${var.cluster_name}-cluster-admin\", \"groups\": [\"system:masters\"]}]"}}'
     EOT
   }
   depends_on = [
@@ -204,4 +191,15 @@ resource "local_file" "ansible-inventory" {
     }
   )
   file_permission = "0440"
+}
+
+# File which contains the AWS credentials and params needed to access the cluster
+resource "local_file" "aws_credentials" {
+  filename = "aws_credentials.yaml"
+  content = yamlencode({ 
+    cluster_name: var.cluster_name
+    aws_access_key: aws_iam_access_key.cluster_admin.id
+    aws_secret_access_key: aws_iam_access_key.cluster_admin.secret
+    region: local.region
+  })
 }

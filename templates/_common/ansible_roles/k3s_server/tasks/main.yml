@@ -43,7 +43,7 @@
   shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ ansible_host }}/g > /tmp/kubeconfig_internal
 
 - name: generate kubeconfig for public use
-  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ hostvars['edge']['ansible_host'] }}/g > /tmp/kubeconfig.public
+  shell: cat /etc/rancher/k3s/k3s.yaml | sed s/127.0.0.1/{{ hostvars['edge']['ansible_host'] }}/g > /tmp/kubeconfig_public
 
 - name: set env variable to point to kubeconfig for Stackable user
   lineinfile:
@@ -60,13 +60,13 @@
 - name: Fetch the cluster-internal kubeconfig
   fetch: 
     src: /tmp/kubeconfig_internal
-    dest: resources/kubeconfig_internal
+    dest: kubeconfig_internal
     flat: yes
 
 - name: Fetch the public kubeconfig
   fetch: 
-    src: /tmp/kubeconfig.public
-    dest: resources/kubeconfig
+    src: /tmp/kubeconfig_public
+    dest: kubeconfig
     flat: yes
 
 - name: Force all notified handlers to run at this point, not waiting for normal sync points

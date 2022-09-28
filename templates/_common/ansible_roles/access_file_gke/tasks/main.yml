@@ -1,0 +1,10 @@
+---
+- name: create resources directory
+  file:
+    path: "resources"
+    state: directory
+
+- name: Create access file for a Google GKE cluster
+  script: access_file_gke.py
+  args:
+    executable: python3

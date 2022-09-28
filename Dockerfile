@@ -49,8 +49,10 @@ RUN apt install ansible -y
 
 # install python packages
 RUN apt install python-pip -y
-RUN pip install netaddr
-RUN pip install ipaddress
+RUN pip install netaddr ipaddress
+
+# install python3 packages
+RUN pip3 install PyYAML
 
 # install GCloud CLI
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-cli google-cloud-sdk-gke-gcloud-auth-plugin -y
