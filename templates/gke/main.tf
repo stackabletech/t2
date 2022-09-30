@@ -95,7 +95,8 @@ resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"
   content = templatefile("inventory.tpl",
     {
-      location = "${google_container_cluster.cluster.location}"
+      location = google_container_cluster.cluster.location
+      node_size = google_container_cluster.cluster.node_config[0].machine_type
     }
   )
   file_permission = "0440"
@@ -121,7 +122,7 @@ data "local_file" "gcloud_credentials" {
 
 resource "google_project_iam_member" "project" {
   project = var.google_cloud_project_id
-  role    = "roles/editor"
+  role    = "projects/t2-system-under-test/roles/t2.cluster.admin"
   member  = "serviceAccount:${google_service_account.cluster_admin.email}"
 }
 

@@ -51,8 +51,8 @@ resource "ionoscloud_datacenter" "datacenter" {
 
 
 resource "ionoscloud_k8s_node_pool" "node_pool" {
-  name        = "${var.cluster_name}-node-pool"
-  k8s_version = ionoscloud_k8s_cluster.cluster.k8s_version
+  name              = "${var.cluster_name}-node-pool"
+  k8s_version       = ionoscloud_k8s_cluster.cluster.k8s_version
   datacenter_id     = ionoscloud_datacenter.datacenter.id
   k8s_cluster_id    = ionoscloud_k8s_cluster.cluster.id
   cpu_family        = "INTEL_SKYLAKE"
@@ -96,6 +96,7 @@ resource "local_file" "ansible-inventory" {
   content = templatefile("inventory.tpl",
     {
       location = replace(local.region, "/", "_")
+      node_pool = ionoscloud_k8s_node_pool.node_pool
     }
   )
   file_permission = "0440"

@@ -188,6 +188,7 @@ resource "local_file" "ansible-inventory" {
   content = templatefile("inventory.tpl",
     {
       location = local.region
+      node_size = can(yamldecode(file("cluster.yaml"))["spec"]["awsInstanceType"]) ? yamldecode(file("cluster.yaml"))["spec"]["awsInstanceType"] : "t2.small"
     }
   )
   file_permission = "0440"
