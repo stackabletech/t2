@@ -99,7 +99,7 @@ resource "local_file" "ansible-inventory" {
   content = templatefile("inventory.tpl",
     {
       location = azurerm_kubernetes_cluster.kubernetes_cluster.location
-      node_size = azurerm_kubernetes_cluster.kubernetes_cluster.default_node_pool.vm_size
+      node_size = azurerm_kubernetes_cluster.kubernetes_cluster.default_node_pool[0].vm_size
     }
   )
   file_permission = "0440"

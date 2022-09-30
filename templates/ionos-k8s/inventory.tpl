@@ -1,3 +1,4 @@
 [all:vars]
 location=${location}
-node_size=${cores_count} vCPU, ${ram_size} MB RAM, ${storage_size} GB ${storage_type}
+node_size=${node_pool.cores_count} vCPU, ${node_pool.ram_size} MB RAM, ${node_pool.storage_size} GB ${node_pool.storage_type}
+

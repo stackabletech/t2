@@ -96,7 +96,7 @@ resource "local_file" "ansible-inventory" {
   content = templatefile("inventory.tpl",
     {
       location = google_container_cluster.cluster.location
-      node_size = google_container_cluster.cluster.node_config.machine_type
+      node_size = google_container_cluster.cluster.node_config[0].machine_type
     }
   )
   file_permission = "0440"
