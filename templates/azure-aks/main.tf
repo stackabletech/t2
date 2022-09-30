@@ -58,7 +58,7 @@ resource "azurerm_resource_group" "resource-group" {
   location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : "West Europe"
 }
 
-resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
+resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   name                = "${var.cluster_name}-kubernetes-cluster"
   location            = azurerm_resource_group.resource-group.location
   resource_group_name = azurerm_resource_group.resource-group.name
@@ -79,7 +79,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
 # write kubeconfig to file
 resource "local_file" "kubeconfig" {
   filename = "kubeconfig"
-  content = azurerm_kubernetes_cluster.kubernetes-cluster.kube_config_raw
+  content = azurerm_kubernetes_cluster.kubernetes_cluster.kube_config_raw
   file_permission = "0400"
 } 
 
@@ -98,7 +98,8 @@ resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"
   content = templatefile("inventory.tpl",
     {
-      location = "${azurerm_kubernetes_cluster.kubernetes-cluster.location}"
+      location = azurerm_kubernetes_cluster.kubernetes_cluster.location
+      node_size = azurerm_kubernetes_cluster.kubernetes_cluster.default_node_pool.vm_size
     }
   )
   file_permission = "0440"

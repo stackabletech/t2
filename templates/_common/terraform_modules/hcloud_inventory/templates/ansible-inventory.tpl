@@ -19,7 +19,7 @@ orchestrator ansible_host=${element(orchestrator.network[*].ip, 0)} location=${o
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} k8s_node=${node.labels["k8s_node"]} node_number=${index+1} location=${node.datacenter}
+${node.labels["hostname"]} ansible_host=${element(node.network[*].ip, 0)} k8s_node=${node.labels["k8s_node"]} node_number=${index+1} location=${node.datacenter} node_type=${node.server_type}
 %{ endfor ~}
 
 [protected:children]
