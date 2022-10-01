@@ -207,9 +207,10 @@ The following table lists the currently available templates:
 |hcloud-debian-10 | Hetzner Cloud | Debian 10
 |hcloud-debian-11 | Hetzner Cloud | Debian 11
 |pluscloud-open-centos-8¹ | PlusCloud Open (Plusserver, SCS implementation, based on OpenStack) | CentOS 8
-.3+|managed K8s |azure-aks | Microsoft Azure | 
+.4+|managed K8s |azure-aks | Microsoft Azure | 
 |aws-eks | Amazon AWS | 
 |ionos-k8s | IONOS Cloud |
+|gke | Google Kubernetes Engine |
 |=======
 
 ¹temporarily disabled
@@ -261,24 +262,25 @@ To keep the following informations somewhat handy, they are split in the options
 
 [options="header"]
 |=======
-|key |description |Azure AKS|Amazon EKS |IONOS K8S
-|apiVersion |always `t2.stackable.tech/v1` 3+| 
-|kind |always `Infra` 3+| 
-|template |see section above 3+| 
-|metadata.name |name of the cluster 3+| 
-|metadata.description |description of the cluster 3+| 
-|spec.location |one of the locations that the cloud vendor provides | e.g. `West Europe` 2+| not available 
-|spec.region |one of the regions that the cloud vendor provides | not available | e.g. `eu-central-1` | e.g. `de/fra`
-|spec.k8sVersion |The K8s version (optional, defaults to whatever the cloud provider regards as the default) 3+| 
-|spec.node_count |# of nodes in the cluster 3+|
-|spec.vm_size |one of the VM sizes that the cloud vendor provides (optional) | e.g. `Standard_D2_v2` (which is also the default) 2+| not available
-|spec.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below | not available
-|spec.numberOfCores |(optional) # of cores each node should have 2+| not available | default: `4`
-|spec.memoryMb |(optional) amount of memory each node should have in MB 2+| not available | default: `4096`
-|spec.diskType |(optional) type of disk each node should have 2+| not available | default: `SSD`
-|spec.diskSizeGb |(optional) size of the disk of the given node in GB 2+| not available | default: `250`
-|spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 3+|
-|services |Map of service descriptions as embedded YAMLs. See below for available services. 3+|
+|key |description |Azure AKS|Amazon EKS |IONOS K8S | Google GKE
+|apiVersion |always `t2.stackable.tech/v1` 4+| 
+|kind |always `Infra` 4+| 
+|template |see section above 4+| 
+|metadata.name |name of the cluster 4+| 
+|metadata.description |description of the cluster 4+| 
+|spec.location |one of the locations that the cloud vendor provides | e.g. `West Europe` 3+| not available 
+|spec.region |one of the regions that the cloud vendor provides | not available | e.g. `eu-central-1` | e.g. `de/fra` | e.g. `europe-central2`
+|spec.k8sVersion |The K8s version (optional, defaults to whatever the cloud provider regards as the default) 4+| 
+|spec.node_count |# of nodes in the cluster 4+|
+|spec.vm_size |one of the VM sizes that the cloud vendor provides (optional) | e.g. `Standard_D2_v2` (which is also the default) 3+| not available
+|spec.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below 2+| not available
+|spec.machineType |(optional) GKE machine type 3+| not available | default: `e2-standard-2`, see links below
+|spec.numberOfCores |(optional) # of cores each node should have 2+| not available | default: `4` | not available
+|spec.memoryMb |(optional) amount of memory each node should have in MB 2+| not available | default: `4096` | not available
+|spec.diskType |(optional) type of disk each node should have 2+| not available | default: `SSD` | not available
+|spec.diskSizeGb |(optional) size of the disk of the given node in GB 2+| not available | default: `250` | not available
+|spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 4+|
+|services |Map of service descriptions as embedded YAMLs. See below for available services. 4+|
 |=======
 
 ==== Links
@@ -286,6 +288,7 @@ To keep the following informations somewhat handy, they are split in the options
 * https://aws.amazon.com/de/ec2/instance-types/[AWS EC2 instance types]
 * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html[AWS EC2 volume types]
 * https://www.hetzner.com/de/cloud[Hetzner Cloud server types]
+* https://cloud.google.com/compute/docs/machine-types[Google Cloud machine types]
 
 
 === Stackable operators
