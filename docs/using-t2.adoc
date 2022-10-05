@@ -15,35 +15,146 @@ At Stackable, we have a https://t2.stackable.tech/swagger-ui/[running instance o
 
 == Create a cluster
 
-=== Create a cluster in T2's infrastructure
+=== Create a cluster using the REST API.
 
-With request to https://t2.stackable.tech/swagger-ui/#/cluster-controller/createClusterUsingPOST[this endpoint, window="_blank"] you can create a new cluster. You have to provide the Stackable cluster definition as payload and a Token via the `t2-token` HTTP header to authenticate. The response is a description of the current cluster state.
+To create a cluster with T2, you can use the REST API which is fully documented https://t2.stackable.tech/swagger-ui/index.html#/[here, window="_blank"]. This section here gives you a small example of the most common steps you take when working with a cluster managed by T2. The example requests are written in the format of the https://github.com/Huachao/vscode-restclient[REST client plugin, window="_blank"] for Visual Studio Code.
 
-To track the progress while the cluster is created, you can use https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClusterUsingGET[this endpoint, window="_blank"]. The desired state you want to wait for is `RUNNING`. (requires token as well)
+==== Step 1: Launch the cluster
 
-To see in more detail what T2 is doing to create your cluster, you can https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[trace the output log here, window="_blank"]. (requires token as well)
+With this request, you start the creation of a cluster:
+[source,yaml]
+----
+POST https://t2.stackable.tech/api/clusters
+t2-token: (put secret token here)
+Content-Type: application/yaml
 
-Once the cluster is up and running, you can download a script https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClientScriptUsingGET[here, window="_blank"] which provides you with a convenient way to access the nodes of the cluster (see <<client_script>> below).
+---
+apiVersion: "t2.stackable.tech/v1"
+kind: "Infra"
+template: gke
+metadata:
+  name: "gke-test"
+  description: "Test cluster in GKE"
+spec:
+  region: europe-central2
+  k8sVersion: 1.24
+  node_count: 3
+  machineType: e2-standard-4
+  versions:
+    _-operator: NIGHTLY
+----
 
-Another way of accessing the cluster is using a prepared SSH config together with one of the private keys corresponding to a public key in the cluster definition file. You can download the SSH config https://t2.stackable.tech/swagger-ui/#/cluster-controller/getSshConfigUsingGET[here, window="_blank"]. When you use the SSH config or copy parts of it into your own SSH config, you can use tools like `ssh` or `scp` to interact with the cluster.
+Please refer to the <<cluster_definition>> section to see which options you have to specify the cluster.
 
-To check which versions of the Stackable operators are running in your cluster, you can get an overview https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[here, window="_blank"]. (requires token as well)
+As a response, you get the metadata of the cluster, which contains the current state and a history of its states since creation:
+[source,json]
+----
+{
+  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
+  "status": {
+    "failed": false,
+    "state": "TERRAFORM_APPLY"
+  },
+  "dateTimeCreated": "2022-10-05T06:11:27.234051",
+  "history": [
+    {
+      "status": {
+        "failed": false,
+        "state": "NEW"
+      },
+      "timestamp": "2022-10-05T06:11:27.23406",
+      "timeSinceClusterLaunch": "PT0.000009S",
+      "description": null
+...      
+----
 
-==== VPN (Wireguard)
+You can see that the cluster is not yet ready for use, but currently applies a Terraform description.
 
-A very convenient way to work with a running cluster is to put your machine in the provided VPN. Using http://t2.stackable.tech/swagger-ui/#/cluster-controller/getWireguardConfigUsingGET[this endpoint, window="_blank"] you can download a Wireguard config file which is ready to be used. Please refer to the Wireguard docs for your system to find out how to use this.
+==== Step 2: Check the cluster state
 
-Once you are in the same network with the cluster, you can http://t2.stackable.tech/swagger-ui/#/cluster-controller/getKubeconfigUsingGET[download a kubeconfig file, window="_blank"] to interact with the Kubernetes system via *kubectl*, *k9s* or the like.
+From the response in step 1, you have to copy the cluster's ID, which lets you access the cluster as a resource using the T2 API. To query the current state of the cluster, use a request like this:
+[source,yaml]
+----
+GET https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a
+t2-token: (put secret token here)
+----
 
+Eventually, you will get the response which confirms that your cluster is `RUNNING` and therefore ready for use:
+[source,json]
+----
+{
+  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
+  "status": {
+    "failed": false,
+    "state": "RUNNING"
+  },
+  "dateTimeCreated": "2022-10-05T06:11:27.234051",
+  "history": [
+    {
+      "status": {
+        "failed": false,
+        "state": "NEW"
+      },
+      "timestamp": "2022-10-05T06:11:27.23406",
+      "timeSinceClusterLaunch": "PT0.000009S",
+      "description": null
+    },
+...      
+----
 
+==== Step 3: Get the cluster access file
 
-=== Create a cluster in your infrastructure
+T2 offers clusters from 5 different cloud vendors. As the way to access a cluster differs from vendor to vendor, you have to get the so called "cluster access file" which contains everything you need to access the cluster, including instructions how to use it:
+[source,yaml]
+----
+GET https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a/access
+t2-token: (put secret token here)
+----
+
+The access file should be self-explanatory. There are basically two ways to access a cluster:
+
+* Some clusters offer a static `kubeconfig` file which is contained in the access file. This can be used to access the cluster.
+* Some vendors (currently Google/GKE and AWS/EKS) require a login with a user/principal of the cloud platform. In these cases, the access file contains the credentials of a temporary user along with the instructions how to log in and create the `kubeconfig`.
+
+==== Step 4: Delete the cluster
+
+Once you are done with whatever you were up to with the cluster, please remember to shut the cluster down (or "delete the resource" in REST terms):
+[source,yaml]
+----
+DELETE https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a
+t2-token: (put secret token here)
+----
+
+The deletion starts and you can check the cluster's state using the request from step #2 until the cluster is `TERMINATED`:
+[source,json]
+----
+{
+  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
+  "status": {
+    "failed": false,
+    "state": "TERMINATED"
+  },
+  "dateTimeCreated": "2022-10-05T06:11:27.234051",
+  "history": [
+    {
+      "status": {
+        "failed": false,
+        "state": "NEW"
+      },
+      "timestamp": "2022-10-05T06:11:27.23406",
+      "timeSinceClusterLaunch": "PT0.000009S",
+      "description": null
+    },
+...    
+----
+
+=== Create a cluster in your infrastructure (deprecated)
 
 To create a cluster yourself, we offer what we call the *DIY option*. To use it, you can use https://t2.stackable.tech/swagger-ui/#/diy-cluster-controller/createClusterUsingGET[this service]. You have to provide a Stackable cluster definition as request body and get a ZIP file in return. This ZIP file comes with a `readme.txt` which explains the usage.
 
 
 [[client_script]]
-== The Stackable client script
+== The Stackable client script (deprecated)
 
 This script can be used to access a running cluster conveniently. 
 
@@ -77,7 +188,7 @@ or, with path to key:
 ./stackable.sh worker-12 -i path/to/my/key "kubectl get nodes"
 ----
 
-[[yaml]]
+[[cluster_definition]]
 == The Stackable cluster definition YAML
 
 In either way you choose to use T2, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. This section describes the cluster definition.
