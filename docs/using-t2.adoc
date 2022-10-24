@@ -158,7 +158,7 @@ To create a cluster yourself, we offer what we call the *DIY option*. To use it,
 
 This script can be used to access a running cluster conveniently. 
 
-The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition, see <<yaml>>) to be in your keystore (`~/.ssh/` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
+The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition, see <<cluster_definition>>) to be in your keystore (`~/.ssh/` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
 
 To ssh into a host, just provide the hostname as the single parameter, e.g.
 
