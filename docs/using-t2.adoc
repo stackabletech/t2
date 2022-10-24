@@ -65,7 +65,10 @@ As a response, you get the metadata of the cluster, which contains the current s
       "timestamp": "2022-10-05T06:11:27.23406",
       "timeSinceClusterLaunch": "PT0.000009S",
       "description": null
-...      
+    }
+  ]
+  ...
+}
 ----
 
 You can see that the cluster is not yet ready for use, but currently applies a Terraform description.
@@ -98,8 +101,10 @@ Eventually, you will get the response which confirms that your cluster is `RUNNI
       "timestamp": "2022-10-05T06:11:27.23406",
       "timeSinceClusterLaunch": "PT0.000009S",
       "description": null
-    },
-...      
+    }
+  ]
+  ...
+}
 ----
 
 ==== Step 3: Get the cluster access file
@@ -144,8 +149,10 @@ The deletion starts and you can check the cluster's state using the request from
       "timestamp": "2022-10-05T06:11:27.23406",
       "timeSinceClusterLaunch": "PT0.000009S",
       "description": null
-    },
-...    
+    }
+  ]
+  ...
+}
 ----
 
 === Create a cluster in your infrastructure (deprecated)
