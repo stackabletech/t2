@@ -65,7 +65,10 @@ As a response, you get the metadata of the cluster, which contains the current s
       "timestamp": "2022-10-05T06:11:27.23406",
       "timeSinceClusterLaunch": "PT0.000009S",
       "description": null
-...      
+    }
+  ]
+  ...
+}
 ----
 
 You can see that the cluster is not yet ready for use, but currently applies a Terraform description.
@@ -98,10 +101,13 @@ Eventually, you will get the response which confirms that your cluster is `RUNNI
       "timestamp": "2022-10-05T06:11:27.23406",
       "timeSinceClusterLaunch": "PT0.000009S",
       "description": null
-    },
-...      
+    }
+  ]
+  ...
+}
 ----
 
+[[cluster_access_file]]
 ==== Step 3: Get the cluster access file
 
 T2 offers clusters from 5 different cloud vendors. As the way to access a cluster differs from vendor to vendor, you have to get the so called "cluster access file" which contains everything you need to access the cluster, including instructions how to use it:
@@ -144,8 +150,10 @@ The deletion starts and you can check the cluster's state using the request from
       "timestamp": "2022-10-05T06:11:27.23406",
       "timeSinceClusterLaunch": "PT0.000009S",
       "description": null
-    },
-...    
+    }
+  ]
+  ...
+}
 ----
 
 === Create a cluster in your infrastructure (deprecated)
@@ -158,7 +166,7 @@ To create a cluster yourself, we offer what we call the *DIY option*. To use it,
 
 This script can be used to access a running cluster conveniently. 
 
-The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition, see <<yaml>>) to be in your keystore (`~/.ssh/` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
+The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition, see <<cluster_definition>>) to be in your keystore (`~/.ssh/` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
 
 To ssh into a host, just provide the hostname as the single parameter, e.g.
 
@@ -459,15 +467,13 @@ The service descriptions depend on the used services. Please refer to the docume
 
 We provide the Docker image `docker.stackable.tech/t2-testdriver` to make the usage of T2 in CI pipelines and for developers easier.
 
-The T2 testdriver offers 3 "cluster modes" which are selected by setting the `CLUSTER` environment variable to either `NONE`, `EXISTING` or `MANAGED`. 
+The T2 testdriver offers 5 "cluster modes" which are selected by setting the `CLUSTER` environment variable to either `NONE`, `EXISTING`, `MANAGED`, `CREATE` or `DELETE`. 
 
-Independent of the "cluster mode", you can select if the testdriver is running "interactively" by setting the `INTERACTIVE_MODE` flag.
-
-The following sections describe the meaning of the modes followed by a table describing all options.
+The following sections describe the meaning of the modes and some major options, followed by a table describing all options.
 
 === Cluster mode NONE
 
-The testdriver is not operating on a Kubernetes cluster at all. This mode is mostely useful for test and development purposes.
+The testdriver is not operating on a Kubernetes cluster at all. This mode is mostely useful for test and development purposes of the client itself or the CI processes.
 
 === Cluster mode EXISTING
 
@@ -477,11 +483,19 @@ The testdriver operates on a cluster which exists independently from the testdri
 
 The testdriver creates a cluster as defined in the cluster definition file and tears it down once the testdriver is about to be shut down.
 
+=== Cluster mode CREATE
+
+The testdriver just creates a cluster and quits afterwards. The user is responsible for later cleaning up the cluster using the `DELETE` mode.
+
+=== Cluster mode DELETE
+
+The testdriver just tears down an existing cluster and quits afterwards.
+
 === Interactive or not interactive?
 
 The "normal" use case of the testdriver is the following: The testdriver executes the given test script against the (existing or managed) cluster, records the results and some other logfiles and then shuts down the cluster (if managed) and terminates.
 
-If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
+If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed) or the connectivity check (if existing). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
 
   docker exec -it <container_name> bash
 
@@ -491,6 +505,8 @@ Once you're done with the work, you should terminate the container running the `
 
 This way of terminating is preferred to just terminating the container because the grace period of `docker stop` usually is too short to allow for an unproblematic cluster shutdown.
 
+The interactive session is only available in the modes `NONE`, `EXISTING` and `MANAGED`.
+
 === Options
 
 The following table describes all the options that can/must be set when using the testdriver.
@@ -498,16 +514,21 @@ The following table describes all the options that can/must be set when using th
 [options="header"]
 |=======
 |Feature |How to use |Description
-|Cluster mode | environment variable `CLUSTER` (`NONE`, `EXISTING` or `MANAGED`) | *(mandatory)* See sections above...
-|Interactive mode | environment variable `INTERACTIVE_MODE` | *(optional)*, defaults to `false`
+|Cluster mode | environment variable `CLUSTER` (`NONE`, `EXISTING`, `MANAGED`, `CREATE` or `DELETE`) | *(mandatory)* See sections above...
+|Interactive mode | environment variable `INTERACTIVE_MODE` | *(optional)*, defaults to `false`, see section above...
 |User/Group for target directory | environment variable `UID_GID` (format `<UID>:<GID>`), defaults to `0:0` (root) | *(optional)* All stuff which is written into the target dir is owned by this user/group combination.
-|T2 URL | environment variable `T2_URL` | *(mandatory for managed clusters)* The URL of T2 to use
-|T2 Token | environment variable `T2_TOKEN` | *(mandatory for managed clusters)* The token to access T2
-|Cluster definition | map as file to `/cluster.yaml` | *(mandatory for managed clusters)* The cluster definition as described above
+|T2 URL | environment variable `T2_URL` | *(mandatory for managed clusters, creation and deletion)* The URL of T2 to use
+|T2 Token | environment variable `T2_TOKEN` | *(mandatory for managed clusters, creation and deletion)* The token to access T2
+|Cluster definition | map as file to `/cluster.yaml` | *(mandatory for managed clusters and creation)* The cluster definition as described above
+|Cluster ID | environment variable `CLUSTER_ID` | *(mandatory for cluster deletion)* The cluster ID (a UUID assigned by T2) of the cluster to be deleted.
 |Target directory | map as volume to `/target/` | *(mandatory)* The target directory for the output
-|Kubernetes config file | map as file to `/root/.kube/config` | *(mandatory if using existing clusters)* The K8s config file to access the existing cluster
+|Kubernetes config file | map as file to `/root/.kube/config` | *(mandatory if using existing clusters AND NOT specifying a T2 cluster access file)* The K8s config file to access the existing cluster
+|T2 cluster access file | map as file to `/access.yaml` | *(mandatory if using existing clusters AND NOT specifying a Kubernetes config file)* The T2 cluster access file to access the existing cluster (see <<cluster_access_file>>) If an "ordinary" kubeconfig is supplied (see above), this file is ignored.
 |Test script | map as file to `/test.sh` | *(mandatory if not running in interactive mode)*. The script containing the test to be run once the cluster is up and running
 |=======
+
+
+/access.yaml
 
 === Output files
 
