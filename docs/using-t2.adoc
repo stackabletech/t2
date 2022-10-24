@@ -495,7 +495,7 @@ The testdriver just tears down an existing cluster and quits afterwards.
 
 The "normal" use case of the testdriver is the following: The testdriver executes the given test script against the (existing or managed) cluster, records the results and some other logfiles and then shuts down the cluster (if managed) and terminates.
 
-If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
+If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed) or the connectivity check (if existing). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
 
   docker exec -it <container_name> bash
 
@@ -520,6 +520,7 @@ The following table describes all the options that can/must be set when using th
 |T2 URL | environment variable `T2_URL` | *(mandatory for managed clusters, creation and deletion)* The URL of T2 to use
 |T2 Token | environment variable `T2_TOKEN` | *(mandatory for managed clusters, creation and deletion)* The token to access T2
 |Cluster definition | map as file to `/cluster.yaml` | *(mandatory for managed clusters and creation)* The cluster definition as described above
+|Cluster ID | environment variable `CLUSTER_ID` | *(mandatory for cluster deletion)* The cluster ID (a UUID assigned by T2) of the cluster to be deleted.
 |Target directory | map as volume to `/target/` | *(mandatory)* The target directory for the output
 |Kubernetes config file | map as file to `/root/.kube/config` | *(mandatory if using existing clusters AND NOT specifying a T2 cluster access file)* The K8s config file to access the existing cluster
 |T2 cluster access file | map as file to `/access.yaml` | *(mandatory if using existing clusters AND NOT specifying a Kubernetes config file)* The T2 cluster access file to access the existing cluster (see <<cluster_access_file>>) If an "ordinary" kubeconfig is supplied (see above), this file is ignored.
