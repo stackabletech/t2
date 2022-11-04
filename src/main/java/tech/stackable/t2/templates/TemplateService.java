@@ -45,15 +45,15 @@ public class TemplateService {
      * @throws RuntimeException if directory does not exist
      */
     public Path createWorkingDirectory(Path workingDirectory, Map<String, Object> clusterDefinition) {
-    	
-    	if(clusterDefinition==null) {
-    		throw new MalformedClusterDefinitionException("No cluster definition provided in the request.");
-    	}
-    	
-    	if(!clusterDefinition.containsKey("template") || !(clusterDefinition.get("template") instanceof String)) {
-    		throw new MalformedClusterDefinitionException("The cluster definition does not contain a valid template name.");
-    	}
-    	
+        
+        if(clusterDefinition==null) {
+            throw new MalformedClusterDefinitionException("No cluster definition provided in the request.");
+        }
+        
+        if(!clusterDefinition.containsKey("template") || !(clusterDefinition.get("template") instanceof String)) {
+            throw new MalformedClusterDefinitionException("The cluster definition does not contain a valid template name.");
+        }
+        
         String templateName = (String) clusterDefinition.get("template");
 
         if (StringUtils.startsWith(templateName, "_")) {
@@ -86,6 +86,27 @@ public class TemplateService {
             throw new RuntimeException(String.format("Working directory %s could not be created.", workingDirectory));
         }
         return workingDirectory;
+    }
+
+    /**
+     * Cleans up the working directory for the given cluster
+     * 
+     * @param workingDirectory  working directory location
+     */
+    public void cleanUpWorkingDirectory(Path workingDirectory) {
+        
+        try {
+
+            if (!Files.exists(workingDirectory)) {
+                return;
+            }
+
+            // remove terraform cache folder
+            FileUtils.deleteDirectory(workingDirectory.resolve(".terraform/").toFile());
+            
+        } catch (IOException e) {
+            LOGGER.warn("Working directory {} could not be cleaned up.", workingDirectory, e);
+        }
     }
 
     private void createWireguardKeysFile(File file) throws IOException {

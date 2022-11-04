@@ -100,6 +100,7 @@ public class TerraformAnsibleClusterService {
             // which have to be torn down...
             Thread tearDownOnFailure = new Thread(() -> {
                 this.terraformService.destroy(workingDirectory, clusterName(cluster));
+                this.templateService.cleanUpWorkingDirectory(workspaceDirectory.resolve(cluster.getId().toString()));
             });
             
             new Thread(() -> {
@@ -164,6 +165,7 @@ public class TerraformAnsibleClusterService {
                     cluster.setStatus(Status.TERRAFORM_DESTROY_FAILED);
                     return;
                 }
+                this.templateService.cleanUpWorkingDirectory(workspaceDirectory.resolve(cluster.getId().toString()));
                 cluster.setStatus(Status.TERMINATED);
                 this.clustersTerminatedCounter.increment();
             }).start();
