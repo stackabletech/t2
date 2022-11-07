@@ -22,8 +22,8 @@ variable "google_cloud_project_id" {
 }
 
 locals {
-  # region from cluster definition file
   region = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "europe-central2"
+  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
 }
 
 provider "google" {
@@ -64,6 +64,7 @@ resource "google_container_cluster" "cluster" {
   node_config {
     machine_type = can(yamldecode(file("cluster.yaml"))["spec"]["machineType"]) ? yamldecode(file("cluster.yaml"))["spec"]["machineType"] : "e2-standard-2"
   }
+  resource_labels = local.labels
 }
 
 # Create kubeconfig
