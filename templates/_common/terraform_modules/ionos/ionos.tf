@@ -42,7 +42,6 @@ locals {
   ]): node.name => node }
 
   datacenter_location = yamldecode(file("cluster.yaml"))["spec"]["region"]
-  datacenter_description = yamldecode(file("cluster.yaml"))["metadata"]["description"]
 }
 
 module "master_keypair" {
@@ -54,7 +53,6 @@ module "ionos_network" {
   source                        = "../ionos_network"
   datacenter_name               = var.datacenter_name
   datacenter_location           = local.datacenter_location
-  datacenter_description        = local.datacenter_description
 }
 
 module "ionos_edge_node" {

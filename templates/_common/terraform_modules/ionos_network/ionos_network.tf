@@ -19,15 +19,10 @@ variable "datacenter_location" {
   type = string
 }
 
-variable "datacenter_description" {
-  type = string
-}
-
 # Datacenter
 resource "ionoscloud_datacenter" "datacenter" {
   name = var.datacenter_name
   location = var.datacenter_location
-  description = var.datacenter_description
 }
 
 # Internet facing LAN

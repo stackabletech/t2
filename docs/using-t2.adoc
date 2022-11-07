@@ -34,7 +34,6 @@ kind: "Infra"
 template: gke
 metadata:
   name: "gke-test"
-  description: "Test cluster in GKE"
 spec:
   region: europe-central2
   k8sVersion: 1.24
@@ -71,7 +70,7 @@ As a response, you get the metadata of the cluster, which contains the current s
 }
 ----
 
-You can see that the cluster is not yet ready for use, but currently applies a Terraform description.
+You can see that the cluster is not yet ready for use, but currently applies a Terraform definition.
 
 ==== Step 2: Check the cluster state
 
@@ -212,7 +211,6 @@ kind: Infra
 template: ionos-debian-10
 metadata: 
   name: stackable-demo
-  description: "This is the cluster I want!"
 domain: stackable.demo
 publicKeys:
   - "ssh-rsa AAAAB3NzaC1..."
@@ -340,7 +338,6 @@ To keep the following informations somewhat handy, they are split in the options
 |kind |always `Infra` 4+| 
 |template |see section above 4+| 
 |metadata.name |name of the cluster 4+| 
-|metadata.description |description of the cluster 4+| 
 |domain |domain for DNS inside the cluster or when accessing through VPN 4+| 
 |publicKeys |list of SSH public keys to allow access to cluster nodes 4+| 
 |spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1` 2+| not available
@@ -378,7 +375,6 @@ To keep the following informations somewhat handy, they are split in the options
 |kind |always `Infra` 4+| 
 |template |see section above 4+| 
 |metadata.name |name of the cluster 4+| 
-|metadata.description |description of the cluster 4+| 
 |spec.location |one of the locations that the cloud vendor provides | e.g. `West Europe` 3+| not available 
 |spec.region |one of the regions that the cloud vendor provides | not available | e.g. `eu-central-1` | e.g. `de/fra` | e.g. `europe-central2`
 |spec.k8sVersion |The K8s version (optional, defaults to whatever the cloud provider regards as the default) 4+| 
@@ -391,7 +387,7 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.diskType |(optional) type of disk each node should have 2+| not available | default: `SSD` | not available
 |spec.diskSizeGb |(optional) size of the disk of the given node in GB 2+| not available | default: `250` | not available
 |spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 4+|
-|services |Map of service descriptions as embedded YAMLs. See below for available services. 4+|
+|services |Map of service definitions as embedded YAMLs. See below for available services. 4+|
 |=======
 
 ==== Links
@@ -451,9 +447,9 @@ To specify a version for *all* Stackable operators which are not explicitly ment
 If you'd like a cluster without any operators, you can set the version of `_-operator` to `NONE` as the only entry in the `versions` section.
 
 
-=== Service descriptions
+=== Service definitions
 
-The service descriptions depend on the used services. Please refer to the documentation of the operator for the product. You find the links to the components in the table above.
+The service definitions depend on the used services. Please refer to the documentation of the operator for the product. You find the links to the components in the table above.
 
 == T2 Testdriver (T2 client Docker image)
 
