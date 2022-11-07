@@ -38,6 +38,7 @@ variable "cluster_name" {
 
 locals {
   region = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "eu-central-1"
+  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
 }
 
 provider "aws" {
@@ -136,6 +137,8 @@ module "eks" {
       asg_desired_capacity          = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
     }
   ]
+
+  tags = local.labels
 }
 
 data "aws_eks_cluster" "cluster" {
