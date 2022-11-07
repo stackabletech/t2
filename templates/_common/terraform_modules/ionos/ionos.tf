@@ -42,6 +42,8 @@ locals {
   ]): node.name => node }
 
   datacenter_location = yamldecode(file("cluster.yaml"))["spec"]["region"]
+  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+  labels_string = join(", ", [ for key, value in local.labels : "${key}:${value}" ])
 }
 
 module "master_keypair" {
@@ -53,6 +55,7 @@ module "ionos_network" {
   source                        = "../ionos_network"
   datacenter_name               = var.datacenter_name
   datacenter_location           = local.datacenter_location
+  datacenter_description        = local.labels_string
 }
 
 module "ionos_edge_node" {
@@ -111,13 +114,4 @@ module "ssh_config" {
 
 module "stackable_service_definitions" {
   source = "../stackable_service_definitions"
-}
-
-module "wireguard" {
-  count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 0
-  source                    = "../wireguard"
-  server_config_filename    = "ansible_roles/files/wireguard_server.conf"
-  client_config_base_path   = "resources/wireguard-client-config"
-  allowed_ips               = concat([ for node in module.ionos_protected_nodes.protected_nodes: node.primary_ip ], [module.ionos_protected_nodes.orchestrator.primary_ip])
-  endpoint_ip               = module.ionos_edge_node.cluster_ip
 }
