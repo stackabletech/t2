@@ -42,6 +42,10 @@ variable "cluster_name" {
   type        = string
 }
 
+locals {
+  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+}
+
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
     features {}
@@ -74,6 +78,8 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
   identity {
     type = "SystemAssigned"
   }
+
+  tags = local.labels
 }
 
 # write kubeconfig to file
