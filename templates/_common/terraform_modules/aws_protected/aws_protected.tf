@@ -159,7 +159,6 @@ resource "aws_instance" "node" {
   tags = {
     "Name" = "${var.name_prefix}-${var.node_configuration[local.nodenames[count.index]].name}"
     "hostname" = var.node_configuration[local.nodenames[count.index]].name
-    "k8s_node" = var.node_configuration[local.nodenames[count.index]].k8s_node
   }
 }
 

@@ -37,7 +37,6 @@ locals {
         memoryMb = can(definition.memoryMb) ? definition.memoryMb : 4096
         diskType = can(definition.diskType) ? definition.diskType : "SSD"
         diskSizeGb = can(definition.diskSizeGb) ? definition.diskSizeGb: 500
-        k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
   ]): node.name => node }

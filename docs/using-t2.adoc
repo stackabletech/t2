@@ -245,13 +245,6 @@ spec:
       memoryMb: 8192
       diskType: HDD 
       diskSizeGb: 15
-    testdriver:
-      numberOfNodes: 1
-      numberOfCores: 2
-      memoryMb: 2048
-      diskType: HDD 
-      diskSizeGb: 15
-      k8s_node: false
 services:
   spark-primary: |
     apiVersion: spark.stackable.tech/v1
@@ -373,7 +366,6 @@ To keep the following informations somewhat handy, they are split in the options
 |spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below 2+| not available
 |spec.nodes.<type>.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `2C-4GB-20GB` | not available
 |spec.nodes.<type>.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cpx21`
-|spec.nodes.<type>.k8s_node |(boolean, optional, defaults to `true`) Should this node work as a Kubernetes node? 4+|
 |services |Map of service descriptions as embedded YAMLs. See below for available services. 4+|
 |=======
 
