@@ -211,11 +211,11 @@ kind: Infra
 template: ionos-debian-10
 metadata: 
   name: stackable-demo
-domain: stackable.demo
-publicKeys:
-  - "ssh-rsa AAAAB3NzaC1..."
-  - "ssh-rsa AAAACmtp4Ko..."
 spec:
+  domain: stackable.demo
+  publicKeys:
+    - "ssh-rsa AAAAB3NzaC1..."
+    - "ssh-rsa AAAACmtp4Ko..."
   region: de/fra
   cpuFamily: INTEL_XEON
   wireguard: true
@@ -338,8 +338,8 @@ To keep the following informations somewhat handy, they are split in the options
 |kind |always `Infra` 4+| 
 |template |see section above 4+| 
 |metadata.name |name of the cluster 4+| 
-|domain |domain for DNS inside the cluster or when accessing through VPN 4+| 
-|publicKeys |list of SSH public keys to allow access to cluster nodes 4+| 
+|spec.domain |domain for DNS inside the cluster or when accessing through VPN 4+| 
+|spec.publicKeys |list of SSH public keys to allow access to cluster nodes (optional) 4+| 
 |spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1` 2+| not available
 |spec.location |one of the locations that the cloud vendor provides 3+| not available | HCloud datacenter location, e.g. `fsn1`, `nbg1`, `hel1`. If omitted (recommended and default), one location in central Europe is selected.
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 3+| not available

@@ -7,8 +7,8 @@ resource "local_file" "ansible-variables-public-ssh-keys" {
   filename = "inventory/group_vars/all/public_ssh_keys.yml"
   content = templatefile("${path.module}/templates/ansible_variables_public_ssh_keys.tpl",
     {
-      ssh_client_keys = can(yamldecode(file("cluster.yaml"))["publicKeys"]) ? [
-        for k in yamldecode(file("cluster.yaml"))["publicKeys"]: 
+      ssh_client_keys = can(yamldecode(file("cluster.yaml"))["spec"]["publicKeys"]) ? [
+        for k in yamldecode(file("cluster.yaml"))["spec"]["publicKeys"]: 
           k
       ] : []
     }
