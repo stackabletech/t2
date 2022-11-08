@@ -17,7 +17,7 @@ At Stackable, we have a https://t2.stackable.tech/swagger-ui/[running instance o
 
 === Create a cluster using the REST API.
 
-To create a cluster with T2, you can use the REST API which is fully documented https://t2.stackable.tech/swagger-ui/index.html#/[here, window="_blank"]. This section here gives you a small example of the most common steps you take when working with a cluster managed by T2. The example requests are written in the format of the https://github.com/Huachao/vscode-restclient[REST client plugin, window="_blank"] for Visual Studio Code.
+To create a cluster with T2, you can use the REST API which is fully documented https://t2.stackable.tech/swagger-ui/index.html#/[here, window="_blank"]. This section here gives you a small example of the most common steps you take when working with a cluster managed by T2. The example requests are written in the format of the https://github.com/Huachao/vscode-restclient[REST client plugin, window="_blank"] for Visual Studio Code. If you work with Postman, Insomnia or the like, you'll find it easy to adapt these requests.
 
 ==== Step 1: Launch the cluster
 
@@ -29,12 +29,14 @@ t2-token: (put secret token here)
 Content-Type: application/yaml
 
 ---
-apiVersion: "t2.stackable.tech/v1"
-kind: "Infra"
-template: gke
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
 metadata:
-  name: "gke-test"
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
 spec:
+  template: gke
   region: europe-central2
   k8sVersion: 1.24
   node_count: 3
@@ -155,46 +157,6 @@ The deletion starts and you can check the cluster's state using the request from
 }
 ----
 
-=== Create a cluster in your infrastructure (deprecated)
-
-To create a cluster yourself, we offer what we call the *DIY option*. To use it, you can use https://t2.stackable.tech/swagger-ui/#/diy-cluster-controller/createClusterUsingGET[this service]. You have to provide a Stackable cluster definition as request body and get a ZIP file in return. This ZIP file comes with a `readme.txt` which explains the usage.
-
-
-[[client_script]]
-== The Stackable client script (deprecated)
-
-This script can be used to access a running cluster conveniently. 
-
-The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition, see <<cluster_definition>>) to be in your keystore (`~/.ssh/` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
-
-To ssh into a host, just provide the hostname as the single parameter, e.g.
-
-[source,bash]
-----
-./stackable.sh worker-12
-----
-
-or, with path to key: 
-
-[source,bash]
-----
-./stackable.sh worker-12 -i path/to/my/key
-----
-
-If you want to execute a command on the host, you can add it as a second param, e.g.
-
-[source,bash]
-----
-./stackable.sh worker-12 "kubectl get nodes"
-----
-
-or, with path to key:
-
-[source,bash]
-----
-./stackable.sh worker-12 -i path/to/my/key "kubectl get nodes"
-----
-
 [[cluster_definition]]
 == The Stackable cluster definition YAML
 
@@ -206,16 +168,14 @@ This is an example cluster definition, please find detailed specification of the
 
 [source,yaml]
 ----
-apiVersion: t2.stackable.tech/v1
-kind: Infra
-template: ionos-debian-10
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
 metadata: 
-  name: stackable-demo
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
 spec:
-  domain: stackable.demo
-  publicKeys:
-    - "ssh-rsa AAAAB3NzaC1..."
-    - "ssh-rsa AAAACmtp4Ko..."
+  template: ionos-debian-10
   region: de/fra
   cpuFamily: INTEL_XEON
   wireguard: true
@@ -334,12 +294,12 @@ To keep the following informations somewhat handy, they are split in the options
 [options="header"]
 |=======
 |key |description |IONOS Cloud |Amazon EC2| PlusCloud Open| Hetzner Cloud
-|apiVersion |always `t2.stackable.tech/v1` 4+| 
-|kind |always `Infra` 4+| 
-|template |see section above 4+| 
-|metadata.name |name of the cluster 4+| 
-|spec.domain |domain for DNS inside the cluster or when accessing through VPN 4+| 
-|spec.publicKeys |list of SSH public keys to allow access to cluster nodes (optional) 4+| 
+|apiVersion |always `t2.stackable.tech/v2` 4+| 
+|kind |always `StackableT2Cluster` 4+| 
+|metadata.labels |Labels for the cluster. These labels are used for the infrastructure components in the cloud vendors if possible. 4+| 
+|spec.template |see section above 4+| 
+|spec.domain | (optional) Network domain for cluster-internal use or when accessing through Wireguard VPN (which is currently disabled) 4+| 
+|spec.publicKeys | (optional) List of SSH public keys to allow access to cluster nodes. 4+| 
 |spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1` 2+| not available
 |spec.location |one of the locations that the cloud vendor provides 3+| not available | HCloud datacenter location, e.g. `fsn1`, `nbg1`, `hel1`. If omitted (recommended and default), one location in central Europe is selected.
 |spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 3+| not available
@@ -371,10 +331,10 @@ To keep the following informations somewhat handy, they are split in the options
 [options="header"]
 |=======
 |key |description |Azure AKS|Amazon EKS |IONOS K8S | Google GKE
-|apiVersion |always `t2.stackable.tech/v1` 4+| 
-|kind |always `Infra` 4+| 
-|template |see section above 4+| 
-|metadata.name |name of the cluster 4+| 
+|apiVersion |always `t2.stackable.tech/v2` 4+| 
+|kind |always `StackableT2Cluster` 4+| 
+|metadata.labels |Labels for the cluster. These labels are used for the infrastructure components in the cloud vendors if possible. 4+| 
+|spec.template |see section above 4+| 
 |spec.location |one of the locations that the cloud vendor provides | e.g. `West Europe` 3+| not available 
 |spec.region |one of the regions that the cloud vendor provides | not available | e.g. `eu-central-1` | e.g. `de/fra` | e.g. `europe-central2`
 |spec.k8sVersion |The K8s version (optional, defaults to whatever the cloud provider regards as the default) 4+| 

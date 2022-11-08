@@ -44,17 +44,23 @@ public class TemplateService {
      * @return working directory path
      * @throws RuntimeException if directory does not exist
      */
+    @SuppressWarnings("unchecked")
     public Path createWorkingDirectory(Path workingDirectory, Map<String, Object> clusterDefinition) {
         
         if(clusterDefinition==null) {
             throw new MalformedClusterDefinitionException("No cluster definition provided in the request.");
         }
         
-        if(!clusterDefinition.containsKey("template") || !(clusterDefinition.get("template") instanceof String)) {
-            throw new MalformedClusterDefinitionException("The cluster definition does not contain a valid template name.");
+        if (!clusterDefinition.containsKey("spec") 
+                    || !(clusterDefinition.get("spec") instanceof Map)
+                    || !(((Map<String, Object>) clusterDefinition.get("spec")).containsKey("template"))
+                    || !(((Map<String, Object>) clusterDefinition.get("spec")).get("template") instanceof String)
+                ) {
+            throw new MalformedClusterDefinitionException(
+                    "The cluster definition does not contain a valid template name.");
         }
         
-        String templateName = (String) clusterDefinition.get("template");
+        String templateName = (String) ((Map<String, Object>)clusterDefinition.get("spec")).get("template");
 
         if (StringUtils.startsWith(templateName, "_")) {
             throw new MalformedClusterDefinitionException(MessageFormat.format("The template {0} does not exist.", templateName));
