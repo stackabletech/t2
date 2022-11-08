@@ -38,6 +38,11 @@ variable "stackable_user" {
   description = "non-root user for Stackable"
 }
 
+variable "domain" {
+  type = string
+  description = "Network domain of the internal network"
+}
+
 # list of all node names to iterate over
 locals {
   nodenames = [ for node in var.node_configuration: node.name ]
@@ -127,7 +132,7 @@ resource "aws_route53_record" "orchestrator_reverse" {
   name = element(split(".", aws_instance.orchestrator.private_ip), 3)
   type = "PTR"
   ttl = "300"
-  records = [ format("%s.%s", "orchestrator", yamldecode(file("cluster.yaml"))["domain"]) ]
+  records = [ format("%s.%s", "orchestrator", var.domain) ]
 }
 
 # script to ssh into orchestrator via ssh proxy (aka jump host)
@@ -177,7 +182,7 @@ resource "aws_route53_record" "node_reverse" {
   name = element(split(".", element(aws_instance.node.*.private_ip, count.index)), 3)
   type = "PTR"
   ttl = "300"
-  records = [ format("%s.%s", var.node_configuration[local.nodenames[count.index]].name, yamldecode(file("cluster.yaml"))["domain"]) ]
+  records = [ format("%s.%s", var.node_configuration[local.nodenames[count.index]].name, var.domain) ]
 }
 
 # script to ssh into nodes via ssh proxy (aka jump host)

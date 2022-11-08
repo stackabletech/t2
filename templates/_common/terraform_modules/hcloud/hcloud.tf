@@ -34,8 +34,8 @@ locals {
   ]): node.name => node }
 
   labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
-
   location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : null
+  domain = can(yamldecode(file("cluster.yaml"))["spec"]["domain"]) ? yamldecode(file("cluster.yaml"))["spec"]["domain"] : "stackable.test"
 }
 
 locals {
@@ -102,6 +102,7 @@ module "hcloud_inventory" {
   edge_node_internal_ip         = module.hcloud_edge_node.edge_node_internal_ip
   stackable_user                = local.stackable_user
   stackable_user_home           = local.stackable_user_home
+  domain                        = local.domain
 }
 
 module "stackable_client_script" {

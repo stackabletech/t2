@@ -44,6 +44,7 @@ locals {
   datacenter_location = yamldecode(file("cluster.yaml"))["spec"]["region"]
   labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
   labels_string = join(", ", [ for key, value in local.labels : "${key}:${value}" ])
+  domain = can(yamldecode(file("cluster.yaml"))["spec"]["domain"]) ? yamldecode(file("cluster.yaml"))["spec"]["domain"] : "stackable.test"
 }
 
 module "master_keypair" {
@@ -86,10 +87,11 @@ module "ionos_inventory" {
   node_configuration            = local.node_configuration
   protected_nodes               = module.ionos_protected_nodes.protected_nodes
   orchestrator                  = module.ionos_protected_nodes.orchestrator
-  nat_gateway_ip                = module.ionos_network.gateway_ip
+  nat_gateway_ip                = module.ionos_netwoionos_inventoryrk.gateway_ip
   cluster_public_key_filename   = "cluster_key.pub"
   cluster_private_key_filename  = "cluster_key"
   location                      = local.datacenter_location
+  domain                        = local.domain
 }
 
 module "stackable_client_script" {
