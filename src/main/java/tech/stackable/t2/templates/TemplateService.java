@@ -51,11 +51,10 @@ public class TemplateService {
             throw new MalformedClusterDefinitionException("No cluster definition provided in the request.");
         }
         
-        if (!clusterDefinition.containsKey("spec") 
-                    || !(clusterDefinition.get("spec") instanceof Map)
-                    || !(((Map<String, Object>) clusterDefinition.get("spec")).containsKey("template"))
-                    || !(((Map<String, Object>) clusterDefinition.get("spec")).get("template") instanceof String)
-                ) {
+        if (!clusterDefinition.containsKey("spec") ||
+                !(clusterDefinition.get("spec") instanceof Map) ||
+                !(((Map<String, Object>) clusterDefinition.get("spec")).containsKey("template")) ||
+                !(((Map<String, Object>) clusterDefinition.get("spec")).get("template") instanceof String)) {
             throw new MalformedClusterDefinitionException(
                     "The cluster definition does not contain a valid template name.");
         }
