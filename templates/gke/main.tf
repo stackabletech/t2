@@ -57,12 +57,12 @@ resource "google_compute_subnetwork" "subnet" {
 resource "google_container_cluster" "cluster" {
   name     = "${var.cluster_name}"
   location = local.zone
-  initial_node_count = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
+  initial_node_count = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"] : 3
   min_master_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : null
   network    = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet.name
   node_config {
-    machine_type = can(yamldecode(file("cluster.yaml"))["spec"]["machineType"]) ? yamldecode(file("cluster.yaml"))["spec"]["machineType"] : "e2-standard-2"
+    machine_type = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["machineType"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["machineType"] : "e2-standard-2"
   }
   resource_labels = local.labels
 }

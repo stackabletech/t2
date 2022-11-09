@@ -31,7 +31,7 @@ locals {
 
   node_configuration = { for node in flatten([
     for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
-      for i in range(1, definition.numberOfNodes + 1): {
+      for i in range(1, definition.count + 1): {
         name = "${type}-${i}" 
         numberOfCores = can(definition.numberOfCores) ? definition.numberOfCores : 4
         memoryMb = can(definition.memoryMb) ? definition.memoryMb : 4096

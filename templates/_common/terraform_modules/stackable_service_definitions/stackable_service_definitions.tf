@@ -4,8 +4,8 @@ terraform {
 
 # list of all the service definitions
 locals {
-  service_definitions = can(yamldecode(file("cluster.yaml"))["services"]) ? [
-    for n, c in yamldecode(file("cluster.yaml"))["services"]: {
+  service_definitions = can(yamldecode(file("cluster.yaml"))["stackableServices"]) ? [
+    for n, c in yamldecode(file("cluster.yaml"))["stackableServices"]: {
       name = n
       content = c 
     }
