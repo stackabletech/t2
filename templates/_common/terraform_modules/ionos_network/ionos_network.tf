@@ -25,30 +25,30 @@ variable "datacenter_description" {
 
 # Datacenter
 resource "ionoscloud_datacenter" "datacenter" {
-  name = var.datacenter_name
-  location = var.datacenter_location
-  description = var.datacenter_description
+  name            = var.datacenter_name
+  location        = var.datacenter_location
+  description     = var.datacenter_description
 }
 
 # Internet facing LAN
 resource "ionoscloud_lan" "external" {
-  name = "External Network"
-  datacenter_id = ionoscloud_datacenter.datacenter.id
-  public = true
+  name              = "External Network"
+  datacenter_id     = ionoscloud_datacenter.datacenter.id
+  public            = true
 }
 
 # Private LAN
 resource "ionoscloud_lan" "internal" {
-  name = "Internal Network"
-  datacenter_id = ionoscloud_datacenter.datacenter.id
-  public = false
+  name                = "Internal Network"
+  datacenter_id       = ionoscloud_datacenter.datacenter.id
+  public              = false
 }
 
 # IP for NAT gateway
 resource "ionoscloud_ipblock" "ips" {
-  location  = var.datacenter_location
-  size      = 1
-  name      = var.datacenter_name
+  location        = var.datacenter_location
+  size            = 1
+  name            = var.datacenter_name
 }
 
 # NAT gateway

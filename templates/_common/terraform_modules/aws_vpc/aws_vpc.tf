@@ -2,6 +2,11 @@ variable "name" {
   description = "Name of the VPC in AWS"
 }
 
+variable "domain" {
+  type = string
+  description = "Network domain of the internal network"
+}
+
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -12,7 +17,7 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_route53_zone" "private" {
-  name = yamldecode(file("cluster.yaml"))["domain"]
+  name = var.domain
   vpc {
     vpc_id = aws_vpc.vpc.id
   }

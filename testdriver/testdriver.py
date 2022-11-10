@@ -334,9 +334,9 @@ def launch_cluster():
         cluster_definition_string = f.read()
     cluster_definition_yaml = yaml.load(cluster_definition_string, Loader=yaml.FullLoader)
 
-    if(not "publicKeys" in cluster_definition_yaml or not isinstance(cluster_definition_yaml["publicKeys"], list)):
-        cluster_definition_yaml["publicKeys"] = []
-    cluster_definition_yaml["publicKeys"].append(public_key)        
+    if(not "publicKeys" in cluster_definition_yaml["spec"] or not isinstance(cluster_definition_yaml["spec"]["publicKeys"], list)):
+        cluster_definition_yaml["spec"]["publicKeys"] = []
+    cluster_definition_yaml["spec"]["publicKeys"].append(public_key)        
     with open (f"{CLUSTER_FOLDER}/cluster.yaml", "w") as f:
         f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
         f.close()

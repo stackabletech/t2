@@ -42,6 +42,10 @@ variable "cluster_name" {
   type        = string
 }
 
+locals {
+  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+}
+
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
     features {}
@@ -67,13 +71,15 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
 
   default_node_pool {
     name       = "default"
-    node_count = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
-    vm_size    = can(yamldecode(file("cluster.yaml"))["spec"]["vm_size"]) ? yamldecode(file("cluster.yaml"))["spec"]["vm_size"] : "Standard_D2_v2"
+    node_count = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"] : 3
+    vm_size    = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["vmSize"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["vmSize"] : "Standard_D2_v2"
   }
 
   identity {
     type = "SystemAssigned"
   }
+
+  tags = local.labels
 }
 
 # write kubeconfig to file

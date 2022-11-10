@@ -37,6 +37,11 @@ variable "stackable_user_home" {
   description = "Home directory of Stackable user"
 }
 
+variable "domain" {
+  type = string
+  description = "Network domain of the internal network"
+}
+
 # inventory file for Ansible
 resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"
@@ -44,7 +49,7 @@ resource "local_file" "ansible-inventory" {
     {
       stackable_user = var.stackable_user
       stackable_user_home = var.stackable_user_home
-      domain = yamldecode(file("cluster.yaml"))["domain"]
+      domain = var.domain
       k8s_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : ""
       nodes = var.nodes
       cluster_ip = var.cluster_ip

@@ -38,6 +38,8 @@ variable "cluster_name" {
 
 locals {
   region = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "eu-central-1"
+  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+  instance_type = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["instanceType"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["instanceType"] : "t2.small"
 }
 
 provider "aws" {
@@ -129,13 +131,15 @@ module "eks" {
   worker_groups = [
     {
       name                          = "${var.cluster_name}-worker-group"
-      instance_type                 = can(yamldecode(file("cluster.yaml"))["spec"]["awsInstanceType"]) ? yamldecode(file("cluster.yaml"))["spec"]["awsInstanceType"] : "t2.small"
+      instance_type                 = local.instance_type
       additional_security_group_ids = [aws_security_group.worker_group.id]
       asg_min_size                  = 1
-      asg_max_size                  = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
-      asg_desired_capacity          = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
+      asg_max_size                  = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"] : 3
+      asg_desired_capacity          = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"] : 3
     }
   ]
+
+  tags = local.labels
 }
 
 data "aws_eks_cluster" "cluster" {
@@ -188,7 +192,7 @@ resource "local_file" "ansible-inventory" {
   content = templatefile("inventory.tpl",
     {
       location = local.region
-      node_size = can(yamldecode(file("cluster.yaml"))["spec"]["awsInstanceType"]) ? yamldecode(file("cluster.yaml"))["spec"]["awsInstanceType"] : "t2.small"
+      node_size = local.instance_type
     }
   )
   file_permission = "0440"

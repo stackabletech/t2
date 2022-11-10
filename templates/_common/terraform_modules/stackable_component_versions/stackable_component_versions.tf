@@ -7,10 +7,10 @@ terraform {
 # (A strange way of programming, but that happens when you lack proper control structures)
 locals {
   # "raw" dictionary with the values from the cluster definition
-  stackable_component_versions_raw = can(yamldecode(file("cluster.yaml"))["spec"]["versions"]) ? [
-    for p,v in yamldecode(file("cluster.yaml"))["spec"]["versions"]: {
+  stackable_component_versions_raw = can(yamldecode(file("cluster.yaml"))["spec"]["stackableVersions"]) ? [
+    for p,v in yamldecode(file("cluster.yaml"))["spec"]["stackableVersions"]: {
       name = p
-      version = yamldecode(file("cluster.yaml"))["spec"]["versions"][p]
+      version = yamldecode(file("cluster.yaml"))["spec"]["stackableVersions"][p]
       processed = false
     }
   ] : []

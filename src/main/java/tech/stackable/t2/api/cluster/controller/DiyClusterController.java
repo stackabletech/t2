@@ -65,11 +65,11 @@ public class DiyClusterController {
             }
         }
 
-        if (!"t2.stackable.tech/v1".equals(clusterDefinitionMap.get("apiVersion"))) {
+        if (!"t2.stackable.tech/v2".equals(clusterDefinitionMap.get("apiVersion"))) {
             throw new MalformedClusterDefinitionException("The apiVersion is either missing or not valid.");
         }
 
-        if (!"Infra".equals(clusterDefinitionMap.get("kind"))) {
+        if (!"StackableT2Cluster".equals(clusterDefinitionMap.get("kind"))) {
             throw new MalformedClusterDefinitionException(
                     "The kind of requested resource is either missing or not valid.");
         }

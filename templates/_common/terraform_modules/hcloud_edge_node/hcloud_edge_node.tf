@@ -18,6 +18,10 @@ variable "cluster_name" {
   description = "name of the cluster"
 }
 
+variable "labels" {
+  description = "custom labels for the edge node"
+}
+
 variable "keypair" {
   description = "keypair to use for the servers that are created"
 }
@@ -90,6 +94,8 @@ resource "hcloud_firewall" "edge_node" {
       "10.0.0.0/16"
     ]
   }
+
+  labels   = var.labels
 }
 
 resource "hcloud_server" "edge" {
@@ -109,6 +115,8 @@ resource "hcloud_server" "edge" {
     var.network,
     var.subnet
   ]
+
+  labels   = var.labels
 }
 
 # script to ssh into edge node

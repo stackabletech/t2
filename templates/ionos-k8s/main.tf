@@ -30,6 +30,8 @@ variable "cluster_name" {
 
 locals {
   region = yamldecode(file("cluster.yaml"))["spec"]["region"]
+  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+  labels_string = join(", ", [ for key, value in local.labels : "${key}:${value}" ])
 }
 
 provider "ionoscloud" {
@@ -44,9 +46,9 @@ resource "ionoscloud_k8s_cluster" "cluster" {
 
 # Datacenter
 resource "ionoscloud_datacenter" "datacenter" {
-  name = "${var.cluster_name}-k8s-nodes"
-  location = local.region
-  description = "Datacenter containing nodes for cluster ${var.cluster_name}-k8s"
+  name                = "${var.cluster_name}-k8s-nodes"
+  location            = local.region
+  description         = local.labels_string
 }
 
 
@@ -57,11 +59,11 @@ resource "ionoscloud_k8s_node_pool" "node_pool" {
   k8s_cluster_id    = ionoscloud_k8s_cluster.cluster.id
   cpu_family        = "INTEL_SKYLAKE"
   availability_zone = "AUTO"
-  storage_type      = can(yamldecode(file("cluster.yaml"))["spec"]["diskType"]) ? yamldecode(file("cluster.yaml"))["spec"]["diskType"] : "SSD"
-  node_count        = can(yamldecode(file("cluster.yaml"))["spec"]["node_count"]) ? yamldecode(file("cluster.yaml"))["spec"]["node_count"] : 3
-  cores_count       = can(yamldecode(file("cluster.yaml"))["spec"]["numberOfCores"]) ? yamldecode(file("cluster.yaml"))["spec"]["numberOfCores"] : 4
-  ram_size          = can(yamldecode(file("cluster.yaml"))["spec"]["memoryMb"]) ? yamldecode(file("cluster.yaml"))["spec"]["memoryMb"] : 4096
-  storage_size      = can(yamldecode(file("cluster.yaml"))["spec"]["diskSizeGb"]) ? yamldecode(file("cluster.yaml"))["spec"]["diskSizeGb"] : 250
+  storage_type      = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["diskType"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["diskType"] : "SSD"
+  node_count        = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"] : 3
+  cores_count       = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["numberOfCores"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["numberOfCores"] : 4
+  ram_size          = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["memoryMb"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["memoryMb"] : 4096
+  storage_size      = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["diskSizeGb"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["diskSizeGb"] : 250
 }
 
 data "ionoscloud_k8s_cluster" "cluster" {
