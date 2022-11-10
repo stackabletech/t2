@@ -87,7 +87,7 @@ module "ionos_inventory" {
   node_configuration            = local.node_configuration
   protected_nodes               = module.ionos_protected_nodes.protected_nodes
   orchestrator                  = module.ionos_protected_nodes.orchestrator
-  nat_gateway_ip                = module.ionos_netwoionos_inventoryrk.gateway_ip
+  nat_gateway_ip                = module.ionos_network.gateway_ip
   cluster_public_key_filename   = "cluster_key.pub"
   cluster_private_key_filename  = "cluster_key"
   location                      = local.datacenter_location
