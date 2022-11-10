@@ -434,6 +434,7 @@ metadata:
     purpose: testing-t2
 spec:
   template: ionos-k8s
+  region: de/txl
   k8sVersion: 1.23.6
   nodes:
     count: 8
