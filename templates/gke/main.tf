@@ -64,6 +64,9 @@ resource "google_container_cluster" "cluster" {
   node_config {
     machine_type = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["machineType"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["machineType"] : "e2-standard-2"
   }
+  release_channel {
+    channel = "RAPID"
+  }
   resource_labels = local.labels
 }
 

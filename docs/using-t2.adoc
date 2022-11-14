@@ -249,7 +249,7 @@ The content of this section differs depending on the cloud provider and template
 | nodes.<type>.memoryMb | `integer` | *optional* |  amount of memory of the nodes of the given type in MB, defaults to `4096`
 | nodes.<type>.diskType | `string` | *optional* | type of disk of the nodes of the given type, defaults to `SSD`
 | nodes.<type>.diskSizeGb | `integer` | *optional* | size of the disk of the nodes of the given type in GB, defaults to `500`
-| k8sVersion | `string` | *optional* | The K3s release to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.24`, `v1.23` etc. Special channels are `stable`, `latest` and `testing`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are the latest versions of each channel.
+| k8sVersion | `string` | *optional* | The K3s release (channel) to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.25`, `v1.24` etc. Special channels are `stable`, `latest` and `testing`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are available.
 | stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
@@ -299,7 +299,7 @@ spec:
 | nodes.<type> | `map` | *at least one* | Each node type has a block with its name as the key (see example below).
 | nodes.<type>.count | `integer` | *mandatory* | # of nodes of the given type
 | nodes.<type>.serverType | `string` | *mandatory* | type of Hetzner HCloud VMs you want to use, defaults to `cpx21`
-| k8sVersion | `string` | *optional* | The K3s release to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.24`, `v1.23` etc. Special channels are `stable`, `latest` and `testing`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are the latest versions of each channel.
+| k8sVersion | `string` | *optional* | The K3s release (channel) to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.25`, `v1.24` etc. Special channels are `stable`, `latest` and `testing`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are available.
 | stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
@@ -339,7 +339,7 @@ spec:
 | key | type | rules | description
 | template | `string` | *mandatory*, `azure-aks` | 
 | location | `string` | *optional* | Azure datacenter location, defaults to `West Europe`
-| k8sVersion | `string` | *optional* | K8s version, defaults to whatever the cloud provider considers to be the current default version
+| k8sVersion | `string` | *optional* | K8s version of Azure AKS. You can specify either the major/minor version (e.g. `1.24`) or the full version (e.g. `1.24.6`). Be aware that the range of supported K8s versions can depend upon the location! To get an overview of the currently supported versions, it is a good idea to log in to your Microsoft Azure account and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever Azure considers to be the current default version for the given location.
 | nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
 | nodes.vmSize | `string` | *optional* | Azure VM size of nodes, defaults to `Standard_D2_v2`
 | stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
@@ -375,7 +375,7 @@ spec:
 | key | type | rules | description
 | template | `string` | *mandatory*, `aws-eks` | 
 | region | `string` | *optional* | AWS datacenter location, defaults to `eu-central-1`
-| k8sVersion | `string` | *optional* | K8s version, defaults to whatever the cloud provider considers to be the current default version
+| k8sVersion | `string` | *optional* | K8s version of AWS EKS. You can specify only the major/minor version (e.g. `1.23`). To get an overview of the currently supported versions, it is a good idea to log in to your AWS account and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever AWS considers to be the current default version.
 | nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
 | nodes.instanceType | `string` | *optional* | AWS EC2 instance type of nodes, defaults to `t2.small`
 | stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
@@ -411,7 +411,7 @@ spec:
 | key | type | rules | description
 | template | `string` | *mandatory*, `ionos-k8s` | 
 | region | `string` | *mandatory* | IONOS datacenter location, e.g. `de/fra`
-| k8sVersion | `string` | *optional* | K8s version, defaults to whatever the cloud provider considers to be the current default version
+| k8sVersion | `string` | *optional* | K8s version of IONOS Kubernetes. You can specify only the major/minor version (e.g. `1.24`). To get an overview of the currently supported versions, it is a good idea to log in to your IONOS account and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever IONOS considers to be the current default version.
 | nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
 | nodes.numberOfCores | `integer` | *optional* | # of CPU cores of the nodes, defaults to `4`
 | nodes.memoryMb | `integer` | *optional* |  amount of memory of the nodes in MB, defaults to `4096`
@@ -453,7 +453,7 @@ spec:
 | key | type | rules | description
 | template | `string` | *mandatory*, `gke` | 
 | region | `string` | *optional* | GKE datacenter location, defaults to `europe-central2`
-| k8sVersion | `string` | *optional* | K8s version, defaults to whatever the cloud provider considers to be the current default version
+| k8sVersion | `string` | *optional* | K8s version of GKE. You can specify either the major/minor version (e.g. `1.24`) or the full version (e.g. `1.24.6`). In order to always test with the newest versions, T2 uses the `RAPID` release channel. To get an overview of the currently supported versions, it is a good idea to log in to your Google cloud console and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever Google considers to be the current default version.
 | nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
 | nodes.machineType | `string` | *optional* | Google Compute engine machine type of nodes, defaults to `e2-standard-2`
 | stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
