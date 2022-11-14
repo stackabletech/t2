@@ -26,15 +26,16 @@ locals {
 
   node_configuration = { for node in flatten([
     for type, definition in yamldecode(file("cluster.yaml"))["spec"]["nodes"] : [
-      for i in range(1, definition.numberOfNodes + 1): {
+      for i in range(1, definition.count + 1): {
         name = "${type}-${i}" 
         serverType = can(definition.serverType) ? definition.serverType : "cpx21"
-        k8s_node = can(definition.k8s_node) ? definition.k8s_node : true
       }
     ]
   ]): node.name => node }
 
+  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
   location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : null
+  domain = can(yamldecode(file("cluster.yaml"))["spec"]["domain"]) ? yamldecode(file("cluster.yaml"))["spec"]["domain"] : "stackable.test"
 }
 
 locals {
@@ -50,14 +51,16 @@ module "master_keypair" {
 
 # Keypair (as HCloud resource)
 resource "hcloud_ssh_key" "master_keypair" {
-  name       = "${var.cluster_name}-master-key"
-  public_key = module.master_keypair.public_key_openssh
+  name                          = "${var.cluster_name}-master-key"
+  public_key                    = module.master_keypair.public_key_openssh
+  labels                        = local.labels
 }
 
 # Creates the subnet for this cluster
 module "hcloud_network" {
   source                        = "../hcloud_network"
   cluster_name                  = var.cluster_name
+  labels                        = local.labels
 }
 
 # Creates the edge node for this cluster
@@ -70,6 +73,7 @@ module "hcloud_edge_node" {
   subnet                        = module.hcloud_network.subnet
   stackable_user                = local.stackable_user
   location                      = local.location
+  labels                        = local.labels
 }
 
 # Creates the protected nodes for this cluster
@@ -85,6 +89,7 @@ module "hcloud_protected_nodes" {
   cluster_ip                    = module.hcloud_edge_node.cluster_ip
   location                      = local.location
   os_image                      = var.os_image
+  labels                        = local.labels
 }
 
 # Creates the Ansible inventory file(s) for this cluster
@@ -97,6 +102,7 @@ module "hcloud_inventory" {
   edge_node_internal_ip         = module.hcloud_edge_node.edge_node_internal_ip
   stackable_user                = local.stackable_user
   stackable_user_home           = local.stackable_user_home
+  domain                        = local.domain
 }
 
 module "stackable_client_script" {
@@ -123,11 +129,3 @@ module "stackable_service_definitions" {
   source = "../stackable_service_definitions"
 }
 
-module "wireguard" {
-  count                     = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? (yamldecode(file("cluster.yaml"))["spec"]["wireguard"] ? 1 : 0) : 0
-  source                    = "../wireguard"
-  server_config_filename    = "ansible_roles/files/wireguard_server.conf"
-  client_config_base_path   = "resources/wireguard-client-config"
-  allowed_ips               = concat([ for node in module.hcloud_protected_nodes.nodes: element(node.network[*].ip, 0) ], [element(module.hcloud_protected_nodes.orchestrator.network[*].ip, 0)])
-  endpoint_ip               = module.hcloud_edge_node.cluster_ip
-}

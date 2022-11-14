@@ -15,7 +15,7 @@ ansible_become=yes
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.name} ansible_host=${node.primary_ip} k8s_node=${node_configuration[node.name]["k8s_node"]} node_number=${index+1} location=${location} node_size=${node_configuration[node.name]["numberOfCores"]}_cores__${node_configuration[node.name]["memoryMb"]}_MB_RAM__${node_configuration[node.name]["diskSizeGb"]}_GB_${node_configuration[node.name]["diskType"]}
+${node.name} ansible_host=${node.primary_ip} node_number=${index+1} location=${location} node_size=${node_configuration[node.name]["numberOfCores"]}_cores__${node_configuration[node.name]["memoryMb"]}_MB_RAM__${node_configuration[node.name]["diskSizeGb"]}_GB_${node_configuration[node.name]["diskType"]}
 %{ endfor ~}
 
 [orchestrators]

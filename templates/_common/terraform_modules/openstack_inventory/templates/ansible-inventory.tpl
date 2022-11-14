@@ -26,7 +26,7 @@ ansible_become=yes
 
 [nodes]
 %{ for index, node in nodes ~}
-${node.metadata["hostname"]} ansible_host=${node.access_ip_v4} k8s_node=${node.metadata["k8s_node"]} node_number=${index+1}
+${node.metadata["hostname"]} ansible_host=${node.access_ip_v4} node_number=${index+1}
 %{ endfor ~}
 
 [nodes:vars]

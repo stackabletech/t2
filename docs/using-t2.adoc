@@ -11,187 +11,195 @@
 // Need some preamble to get TOC:
 {empty}
 
-At Stackable, we have a https://t2.stackable.tech/swagger-ui/[running instance of T2, window="_blank"] to provision our own clusters. As described in the link:../README.adoc[README], we use it for integration testing and troubleshooting and do not provide access publicly (except DIY, see below).
+At Stackable, we have a https://t2.stackable.tech/swagger-ui/[running instance of T2, window="_blank"] to provision our own clusters. As described in the link:../README.adoc[README], we use it for integration testing and troubleshooting and do not provide access publicly.
 
 == Create a cluster
 
-=== Create a cluster in T2's infrastructure
+=== Create a cluster using the REST API.
 
-With request to https://t2.stackable.tech/swagger-ui/#/cluster-controller/createClusterUsingPOST[this endpoint, window="_blank"] you can create a new cluster. You have to provide the Stackable cluster definition as payload and a Token via the `t2-token` HTTP header to authenticate. The response is a description of the current cluster state.
+To create a cluster with T2, you can use the REST API which is fully documented https://t2.stackable.tech/swagger-ui/index.html#/[here, window="_blank"]. This section here gives you a small example of the most common steps you take when working with a cluster managed by T2. The example requests are written in the format of the https://github.com/Huachao/vscode-restclient[REST client plugin, window="_blank"] for Visual Studio Code. If you work with Postman, Insomnia or the like, you'll find it easy to adapt these requests.
 
-To track the progress while the cluster is created, you can use https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClusterUsingGET[this endpoint, window="_blank"]. The desired state you want to wait for is `RUNNING`. (requires token as well)
+==== Step 1: Launch the cluster
 
-To see in more detail what T2 is doing to create your cluster, you can https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[trace the output log here, window="_blank"]. (requires token as well)
-
-Once the cluster is up and running, you can download a script https://t2.stackable.tech/swagger-ui/#/cluster-controller/getClientScriptUsingGET[here, window="_blank"] which provides you with a convenient way to access the nodes of the cluster (see <<client_script>> below).
-
-Another way of accessing the cluster is using a prepared SSH config together with one of the private keys corresponding to a public key in the cluster definition file. You can download the SSH config https://t2.stackable.tech/swagger-ui/#/cluster-controller/getSshConfigUsingGET[here, window="_blank"]. When you use the SSH config or copy parts of it into your own SSH config, you can use tools like `ssh` or `scp` to interact with the cluster.
-
-To check which versions of the Stackable operators are running in your cluster, you can get an overview https://t2.stackable.tech/swagger-ui/#/cluster-controller/getLogUsingGET[here, window="_blank"]. (requires token as well)
-
-==== VPN (Wireguard)
-
-A very convenient way to work with a running cluster is to put your machine in the provided VPN. Using http://t2.stackable.tech/swagger-ui/#/cluster-controller/getWireguardConfigUsingGET[this endpoint, window="_blank"] you can download a Wireguard config file which is ready to be used. Please refer to the Wireguard docs for your system to find out how to use this.
-
-Once you are in the same network with the cluster, you can http://t2.stackable.tech/swagger-ui/#/cluster-controller/getKubeconfigUsingGET[download a kubeconfig file, window="_blank"] to interact with the Kubernetes system via *kubectl*, *k9s* or the like.
-
-
-
-=== Create a cluster in your infrastructure
-
-To create a cluster yourself, we offer what we call the *DIY option*. To use it, you can use https://t2.stackable.tech/swagger-ui/#/diy-cluster-controller/createClusterUsingGET[this service]. You have to provide a Stackable cluster definition as request body and get a ZIP file in return. This ZIP file comes with a `readme.txt` which explains the usage.
-
-
-[[client_script]]
-== The Stackable client script
-
-This script can be used to access a running cluster conveniently. 
-
-The script expects the private SSH key (matching one of the public keys in the Stackable cluster definition, see <<yaml>>) to be in your keystore (`~/.ssh/` in Linux). If you keep it at another location, you can provide the path to the private key with the `-i` option.
-
-To ssh into a host, just provide the hostname as the single parameter, e.g.
-
-[source,bash]
+With this request, you start the creation of a cluster:
+[source,yaml]
 ----
-./stackable.sh worker-12
+POST https://t2.stackable.tech/api/clusters
+t2-token: (put secret token here)
+Content-Type: application/yaml
+
+---
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
+metadata:
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
+spec:
+  template: gke
+  region: europe-central2
+  k8sVersion: 1.24
+  nodes:
+    count: 3
+    machineType: e2-standard-4
+  stackableVersions:
+    _-operator: NIGHTLY
 ----
 
-or, with path to key: 
+Please refer to the <<cluster_definition>> section to see which options you have to specify the cluster.
 
-[source,bash]
+As a response, you get the metadata of the cluster, which contains the current state and a history of its states since creation:
+[source,json]
 ----
-./stackable.sh worker-12 -i path/to/my/key
+{
+  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
+  "status": {
+    "failed": false,
+    "state": "TERRAFORM_APPLY"
+  },
+  "dateTimeCreated": "2022-10-05T06:11:27.234051",
+  "history": [
+    {
+      "status": {
+        "failed": false,
+        "state": "NEW"
+      },
+      "timestamp": "2022-10-05T06:11:27.23406",
+      "timeSinceClusterLaunch": "PT0.000009S",
+      "description": null
+    }
+  ]
+  ...
+}
 ----
 
-If you want to execute a command on the host, you can add it as a second param, e.g.
+You can see that the cluster is not yet ready for use, but currently applies a Terraform definition.
 
-[source,bash]
-----
-./stackable.sh worker-12 "kubectl get nodes"
-----
+==== Step 2: Check the cluster state
 
-or, with path to key:
-
-[source,bash]
+From the response in step 1, you have to copy the cluster's ID, which lets you access the cluster as a resource using the T2 API. To query the current state of the cluster, use a request like this:
+[source,yaml]
 ----
-./stackable.sh worker-12 -i path/to/my/key "kubectl get nodes"
+GET https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a
+t2-token: (put secret token here)
 ----
 
-[[yaml]]
+Eventually, you will get the response which confirms that your cluster is `RUNNING` and therefore ready for use:
+[source,json]
+----
+{
+  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
+  "status": {
+    "failed": false,
+    "state": "RUNNING"
+  },
+  "dateTimeCreated": "2022-10-05T06:11:27.234051",
+  "history": [
+    {
+      "status": {
+        "failed": false,
+        "state": "NEW"
+      },
+      "timestamp": "2022-10-05T06:11:27.23406",
+      "timeSinceClusterLaunch": "PT0.000009S",
+      "description": null
+    }
+  ]
+  ...
+}
+----
+
+[[cluster_access_file]]
+==== Step 3: Get the cluster access file
+
+T2 offers clusters from 5 different cloud vendors. As the way to access a cluster differs from vendor to vendor, you have to get the so called "cluster access file" which contains everything you need to access the cluster, including instructions how to use it:
+[source,yaml]
+----
+GET https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a/access
+t2-token: (put secret token here)
+----
+
+The access file should be self-explanatory. There are basically two ways to access a cluster:
+
+* Some clusters offer a static `kubeconfig` file which is contained in the access file. This can be used to access the cluster.
+* Some vendors (currently Google/GKE and AWS/EKS) require a login with a user/principal of the cloud platform. In these cases, the access file contains the credentials of a temporary user along with the instructions how to log in and create the `kubeconfig`.
+
+==== Step 4: Delete the cluster
+
+Once you are done with whatever you were up to with the cluster, please remember to shut the cluster down (or "delete the resource" in REST terms):
+[source,yaml]
+----
+DELETE https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a
+t2-token: (put secret token here)
+----
+
+The deletion starts and you can check the cluster's state using the request from step #2 until the cluster is `TERMINATED`:
+[source,json]
+----
+{
+  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
+  "status": {
+    "failed": false,
+    "state": "TERMINATED"
+  },
+  "dateTimeCreated": "2022-10-05T06:11:27.234051",
+  "history": [
+    {
+      "status": {
+        "failed": false,
+        "state": "NEW"
+      },
+      "timestamp": "2022-10-05T06:11:27.23406",
+      "timeSinceClusterLaunch": "PT0.000009S",
+      "description": null
+    }
+  ]
+  ...
+}
+----
+
+[[cluster_definition]]
 == The Stackable cluster definition YAML
 
-In either way you choose to use T2, you have to provide a definition of the Stackable cluster you want to create. You do this in a single YAML file. This section describes the cluster definition.
+You have to provide a definition of the Stackable cluster you want to create. You do this in a YAML file. This section describes the cluster definition.
 
-This is an example cluster definition, please find detailed specification of the structure below.
+The T2 cluster definition is similar to a Kubernetes resource definition and consists of the header with the `apiVersion`, the `kind` of resource and the `metadata`. Following the header, you have to define the cluster's details in a `spec` section.
 
-*Warning!* This exact config cannot be copy/pasted and used, as it is kind of a superset of options and therefore may contain contradicting and/or deprecated values. Please refer to the reference table below if you plan to setup a cluster.
+We chose the Kubernetes resource definition style to have a smoother migration path once we might decide to manage T2 clusters as Kubernetes resources. Furthermore, it's a well-known format.
 
 [source,yaml]
 ----
-apiVersion: t2.stackable.tech/v1
-kind: Infra
-template: ionos-debian-10
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
 metadata: 
-  name: stackable-demo
-  description: "This is the cluster I want!"
-domain: stackable.demo
-publicKeys:
-  - "ssh-rsa AAAAB3NzaC1..."
-  - "ssh-rsa AAAACmtp4Ko..."
+  name: for-future-use
+  labels:
+    label-1: value-1
+    label-2: value-2
 spec:
-  region: de/fra
-  cpuFamily: INTEL_XEON
-  wireguard: true
-  k8sVersion: "v1.23"
-  versions:
-    spark-operator: "0.2.0"
-    kafka-operator: "0.3.0"
-    zookeper-operator: "NIGHTLY"
-    monitoring-operator: "RELEASE"
-  orchestrator:
-    numberOfCores: 4
-    memoryMb: 8192
-    diskType: HDD
-    diskSizeGb: 15
-  nodes:
-    main:
-      numberOfNodes: 1
-      numberOfCores: 2
-      memoryMb: 8192
-      diskType: HDD 
-      diskSizeGb: 15
-    worker:
-      numberOfNodes: 4
-      numberOfCores: 4
-      memoryMb: 8192
-      diskType: HDD 
-      diskSizeGb: 15
-    testdriver:
-      numberOfNodes: 1
-      numberOfCores: 2
-      memoryMb: 2048
-      diskType: HDD 
-      diskSizeGb: 15
-      k8s_node: false
-services:
-  spark-primary: |
-    apiVersion: spark.stackable.tech/v1
-    kind: SparkCluster
-    metadata:
-      name: spark-primary
-    spec:
-      master:
-        selectors:
-          - nodeName: "main-1.stackable.demo"
-            instances: 1
-            masterPort: 9999
-            masterWebUiPort: 11111
-      worker:
-        selectors:
-          - nodeName: "worker-1.stackable.demo"
-            instances: 1
-            cores: 1
-            memory: "1g"
-      historyServer:
-        selectors:
-          - nodeName: "worker-3.stackable.demo"
-            instances: 1
-      version: "3.0.1"
-      maxPortRetries: 0
-  spark-secondary: |
-    apiVersion: spark.stackable.tech/v1
-    kind: SparkCluster
-    metadata:
-      name: spark-secondary
-    spec:
-      master:
-        selectors:
-          - nodeName: "main-1.stackable.demo"
-            instances: 1
-            masterPort: 9998
-            masterWebUiPort: 11112
-      worker:
-        selectors:
-          - nodeName: "worker-2.stackable.demo"
-            instances: 1
-            cores: 1
-            memory: "1g"
-      historyServer:
-        selectors:
-          - nodeName: "worker-4.stackable.demo"
-            instances: 1
-      version: "3.0.1"
-      maxPortRetries: 0        
+  ...
 ----
 
-The following sections describe the fields of the cluster definition in more detail:
+The following sections describe the fields of the cluster definition in more detail.
+
+=== Header
+
+[options="header", cols="1,1,2,3"]
+|=======
+|key | type | rules | description
+|apiVersion | `string` | *mandatory*, must be `t2.stackable.tech/v2` | API version like in Kubernetes
+|kind | `string` | *mandatory*, must be `StackableT2Cluster` | Kind of resource like in Kubernetes
+|metadata.name | `string` | *optional* | Name of the cluster. This name is currently not used, but may become important once we switch T2 to a Kubernetes application.
+|metadata.labels | `map(string->string)` | *optional* | Labels for the cluster. These labels are used for the infrastructure components in the cloud vendors where possible. 
+|=======
+
 
 === Templates
 
-The most important choice you have to make in a cluster definition is right in line #3: the template. There are two kinds of templates: 
+The most important choice you have to make in a cluster definition is the `template` in the `spec` section. There are two kinds of templates: 
 
-* "K3s-based self-provisioned": We use the compute power of the cloud provider and install a K3s-based Kubernetes cluster ourselves.
-* "Managed K8s": We use the managed Kubernetes products of the cloud provider.
+* "K3s-based self-provisioned": We use the compute power of a cloud provider and install a K3s-based Kubernetes cluster ourselves.
+* "Managed K8s": We use the managed Kubernetes products of a cloud provider.
 
 The following table lists the currently available templates:
 
@@ -207,90 +215,283 @@ The following table lists the currently available templates:
 |hcloud-debian-10 | Hetzner Cloud | Debian 10
 |hcloud-debian-11 | Hetzner Cloud | Debian 11
 |pluscloud-open-centos-8¹ | PlusCloud Open (Plusserver, SCS implementation, based on OpenStack) | CentOS 8
-.3+|managed K8s |azure-aks | Microsoft Azure | 
+.4+|managed K8s |azure-aks | Microsoft Azure | 
 |aws-eks | Amazon AWS | 
 |ionos-k8s | IONOS Cloud |
+|gke | Google Kubernetes Engine |
 |=======
 
 ¹temporarily disabled
 
-=== Configuration options
+=== Specification of the cluster ('spec' section)
 
-To keep the following informations somewhat handy, they are split in the options for K3s-based clusters and managed K8s
+The content of this section differs depending on the cloud provider and template, so there are multiple sections.
 
-==== Configuration (K3s)
+==== K3s on IONOS Cloud
 
-[options="header"]
+[options="header", cols="3,1,2,5"]
 |=======
-|key |description |IONOS Cloud |Amazon EC2| PlusCloud Open| Hetzner Cloud
-|apiVersion |always `t2.stackable.tech/v1` 4+| 
-|kind |always `Infra` 4+| 
-|template |see section above 4+| 
-|metadata.name |name of the cluster 4+| 
-|metadata.description |description of the cluster 4+| 
-|domain |domain for DNS inside the cluster or when accessing through VPN 4+| 
-|publicKeys |list of SSH public keys to allow access to cluster nodes 4+| 
-|spec.region |one of the regions that the cloud vendor provides | e.g. `de/fra`, `de/txl` | e.g. `eu-central-1` 2+| not available
-|spec.location |one of the locations that the cloud vendor provides 3+| not available | HCloud datacenter location, e.g. `fsn1`, `nbg1`, `hel1`. If omitted (recommended and default), one location in central Europe is selected.
-|spec.cpuFamily |(optional) specify CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values. | e.g. `INTEL_XEON` 3+| not available
-|spec.wireguard |(boolean, optional, defaults to `false`) Should a wireguard server be started on the bastion host? Leaving wireguard switched off when you don't need it speeds up the start of the cluster. | | not available | not available |
-|spec.k8sVersion |The K3s release to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.21`, `v1.22` etc. Special channels are `stable` and `latest`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are the latest versions of each channel. 4+| 
-|spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 4+|
-|spec.orchestrator |(optional) The orchestrator node is the Stackable node which hosts the operators. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details. 4+|
-|spec.orchestrator.numberOfCores |(optional) # of cores the orchestrator should have | default: `4` 3+| not available
-|spec.orchestrator.memoryMb |(optional) amount of memory the orchestrator should have in MB | default: `8192` 3+| not available 
-|spec.orchestrator.diskType |(optional) type of disk the orchestrator should have | default: `HDD` | default: `gp2` (general purpose SSD), see links below 2+| not available 
-|spec.orchestrator.diskSizeGb |(optional) size of the disk of the orchestrator in GB | default: `50` | default: `50` 2+| not available 
-|spec.orchestrator.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below 2+| not available
-|spec.orchestrator.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `8C-16GB-60GB` | not available
-|spec.orchestrator.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cpx41` 
-|spec.nodes |map of node types with their specification 4+| 
-|spec.nodes.<type>.numberOfNodes |# of nodes of the given type 4+|
-|spec.nodes.<type>.numberOfCores |# of cores each node of the given type should have | default: `4` 3+| not available
-|spec.nodes.<type>.memoryMb |amount of memory each node of the given type should have in MB | default `4096` 3+| not available
-|spec.nodes.<type>.diskType | type of disk each node of the given type should have | default: `SSD` | default: `gp2` (general purpose SSD), see links below 2+| not available
-|spec.nodes.<type>.diskSizeGb |size of the disk of the given node in GB | default: `500` | default: `50` 2+| not available
-|spec.nodes.<type>.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.medium`, see links below 2+| not available
-|spec.nodes.<type>.openstackFlavorName |(optional) 'Flavor' of the instance in OpenStack 2+| not available | defaults to `2C-4GB-20GB` | not available
-|spec.nodes.<type>.serverType |(optional) ServerType of the node in Hetzner Cloud 3+| not available | defaults to `cpx21`
-|spec.nodes.<type>.k8s_node |(boolean, optional, defaults to `true`) Should this node work as a Kubernetes node? 4+|
-|services |Map of service descriptions as embedded YAMLs. See below for available services. 4+|
+|key | type | rules | description
+|template | `string` | *mandatory*, one of `ionos-centos-8`, `ionos-debian-10`, `ionos-debian-11` |
+| domain | `string` | *optional*, defaults to `stackable.test` | Network domain for cluster-internal use or when accessing through Wireguard VPN (which is currently disabled)
+| publicKeys | `list(string)` | *optional* | List of SSH public keys to allow access to cluster nodes.
+| region | `string` | *mandatory* | datacenter region which the IONOS offers (e.g. `de/fra`)
+| cpuFamily | `string` | *optional* | CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values.
+| orchestrator | `map` | *optional* | The orchestrator node is the Stackable node which hosts the Kubernetes control plane. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
+| orchestrator.numberOfCores | `integer` | *optional* | # of CPU cores the orchestrator should have, defaults to `4`
+| orchestrator.memoryMb | `integer` | *optional* |  amount of memory the orchestrator should have in MB, defaults to `8192`
+| orchestrator.diskType | `string` | *optional* | type of disk the orchestrator should have, defaults to `HDD`
+| orchestrator.diskSizeGb | `integer` | *optional* | size of the disk of the orchestrator in GB, defaults to `50`
+| nodes | `map` | *mandatory* | map of nodes with their specifications
+| nodes.<type> | `map` | *at least one* | Each node type has a block with its name as the key (see example below).
+| nodes.<type>.count | `integer` | *mandatory* | # of nodes of the given type
+| nodes.<type>.numberOfCores | `integer` | *optional* | # of CPU cores of the nodes of the given type, defaults to `4`
+| nodes.<type>.memoryMb | `integer` | *optional* |  amount of memory of the nodes of the given type in MB, defaults to `4096`
+| nodes.<type>.diskType | `string` | *optional* | type of disk of the nodes of the given type, defaults to `SSD`
+| nodes.<type>.diskSizeGb | `integer` | *optional* | size of the disk of the nodes of the given type in GB, defaults to `500`
+| k8sVersion | `string` | *optional* | The K3s release (channel) to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.25`, `v1.24` etc. Special channels are `stable`, `latest` and `testing`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are available.
+| stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
+| stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
 
-==== Configuration (managed K8s)
+===== Example
 
-[options="header"]
+[source,yaml]
+----
+---
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
+metadata:
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
+spec:
+  template: ionos-centos-8
+  region: de/txl
+  k8sVersion: 1.24
+  nodes:
+    main:
+      count: 2
+      numberOfCores: 2
+      memoryMb: 2048
+    worker: 
+      count: 5
+      numberOfCores: 8
+      memoryMb: 16384
+      diskType: SSD
+      diskSizeGb: 1000
+  stackableVersions:
+    _-operator: NIGHTLY
+----
+
+==== K3s on Hetzner HCloud
+
+[options="header", cols="3,1,2,5"]
 |=======
-|key |description |Azure AKS|Amazon EKS |IONOS K8S
-|apiVersion |always `t2.stackable.tech/v1` 3+| 
-|kind |always `Infra` 3+| 
-|template |see section above 3+| 
-|metadata.name |name of the cluster 3+| 
-|metadata.description |description of the cluster 3+| 
-|spec.location |one of the locations that the cloud vendor provides | e.g. `West Europe` 2+| not available 
-|spec.region |one of the regions that the cloud vendor provides | not available | e.g. `eu-central-1` | e.g. `de/fra`
-|spec.k8sVersion |The K8s version (optional, defaults to whatever the cloud provider regards as the default) 3+| 
-|spec.node_count |# of nodes in the cluster 3+|
-|spec.vm_size |one of the VM sizes that the cloud vendor provides (optional) | e.g. `Standard_D2_v2` (which is also the default) 2+| not available
-|spec.awsInstanceType |(optional) AWS EC2 instance type | not available | default: `t2.xlarge`, see links below | not available
-|spec.numberOfCores |(optional) # of cores each node should have 2+| not available | default: `4`
-|spec.memoryMb |(optional) amount of memory each node should have in MB 2+| not available | default: `4096`
-|spec.diskType |(optional) type of disk each node should have 2+| not available | default: `SSD`
-|spec.diskSizeGb |(optional) size of the disk of the given node in GB 2+| not available | default: `250`
-|spec.versions |(optional) Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components. 3+|
-|services |Map of service descriptions as embedded YAMLs. See below for available services. 3+|
+|key | type | rules | description
+|template | `string` | *mandatory*, one of `hcloud-centos-8`, `hcloud-centos-9`, `hcloud-debian-10`, `hcloud-debian-11` | 
+| domain | `string` | *optional*, defaults to `stackable.test` | Network domain for cluster-internal use or when accessing through Wireguard VPN (which is currently disabled)
+| publicKeys | `list(string)` | *optional* | List of SSH public keys to allow access to cluster nodes.
+| location | `string` | *optional* | HCloud datacenter location, e.g. `fsn1`, `nbg1`, `hel1`. If omitted (recommended and default), one location in central Europe is selected.
+| orchestrator | `map` | *optional* | The orchestrator node is the Stackable node which hosts the Kubernetes control plane. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
+| orchestrator.serverType | `string` | *optional* | type of Hetzner HCloud VM you want to use, defaults to `cpx41`
+| nodes | `map` | *mandatory* | map of nodes with their specifications
+| nodes.<type> | `map` | *at least one* | Each node type has a block with its name as the key (see example below).
+| nodes.<type>.count | `integer` | *mandatory* | # of nodes of the given type
+| nodes.<type>.serverType | `string` | *mandatory* | type of Hetzner HCloud VMs you want to use, defaults to `cpx21`
+| k8sVersion | `string` | *optional* | The K3s release (channel) to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.25`, `v1.24` etc. Special channels are `stable`, `latest` and `testing`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are available.
+| stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
+| stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
 
-==== Links
+===== Example
+
+[source,yaml]
+----
+---
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
+metadata:
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
+spec:
+  template: hcloud-debian-11
+  location: nbg1
+  k8sVersion: 1.24
+  nodes:
+    main:
+      count: 2
+      serverType: cpx31
+    worker: 
+      count: 5
+      serverType: cpx51
+  stackableVersions:
+    _-operator: NONE
+    commons-operator: RELEASE
+    secret-operator: RELEASE
+----
+
+==== Microsoft Azure AKS (managed)
+
+[options="header", cols="2,1,2,5"]
+|=======
+| key | type | rules | description
+| template | `string` | *mandatory*, `azure-aks` | 
+| location | `string` | *optional* | Azure datacenter location, defaults to `West Europe`
+| k8sVersion | `string` | *optional* | K8s version of Azure AKS. You can specify either the major/minor version (e.g. `1.24`) or the full version (e.g. `1.24.6`). Be aware that the range of supported K8s versions can depend upon the location! To get an overview of the currently supported versions, it is a good idea to log in to your Microsoft Azure account and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever Azure considers to be the current default version for the given location.
+| nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
+| nodes.vmSize | `string` | *optional* | Azure VM size of nodes, defaults to `Standard_D2_v2`
+| stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
+| stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
+|=======
+
+===== Example
+
+[source,yaml]
+----
+---
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
+metadata:
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
+spec:
+  template: azure-aks
+  location: northeurope
+  k8sVersion: 1.23.6
+  nodes:
+    vmSize: Standard_E2s_v3
+  stackableVersions:
+    _-operator: NIGHTLY
+    zookeeper-operator: 0.12.0-pr184
+----
+
+==== Amazon AWS EKS (managed)
+
+[options="header", cols="2,1,2,5"]
+|=======
+| key | type | rules | description
+| template | `string` | *mandatory*, `aws-eks` | 
+| region | `string` | *optional* | AWS datacenter location, defaults to `eu-central-1`
+| k8sVersion | `string` | *optional* | K8s version of AWS EKS. You can specify only the major/minor version (e.g. `1.23`). To get an overview of the currently supported versions, it is a good idea to log in to your AWS account and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever AWS considers to be the current default version.
+| nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
+| nodes.instanceType | `string` | *optional* | AWS EC2 instance type of nodes, defaults to `t2.small`
+| stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
+| stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
+|=======
+
+===== Example
+
+[source,yaml]
+----
+---
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
+metadata:
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
+spec:
+  template: aws-eks
+  k8sVersion: 1.22
+  nodes:
+    count: 5
+    instanceType: t2.xlarge
+  stackableVersions:
+    _-operator: RELEASE
+    zookeeper-operator: 0.12.0
+----
+
+==== IONOS Kubernetes (managed)
+
+[options="header", cols="2,1,2,5"]
+|=======
+| key | type | rules | description
+| template | `string` | *mandatory*, `ionos-k8s` | 
+| region | `string` | *mandatory* | IONOS datacenter location, e.g. `de/fra`
+| k8sVersion | `string` | *optional* | K8s version of IONOS Kubernetes. You can specify only the major/minor version (e.g. `1.24`). To get an overview of the currently supported versions, it is a good idea to log in to your IONOS account and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever IONOS considers to be the current default version.
+| nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
+| nodes.numberOfCores | `integer` | *optional* | # of CPU cores of the nodes, defaults to `4`
+| nodes.memoryMb | `integer` | *optional* |  amount of memory of the nodes in MB, defaults to `4096`
+| nodes.diskType | `string` | *optional* | type of disk of the nodes, defaults to `SSD`
+| nodes.diskSizeGb | `integer` | *optional* | size of the disk of the nodes in GB, defaults to `250`
+| stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
+| stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
+|=======
+
+===== Example
+
+[source,yaml]
+----
+---
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
+metadata:
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
+spec:
+  template: ionos-k8s
+  region: de/txl
+  k8sVersion: 1.23.6
+  nodes:
+    count: 8
+    numberOfCores: 2
+    memoryMb: 4096
+  stackableVersions:
+    _-operator: RELEASE
+    hbase-operator: NONE
+    hive-operator: NONE
+----
+
+==== Google Kubernetes Engine - GKE (managed)
+
+[options="header", cols="2,1,2,5"]
+|=======
+| key | type | rules | description
+| template | `string` | *mandatory*, `gke` | 
+| region | `string` | *optional* | GKE datacenter location, defaults to `europe-central2`
+| k8sVersion | `string` | *optional* | K8s version of GKE. You can specify either the major/minor version (e.g. `1.24`) or the full version (e.g. `1.24.6`). In order to always test with the newest versions, T2 uses the `RAPID` release channel. To get an overview of the currently supported versions, it is a good idea to log in to your Google cloud console and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever Google considers to be the current default version.
+| nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
+| nodes.machineType | `string` | *optional* | Google Compute engine machine type of nodes, defaults to `e2-standard-2`
+| stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
+| stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
+|=======
+
+===== Example
+
+[source,yaml]
+----
+---
+apiVersion: t2.stackable.tech/v2
+kind: StackableT2Cluster
+metadata:
+  labels:
+    author: backstreetkiwi
+    purpose: testing-t2
+spec:
+  template: gke
+  k8sVersion: 1.24
+  nodes:
+    count: 7
+    machineType: e2-highcpu-8
+  stackableVersions:
+    _-operator: NIGHTLY
+----
+
+=== Links to informations of the Cloud Vendors
 
 * https://aws.amazon.com/de/ec2/instance-types/[AWS EC2 instance types]
 * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html[AWS EC2 volume types]
 * https://www.hetzner.com/de/cloud[Hetzner Cloud server types]
+* https://cloud.google.com/compute/docs/machine-types[Google Cloud machine types]
 
 
 === Stackable operators
 
-These are operators that Stackable currently provides. You can specify their versions with the `spec.versions` section in the cluster definition (see above).
+These are operators that Stackable currently provides. You can specify their versions with the `spec.stackableVersions` section in the cluster definition (see above).
 
 [options="header"]
 |=======
@@ -303,7 +504,6 @@ These are operators that Stackable currently provides. You can specify their ver
 |https://github.com/stackabletech/hdfs-operator[Stackable Operator for Apache HDFS] |`hdfs-operator`
 |https://github.com/stackabletech/hive-operator[Stackable Operator for Apache Hive] |`hive-operator`
 |https://github.com/stackabletech/kafka-operator[Stackable Operator for Apache Kafka] |`kafka-operator`
-|https://github.com/stackabletech/monitoring-operator[Stackable Operator for Monitoring and Metrics] |`monitoring-operator`
 |https://github.com/stackabletech/nifi-operator[Stackable Operator for Apache NiFi] |`nifi-operator`
 |https://github.com/stackabletech/opa-operator[Stackable Operator for OpenPolicyAgent (OPA)] |`opa-operator`
 |https://github.com/stackabletech/spark-k8s-operator[Stackable Operator for Apache Spark] |`spark-k8s-operator`
@@ -315,7 +515,7 @@ These are operators that Stackable currently provides. You can specify their ver
 
 ==== Version literals
 
-As shown in the example `cluster.yaml`, you can specify the versions of the Stackable components in the `spec.versions` section. The following table shows the different ways to do so by example:
+As shown in various examples in this document, you can specify the versions of the Stackable components in the `spec.stackableVersions` section. The following table shows the different ways to do so by example:
 
 [options="header"]
 |=======
@@ -324,36 +524,33 @@ As shown in the example `cluster.yaml`, you can specify the versions of the Stac
 | (no version specified) | same as `RELEASE`
 |`NIGHTLY` | The newest nightly version which can be found in the Stackable repository
 |`NONE` | The operator is not installed at all.
-|`0.2.0-mr404` | latest build of version 0.2.0 from GitHub Pull Request #404
+|`0.2.0-pr404` | latest build of version 0.2.0 from GitHub Pull Request #404
 |`0.3.0-nightly` | latest nightly build of version 0.3.0
 |`0.6.1` | realeased version 0.6.1
 |=======
 
-
-==== Default version for Stackable Operators
+==== Default version for all Stackable Operators
 
 To specify a version for *all* Stackable operators which are not explicitly mentioned in the Versions section, you can use the key `_-operator`. Using this operator most probably does not make sense with actual version numbers, but merely the keywords `RELEASE`, `NIGHTLY` or `NONE`.
 
 If you'd like a cluster without any operators, you can set the version of `_-operator` to `NONE` as the only entry in the `versions` section.
 
 
-=== Service descriptions
+=== Service definitions
 
-The service descriptions depend on the used services. Please refer to the documentation of the operator for the product. You find the links to the components in the table above.
+The service definitions depend on the used services. Please refer to the documentation of the operator for the product. You find the links to the components in the table above.
 
 == T2 Testdriver (T2 client Docker image)
 
 We provide the Docker image `docker.stackable.tech/t2-testdriver` to make the usage of T2 in CI pipelines and for developers easier.
 
-The T2 testdriver offers 3 "cluster modes" which are selected by setting the `CLUSTER` environment variable to either `NONE`, `EXISTING` or `MANAGED`. 
+The T2 testdriver offers 5 "cluster modes" which are selected by setting the `CLUSTER` environment variable to either `NONE`, `EXISTING`, `MANAGED`, `CREATE` or `DELETE`. 
 
-Independent of the "cluster mode", you can select if the testdriver is running "interactively" by setting the `INTERACTIVE_MODE` flag.
-
-The following sections describe the meaning of the modes followed by a table describing all options.
+The following sections describe the meaning of the modes and some major options, followed by a table describing all options.
 
 === Cluster mode NONE
 
-The testdriver is not operating on a Kubernetes cluster at all. This mode is mostely useful for test and development purposes.
+The testdriver is not operating on a Kubernetes cluster at all. This mode is mostely useful for test and development purposes of the client itself or the CI processes.
 
 === Cluster mode EXISTING
 
@@ -363,11 +560,19 @@ The testdriver operates on a cluster which exists independently from the testdri
 
 The testdriver creates a cluster as defined in the cluster definition file and tears it down once the testdriver is about to be shut down.
 
+=== Cluster mode CREATE
+
+The testdriver just creates a cluster and quits afterwards. The user is responsible for later cleaning up the cluster using the `DELETE` mode.
+
+=== Cluster mode DELETE
+
+The testdriver just tears down an existing cluster and quits afterwards.
+
 === Interactive or not interactive?
 
 The "normal" use case of the testdriver is the following: The testdriver executes the given test script against the (existing or managed) cluster, records the results and some other logfiles and then shuts down the cluster (if managed) and terminates.
 
-If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
+If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed) or the connectivity check (if existing). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
 
   docker exec -it <container_name> bash
 
@@ -377,6 +582,8 @@ Once you're done with the work, you should terminate the container running the `
 
 This way of terminating is preferred to just terminating the container because the grace period of `docker stop` usually is too short to allow for an unproblematic cluster shutdown.
 
+The interactive session is only available in the modes `NONE`, `EXISTING` and `MANAGED`.
+
 === Options
 
 The following table describes all the options that can/must be set when using the testdriver.
@@ -384,16 +591,21 @@ The following table describes all the options that can/must be set when using th
 [options="header"]
 |=======
 |Feature |How to use |Description
-|Cluster mode | environment variable `CLUSTER` (`NONE`, `EXISTING` or `MANAGED`) | *(mandatory)* See sections above...
-|Interactive mode | environment variable `INTERACTIVE_MODE` | *(optional)*, defaults to `false`
-|User/Group for target directory | environment variable `UID_GID` (format `<UID>:<GID>`), defaults to `0:0` (root) | *(optional)* All stuff which is written into the target dir is owned by this user/group combination.
-|T2 URL | environment variable `T2_URL` | *(mandatory for managed clusters)* The URL of T2 to use
-|T2 Token | environment variable `T2_TOKEN` | *(mandatory for managed clusters)* The token to access T2
-|Cluster definition | map as file to `/cluster.yaml` | *(mandatory for managed clusters)* The cluster definition as described above
-|Target directory | map as volume to `/target/` | *(mandatory)* The target directory for the output
-|Kubernetes config file | map as file to `/root/.kube/config` | *(mandatory if using existing clusters)* The K8s config file to access the existing cluster
+|Cluster mode | environment variable `CLUSTER` (`NONE`, `EXISTING`, `MANAGED`, `CREATE` or `DELETE`) | **mandatory** See sections above...
+|Interactive mode | environment variable `INTERACTIVE_MODE` | **optional**, defaults to `false`, see section above...
+|User/Group for target directory | environment variable `UID_GID` (format `<UID>:<GID>`), defaults to `0:0` (root) | **optional** All stuff which is written into the target dir is owned by this user/group combination.
+|T2 URL | environment variable `T2_URL` | *(mandatory for managed clusters, creation and deletion)* The URL of T2 to use
+|T2 Token | environment variable `T2_TOKEN` | *(mandatory for managed clusters, creation and deletion)* The token to access T2
+|Cluster definition | map as file to `/cluster.yaml` | *(mandatory for managed clusters and creation)* The cluster definition as described above
+|Cluster ID | environment variable `CLUSTER_ID` | *(mandatory for cluster deletion)* The cluster ID (a UUID assigned by T2) of the cluster to be deleted.
+|Target directory | map as volume to `/target/` | **mandatory** The target directory for the output
+|Kubernetes config file | map as file to `/root/.kube/config` | *(mandatory if using existing clusters AND NOT specifying a T2 cluster access file)* The K8s config file to access the existing cluster
+|T2 cluster access file | map as file to `/access.yaml` | *(mandatory if using existing clusters AND NOT specifying a Kubernetes config file)* The T2 cluster access file to access the existing cluster (see <<cluster_access_file>>) If an "ordinary" kubeconfig is supplied (see above), this file is ignored.
 |Test script | map as file to `/test.sh` | *(mandatory if not running in interactive mode)*. The script containing the test to be run once the cluster is up and running
 |=======
+
+
+/access.yaml
 
 === Output files
 

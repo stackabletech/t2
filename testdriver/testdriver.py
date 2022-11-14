@@ -16,6 +16,8 @@ class Cluster(Enum):
     NONE = "NONE"
     EXISTING = "EXISTING"
     MANAGED = "MANAGED"
+    CREATE = "CREATE"
+    DELETE = "DELETE"
 
 # vars representing input
 cluster_mode = None
@@ -23,6 +25,7 @@ interactive_mode = False
 uid_gid_output = '0:0'
 t2_url = None
 t2_token = None
+delete_cluster_id = None
 
 # thread communication
 thread_stop_signal = False
@@ -76,6 +79,7 @@ def process_input():
     global uid_gid_output
     global t2_url
     global t2_token
+    global delete_cluster_id
 
     if not ('CLUSTER' in os.environ and os.environ['CLUSTER'] in Cluster._member_map_):
         print('Error: Please supply CLUSTER (values: NONE, EXISTING, MANAGED) as an environment variable.')
@@ -88,7 +92,7 @@ def process_input():
     if 'UID_GID' in os.environ:
         uid_gid_output = os.environ['UID_GID']
 
-    if cluster_mode == Cluster.MANAGED:
+    if cluster_mode == Cluster.MANAGED or cluster_mode == Cluster.CREATE or cluster_mode == Cluster.DELETE:
         if not ('T2_URL' in os.environ and 'T2_TOKEN' in os.environ):
             print('Error: For cluster mode MANAGED, please supply T2_URL and T2_TOKEN as environment variables.')
             exit(EXIT_CODE_CLUSTER_FAILED)
@@ -99,9 +103,9 @@ def process_input():
         print(f"Error: A target folder volume has to be supplied as {TARGET_FOLDER}. ")
         exit(EXIT_CODE_CLUSTER_FAILED)
 
-    if cluster_mode == Cluster.MANAGED:
+    if cluster_mode == Cluster.MANAGED or cluster_mode == Cluster.CREATE:
         if not os.path.isfile(CLUSTER_DEFINITION_FILE):
-            print(f"Error: For cluster mode MANAGED, please supply a cluster definition as {CLUSTER_DEFINITION_FILE}")
+            print(f"Error: For cluster mode MANAGED or CREATE, please supply a cluster definition as {CLUSTER_DEFINITION_FILE}")
             exit(EXIT_CODE_CLUSTER_FAILED)
 
     if cluster_mode == Cluster.EXISTING:
@@ -109,7 +113,13 @@ def process_input():
             print(f"Error: For cluster mode EXISTING, please supply either a T2 cluster access file as {CLUSTER_ACCESS_FILE} or a Kubernetes config file as {K8S_CONFIG_FILE}")
             exit(EXIT_CODE_CLUSTER_FAILED)
 
-    if not interactive_mode:
+    if cluster_mode == Cluster.DELETE:
+        if not 'CLUSTER_ID' in os.environ:
+            print(f"Error: For cluster mode DELETE, please supply the ID of the cluster to delete as CLUSTER_ID")
+            exit(EXIT_CODE_CLUSTER_FAILED)
+        delete_cluster_id = os.environ['CLUSTER_ID']
+
+    if not interactive_mode and cluster_mode in [Cluster.NONE, Cluster.MANAGED, Cluster.EXISTING]:
         if not os.path.isfile(TEST_SCRIPT_FILE):
             print('Error: Please supply a test script as /test.sh')
             exit(EXIT_CODE_CLUSTER_FAILED)
@@ -324,10 +334,9 @@ def launch_cluster():
         cluster_definition_string = f.read()
     cluster_definition_yaml = yaml.load(cluster_definition_string, Loader=yaml.FullLoader)
 
-    if(not "publicKeys" in cluster_definition_yaml or not isinstance(cluster_definition_yaml["publicKeys"], list)):
-        log("Error: The cluster definition file does not contain a valid 'publicKeys' section.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-    cluster_definition_yaml["publicKeys"].append(public_key)        
+    if(not "publicKeys" in cluster_definition_yaml["spec"] or not isinstance(cluster_definition_yaml["spec"]["publicKeys"], list)):
+        cluster_definition_yaml["spec"]["publicKeys"] = []
+    cluster_definition_yaml["spec"]["publicKeys"].append(public_key)        
     with open (f"{CLUSTER_FOLDER}/cluster.yaml", "w") as f:
         f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
         f.close()
@@ -499,6 +508,9 @@ def write_retrospective_logs():
 
 if __name__ == "__main__":
 
+    exit_code = 0
+    cluster_connection_successful = False
+    
     process_input()
     set_target_folder_owner()
     init_output_files()
@@ -510,7 +522,7 @@ if __name__ == "__main__":
     elif cluster_mode == Cluster.EXISTING:
         log("Testdriver operates on existing cluster.")
         cluster_connection_successful = connect_to_existing_cluster()
-    else:
+    elif cluster_mode == Cluster.MANAGED:
         log("Testdriver launches new managed cluster...")
         prepare_managed_cluster()
         cluster_id = launch_cluster()
@@ -518,17 +530,24 @@ if __name__ == "__main__":
         install_stackable_client_script()
         configure_ssh()
         cluster_connection_successful = connect_with_cluster_access_file()
+    elif cluster_mode == Cluster.CREATE:
+        log("Testdriver launches new cluster (create only, non-managed)...")
+        prepare_managed_cluster()
+        cluster_id = launch_cluster()
+        download_cluster_files(t2_url, t2_token, cluster_id)
+        cluster_connection_successful = connect_with_cluster_access_file()
+        os.system(f"cp {CLUSTER_ACCESS_FILE} {TARGET_FOLDER}access.yaml")
+    elif cluster_mode == Cluster.DELETE:
+        cluster_id = delete_cluster_id
 
-    # If we have a working connection to a cluster, we proceed with the test or interactive session
-    if (cluster_mode == Cluster.NONE) or cluster_connection_successful:
+    # Start K8s cluster monitoring if we have a successfully created managed or existing cluster
+    if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED] and cluster_connection_successful):
+        log("Start Kubernetes cluster monitoring...")
+        start_k8s_monitoring()
+        log("Started Kubernetes cluster monitoring.")
 
-        # Start K8s cluster monitoring
-        if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
-            log("Start Kubernetes cluster monitoring...")
-            start_k8s_monitoring()
-            log("Started Kubernetes cluster monitoring.")
-
-        exit_code = 0
+    # Execute the test or go into interactive mode (mutually exclusive)
+    if (cluster_mode == Cluster.NONE) or (cluster_connection_successful and (cluster_mode in [Cluster.EXISTING, Cluster.MANAGED])):
 
         if interactive_mode:
             log("Testdriver started in interactive mode.")
@@ -539,7 +558,9 @@ if __name__ == "__main__":
             exit_code = run_test_script()
             log(f"Test script terminated with exit code {exit_code}")
 
-        # Stop K8s cluster monitoring
+    # Stop K8s cluster monitoring if we have a successfully created managed or existing cluster
+    if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED] and cluster_connection_successful):
+
         if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
             log("Stopping all background tasks...")        
             stop_all_background_tasks()
@@ -548,8 +569,8 @@ if __name__ == "__main__":
             log("Log stuff after_execution")
             write_retrospective_logs()
 
-    # Stop managed K8s cluster
-    if(cluster_mode == Cluster.MANAGED):
+    # Stop K8s cluster
+    if(cluster_mode in [Cluster.MANAGED, Cluster.DELETE]):
         terminate_cluster(cluster_id)
 
     # Set output file ownership recursively 

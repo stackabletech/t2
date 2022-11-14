@@ -44,12 +44,17 @@ variable "location" {
   type = string
 }
 
+variable "domain" {
+  type = string
+  description = "Network domain of the internal network"
+}
+
 # inventory file for Ansible
 resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
-      domain = yamldecode(file("cluster.yaml"))["domain"]
+      domain = var.domain
       k8s_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : ""
       stackable_user = "root"
       stackable_user_home = "/root/"

@@ -55,8 +55,11 @@ variable "location" {
   type        = string
 }
 
-
 variable "node_configuration" {
+}
+
+variable "labels" {
+  description = "custom labels for the nodes"
 }
 
 # list of all node names to iterate over
@@ -82,6 +85,8 @@ resource "hcloud_firewall" "protected_nodes" {
       "10.0.0.0/16"
     ]
   }
+
+  labels   = var.labels
 }
 
 # Create the orchestrator compute instance
@@ -102,6 +107,8 @@ resource "hcloud_server" "orchestrator" {
     var.network,
     var.subnet
   ]
+
+  labels   = var.labels
 }
 
 # Create the cluster-specific nodes as compute instances
@@ -117,17 +124,14 @@ resource "hcloud_server" "node" {
     network_id = var.network.id
   }
 
-  labels = {
-    "hostname" = var.node_configuration[local.nodenames[count.index]].name
-    "k8s_node" = var.node_configuration[local.nodenames[count.index]].k8s_node
-  }
-
   firewall_ids = [ hcloud_firewall.protected_nodes.id ]
 
   depends_on = [
     var.network,
     var.subnet
   ]
+
+  labels   = merge(var.labels, {hostname = var.node_configuration[local.nodenames[count.index]].name})
 }
 
 # script to ssh into orchestrator via ssh proxy (aka jump host)
