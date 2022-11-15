@@ -6,7 +6,6 @@
   - facts_network
   - selinux_disabled
   - ipv6_disabled
-  - ionos_fix_centos_8_eol
 - hosts: edge
   roles:
   - epel_centos_8

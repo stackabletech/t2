@@ -40,6 +40,6 @@ module "stackable_component_versions" {
 module "ionos" {
   source                        = "./terraform_modules/ionos"
   datacenter_name               = var.cluster_name
-  os_name                       = "CentOS"
-  os_version                    = "8-cloud-init"
+  os_name                       = "rocky"
+  os_version                    = "8.6-GenericCloud-20220702"
 }

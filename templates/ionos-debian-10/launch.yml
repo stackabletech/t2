@@ -7,7 +7,6 @@
   - ipv6_disabled
 - hosts: edge
   roles:
-  - ionos_fix_centos_8_eol
   - selinux_disabled
   - epel_centos_8
   - up_to_date_centos
@@ -40,3 +39,4 @@
   - stackable_operators
   - cluster_info_sheet
   - stackable_services
+  - access_file_kubeconfig

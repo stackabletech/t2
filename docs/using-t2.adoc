@@ -206,8 +206,8 @@ The following table lists the currently available templates:
 [options="header"]
 |=======
 |Type|key |Cloud provider| Linux distribution
-.9+|K3s |ionos-centos-8 | IONOS Cloud | CentOS 8
-|ionos-debian-10¹ | IONOS Cloud | Debian 10
+.9+|K3s |ionos-rocky-8 | IONOS Cloud | Rocky Linux 8
+|ionos-debian-10 | IONOS Cloud | Debian 10
 |ionos-debian-11 | IONOS Cloud | Debian 11
 |aws-centos-8¹ | Amazon EC2 | CentOS 8
 |hcloud-centos-8 | Hetzner Cloud | CentOS 8
@@ -221,8 +221,6 @@ The following table lists the currently available templates:
 |gke | Google Kubernetes Engine |
 |=======
 
-¹temporarily disabled
-
 === Specification of the cluster ('spec' section)
 
 The content of this section differs depending on the cloud provider and template, so there are multiple sections.
@@ -232,7 +230,7 @@ The content of this section differs depending on the cloud provider and template
 [options="header", cols="3,1,2,5"]
 |=======
 |key | type | rules | description
-|template | `string` | *mandatory*, one of `ionos-centos-8`, `ionos-debian-10`, `ionos-debian-11` |
+|template | `string` | *mandatory*, one of `ionos-rocky-8`, `ionos-debian-10`, `ionos-debian-11` |
 | domain | `string` | *optional*, defaults to `stackable.test` | Network domain for cluster-internal use or when accessing through Wireguard VPN (which is currently disabled)
 | publicKeys | `list(string)` | *optional* | List of SSH public keys to allow access to cluster nodes.
 | region | `string` | *mandatory* | datacenter region which the IONOS offers (e.g. `de/fra`)
@@ -266,7 +264,7 @@ metadata:
     author: backstreetkiwi
     purpose: testing-t2
 spec:
-  template: ionos-centos-8
+  template: ionos-rocky-8
   region: de/txl
   k8sVersion: 1.24
   nodes:

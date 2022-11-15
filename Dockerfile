@@ -41,18 +41,11 @@ RUN sh -c "echo 'deb http://deb.debian.org/debian buster-backports main contrib 
 RUN apt update
 RUN apt install wireguard -y
 
-# install ansible
-RUN sh -c "echo 'deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main' >> /etc/apt/sources.list"
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
-RUN apt update
-RUN apt install ansible -y
+# install Ansible
+RUN pip3 install ansible
 
-# install python packages
-RUN apt install python-pip -y
-RUN pip install netaddr ipaddress
-
-# install python3 packages
-RUN pip3 install PyYAML
+# install python packages 
+RUN pip3 install netaddr ipaddress PyYAML
 
 # install GCloud CLI
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-cli google-cloud-sdk-gke-gcloud-auth-plugin -y
