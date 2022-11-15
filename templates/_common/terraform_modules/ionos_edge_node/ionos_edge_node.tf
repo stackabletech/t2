@@ -29,8 +29,8 @@ variable "cluster_private_key_filename" {
 }
 
 data "ionoscloud_image" "os_image_edge_node" {
-  name     = "CentOS"
-  version  = "8-cloud-init"
+  name     = "rocky"
+  version  = "8.6-GenericCloud-20220702"
   type     = "HDD"
   location = var.datacenter.location
 }
