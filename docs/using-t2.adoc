@@ -207,7 +207,7 @@ The following table lists the currently available templates:
 |=======
 |Type|key |Cloud provider| Linux distribution
 .9+|K3s |ionos-centos-8 | IONOS Cloud | CentOS 8
-|ionos-debian-10¹ | IONOS Cloud | Debian 10
+|ionos-debian-10 | IONOS Cloud | Debian 10
 |ionos-debian-11 | IONOS Cloud | Debian 11
 |aws-centos-8¹ | Amazon EC2 | CentOS 8
 |hcloud-centos-8 | Hetzner Cloud | CentOS 8
@@ -220,8 +220,6 @@ The following table lists the currently available templates:
 |ionos-k8s | IONOS Cloud |
 |gke | Google Kubernetes Engine |
 |=======
-
-¹temporarily disabled
 
 === Specification of the cluster ('spec' section)
 
