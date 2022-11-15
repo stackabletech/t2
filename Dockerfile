@@ -41,11 +41,8 @@ RUN sh -c "echo 'deb http://deb.debian.org/debian buster-backports main contrib 
 RUN apt update
 RUN apt install wireguard -y
 
-# install ansible
-RUN sh -c "echo 'deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main' >> /etc/apt/sources.list"
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
-RUN apt update
-RUN apt install ansible -y
+# install Ansible
+RUN pip3 install ansible
 
 # install python packages
 RUN apt install python-pip -y
