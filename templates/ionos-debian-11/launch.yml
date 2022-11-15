@@ -7,7 +7,6 @@
   - ipv6_disabled
 - hosts: edge
   roles:
-  - ionos_fix_centos_8_eol
   - selinux_disabled
   - epel_centos_8
   - up_to_date_centos
