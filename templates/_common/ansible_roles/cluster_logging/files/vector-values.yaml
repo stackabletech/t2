@@ -1,0 +1,119 @@
+# Deploy the agent as a DaemonSet
+role: Agent
+service:
+  # Disable Vector's service because it is not used here and would
+  # require additional configuration.
+  enabled: false
+customConfig:
+  # Set a directory used for persisting state which is writable by
+  # Vector
+  data_dir: /vector-data-dir
+  sources:
+    # Collect all log data for Kubernetes nodes enriched with metadata
+    # from the Kubernetes API
+    k8s_all:
+      type: kubernetes_logs
+  transforms:
+    # Raw Kubernetes logs with a component field
+    raw_logs:
+      type: remap
+      inputs:
+        - k8s_all
+      file: /vrl/raw.vrl
+    # Raw operator logs
+    raw_operators:
+      type: filter
+      inputs:
+        - raw_logs
+      condition: >
+        ends_with(
+          string!(.component),
+          "-operator"
+        )
+    # Operator logs with timestamp, level, and message
+    structured_operators:
+      type: remap
+      inputs:
+        - raw_operators
+      file: /vrl/operators.vrl
+    # Raw Kubernetes events
+    raw_kubernetes_events:
+      type: filter
+      inputs:
+        - raw_logs
+      condition: .container == "kube-eventrouter"
+    # Kubernetes events (ready for ingestion)
+    kubernetes_events:
+      type: remap
+      inputs:
+        - raw_kubernetes_events
+      drop_on_error: true
+      file: /vrl/kubernetes_events.vrl
+  sinks:
+    opensearch_out_operators:
+      # Write to OpenSearch/Elasticsearch
+      type: elasticsearch
+      inputs:
+        - structured_operators
+      endpoint: "${OPENSEARCH_ENDPOINT}"
+      mode: bulk
+      bulk:
+        action: index
+        index: t2-operators-%F
+      # Do not send the type because it was removed in OpenSearch 2.0.0/
+      # Elasticsearch 8.0
+      suppress_type_name: true
+      tls:
+        verify_certificate: false
+        verify_hostname: false 
+      auth:
+        strategy: basic
+        user: "${OPENSEARCH_USERNAME}"
+        password: "${OPENSEARCH_PASSWORD}"
+    opensearch_out_events:
+      # Write to OpenSearch/Elasticsearch
+      type: elasticsearch
+      inputs:
+        - kubernetes_events
+      endpoint: "${OPENSEARCH_ENDPOINT}"
+      mode: bulk
+      bulk:
+        action: index
+        index: t2-k8s-events-%F
+      # Do not send the type because it was removed in OpenSearch 2.0.0/
+      # Elasticsearch 8.0
+      suppress_type_name: true
+      tls:
+        verify_certificate: false
+        verify_hostname: false 
+      auth:
+        strategy: basic
+        user: "${OPENSEARCH_USERNAME}"
+        password: "${OPENSEARCH_PASSWORD}"
+extraVolumeMounts:
+  # Use the Vector transformations stored in the config map
+  - name: transforms
+    mountPath: /vrl
+extraVolumes:
+  - name: transforms
+    configMap:
+      name: vector-transforms
+envFrom:
+  - configMapRef:
+      name: cluster-metadata 
+env:
+  - name: OPENSEARCH_ENDPOINT
+    valueFrom:
+      secretKeyRef:
+        name: cluster-logging-target
+        key: endpoint
+  - name: OPENSEARCH_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: cluster-logging-target
+        key: user
+  - name: OPENSEARCH_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: cluster-logging-target
+        key: password

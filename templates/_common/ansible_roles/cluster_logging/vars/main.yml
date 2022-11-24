@@ -1,0 +1,17 @@
+---
+stackable_operators:
+  - spark-k8s-operator
+  - zookeeper-operator
+  - hbase-operator
+  - hdfs-operator
+  - hive-operator
+  - kafka-operator
+  - monitoring-operator
+  - opa-operator
+  - nifi-operator
+  - superset-operator
+  - trino-operator
+  - druid-operator
+  - airflow-operator
+  - secret-operator
+  - commons-operator
