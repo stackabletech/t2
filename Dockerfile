@@ -5,7 +5,7 @@ RUN mkdir -p /var/t2/workspace/
 
 # install helpful tools
 RUN apt-get update
-RUN apt-get install curl python3 python3-pip unzip wget vim git gcc pkg-config jq openjdk-11-jdk gnupg -y
+RUN apt-get install curl python3 python3-pip unzip wget vim git gcc pkg-config jq openjdk-11-jdk gnupg uuid -y
 
 # install Terraform
 RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
