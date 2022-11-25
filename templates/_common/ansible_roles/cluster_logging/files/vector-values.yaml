@@ -14,17 +14,24 @@ customConfig:
     k8s_all:
       type: kubernetes_logs
   transforms:
-    # Raw Kubernetes logs with a component field
+    # Raw Kubernetes logs
     raw_logs:
       type: remap
       inputs:
         - k8s_all
       file: /vrl/raw.vrl
+    # Raw Kubernetes logs with a component field
+    raw_logs_with_known_component:
+      type: filter
+      inputs:
+        - raw_logs
+      condition: >
+        .component != null
     # Raw operator logs
     raw_operators:
       type: filter
       inputs:
-        - raw_logs
+        - raw_logs_with_known_component
       condition: >
         ends_with(
           string!(.component),

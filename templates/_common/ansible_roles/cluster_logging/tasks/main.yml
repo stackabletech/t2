@@ -18,7 +18,7 @@
   shell: |
     kubectl --kubeconfig kubeconfig create configmap cluster-metadata \
         --namespace cluster-logging \
-        --from-literal=T2_CLUSTER_ID=$(uuid)
+        --from-literal=T2_CLUSTER_ID=$(uuid) || true
 
 - name: Create the secret which contains the information about the t2-cluster-logging endpoint
   shell: |
@@ -26,7 +26,7 @@
         --namespace cluster-logging \
         --from-literal=endpoint='{{ lookup('env', 'CLUSTER_LOGGING_ENDPOINT') }}' \
         --from-literal=user='{{ lookup('env', 'CLUSTER_LOGGING_USER') }}' \
-        --from-literal=password='{{ lookup('env', 'CLUSTER_LOGGING_PASSWORD') }}'
+        --from-literal=password='{{ lookup('env', 'CLUSTER_LOGGING_PASSWORD') }}' || true
 
 - name: Create transform rules for vector
   shell: |
@@ -43,30 +43,4 @@
 - name: deploy eventrouter (prints K8s events to stdout to be collected by Vector)
   shell: |
     kubectl --kubeconfig kubeconfig apply -f {{role_path}}/files/eventrouter.yaml
-
-
-#- name: install operators (when specific version is set)
-#  shell: |
-#    helm --kubeconfig kubeconfig install cluster-logging {{stackable_component_versions[item]['repository']}}/{{ item }} --version '{{stackable_component_versions[item]['version']}}' || true
-#  loop: "{{ stackable_operators }}"
-#  when: 
-#    - item in stackable_component_versions.keys()
-#    - "'NONE' not in stackable_component_versions[item]['version']"
-#
-#- name: install operators (from default version, _-operator)
-#  shell: |
-#    helm --kubeconfig kubeconfig install stackable-{{ item }} {{stackable_component_versions['_-operator']['repository']}}/{{ item }} --version '{{stackable_component_versions['_-operator']['version']}}' || true
-#  loop: "{{ stackable_operators }}"
-#  when: 
-#    - item not in stackable_component_versions.keys()
-#    - "'_-operator' in stackable_component_versions.keys()"
-#    - "'NONE' not in stackable_component_versions['_-operator']['version']"
-#
-#- name: install operators (nothing specified, install RELEASE)
-#  shell: |
-#    helm --kubeconfig kubeconfig install stackable-{{ item }} stackable-stable/{{ item }} || true
-#  loop: "{{ stackable_operators }}"
-#  when: 
-#    - item not in stackable_component_versions.keys()
-#    - "'_-operator' not in stackable_component_versions.keys()"
 
