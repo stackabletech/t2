@@ -11,8 +11,18 @@ terraform {
   }
 }
 
-variable "datacenter_name" {
+variable "cluster_id" {
+  description = "ID of the cluster"
+  type        = string
+}
+
+variable "cluster_name" {
   description = "Name of the cluster"
+  type        = string
+}
+
+variable "datacenter_name" {
+  description = "Name of the datacenter"
   type        = string
 }
 
@@ -82,6 +92,8 @@ module "ionos_protected_nodes" {
 
 module "ionos_inventory" {
   source                        = "../ionos_inventory"
+  cluster_id                    = var.cluster_id
+  cluster_name                  = var.cluster_name
   cluster_ip                    = module.ionos_edge_node.cluster_ip
   edge_node_internal_ip         = module.ionos_edge_node.edge_node_internal_ip
   node_configuration            = local.node_configuration

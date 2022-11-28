@@ -23,9 +23,13 @@ variable "ionos_password" {
   sensitive   = true
 }
 
-variable "cluster_name" {
-  description = "Name of the cluster"
+variable "cluster_id" {
+  description = "UUID of the cluster"
   type        = string
+}
+
+locals {
+  cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
 }
 
 provider "ionoscloud" {
@@ -39,6 +43,8 @@ module "stackable_component_versions" {
 
 module "ionos" {
   source                        = "./terraform_modules/ionos"
+  cluster_id                    = var.cluster_id
+  cluster_name                  = local.cluster_name
   datacenter_name               = var.cluster_name
   os_name                       = "Debian"
   os_version                    = "10-genericcloud-amd64-20220911-1135"

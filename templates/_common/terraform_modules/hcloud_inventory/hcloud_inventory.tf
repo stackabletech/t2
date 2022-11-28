@@ -4,6 +4,16 @@ terraform {
   required_version = ">= 0.15, < 2.0.0"
 }
 
+variable "cluster_id" {
+  description = "ID of the cluster"
+  type        = string
+}
+
+variable "cluster_name" {
+  description = "Name of the cluster"
+  type        = string
+}
+
 variable "nodes" {
   description = "instance resource representing custom nodes" 
 }
@@ -47,6 +57,8 @@ resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
+      cluster_id = var.cluster_id
+      cluster_name = var.cluster_name
       stackable_user = var.stackable_user
       stackable_user_home = var.stackable_user_home
       domain = var.domain

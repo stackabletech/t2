@@ -11,6 +11,11 @@ terraform {
   }
 }
 
+variable "cluster_id" {
+  description = "ID of the cluster"
+  type        = string
+}
+
 variable "cluster_name" {
   description = "Name of the cluster"
   type        = string
@@ -95,6 +100,8 @@ module "hcloud_protected_nodes" {
 # Creates the Ansible inventory file(s) for this cluster
 module "hcloud_inventory" {
   source                        = "../hcloud_inventory"
+  cluster_id                    = var.cluster_id
+  cluster_name                  = var.cluster_name
   orchestrator                  = module.hcloud_protected_nodes.orchestrator
   nodes                         = module.hcloud_protected_nodes.nodes
   cluster_private_key_filename  = "cluster_key"

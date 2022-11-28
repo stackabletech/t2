@@ -11,6 +11,16 @@ terraform {
   }
 }
 
+variable "cluster_id" {
+  description = "ID of the cluster"
+  type        = string
+}
+
+variable "cluster_name" {
+  description = "Name of the cluster"
+  type        = string
+}
+
 variable "cluster_ip" {
   type = string
 }
@@ -54,6 +64,8 @@ resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     {
+      cluster_id = var.cluster_id
+      cluster_name = var.cluster_name
       domain = var.domain
       k8s_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : ""
       stackable_user = "root"
