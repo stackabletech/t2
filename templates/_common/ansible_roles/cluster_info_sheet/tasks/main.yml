@@ -16,5 +16,5 @@
 
 - name: Collect operator versions info into file
   shell: |
-    helm --kubeconfig kubeconfig list >> resources/stackable-versions.txt
+    helm --kubeconfig kubeconfig --namespace default list >> resources/stackable-versions.txt
   ignore_errors: True
