@@ -45,7 +45,7 @@ module "ionos" {
   source                        = "./terraform_modules/ionos"
   cluster_id                    = var.cluster_id
   cluster_name                  = local.cluster_name
-  datacenter_name               = var.cluster_name
+  datacenter_name               = local.cluster_name
   os_name                       = "rocky"
   os_version                    = "8.6-GenericCloud-20220702"
 }
