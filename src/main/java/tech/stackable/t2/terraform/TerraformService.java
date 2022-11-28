@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,15 +39,15 @@ public class TerraformService {
     	this.terraformProcessesCompleted = meterRegistry.counter("TERRAFORM_PROCESSES_COMPLETED");
 	}
 
-    public TerraformResult init(Path workingDirectory, String clusterName) {
+    public TerraformResult init(Path workingDirectory, UUID clusterId) {
         LOGGER.info("Running Terraform init on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, clusterName, "init", "-input=false");
+        int result = this.callTerraform(workingDirectory, clusterId, "init", "-input=false");
         return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
     }
 
-    public TerraformResult plan(Path workingDirectory, String clusterName) {
+    public TerraformResult plan(Path workingDirectory, UUID clusterId) {
         LOGGER.info("Running Terraform plan on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, clusterName, "plan", "-detailed-exitcode -input=false");
+        int result = this.callTerraform(workingDirectory, clusterId, "plan", "-detailed-exitcode -input=false");
         switch (result) {
         case 0:
             return TerraformResult.SUCCESS;
@@ -57,15 +58,15 @@ public class TerraformService {
         }
     }
 
-    public TerraformResult apply(Path workingDirectory, String clusterName) {
+    public TerraformResult apply(Path workingDirectory, UUID clusterId) {
         LOGGER.info("Running Terraform apply on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, clusterName, "apply", "-auto-approve -input=false");
+        int result = this.callTerraform(workingDirectory, clusterId, "apply", "-auto-approve -input=false");
         return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
     }
 
-    public TerraformResult destroy(Path workingDirectory, String clusterName) {
+    public TerraformResult destroy(Path workingDirectory, UUID clusterId) {
         LOGGER.info("Running Terraform destroy on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, clusterName, "destroy", "-auto-approve");
+        int result = this.callTerraform(workingDirectory, clusterId, "destroy", "-auto-approve");
         return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
     }
 
@@ -78,12 +79,12 @@ public class TerraformService {
         }
     }
 
-    private int callTerraform(Path workingDirectory, String clusterName, String command, String params) {
+    private int callTerraform(Path workingDirectory, UUID clusterId, String command, String params) {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder()
                     .command("sh", "-c", String.format("terraform %s %s -no-color", command, params))
                     .directory(workingDirectory.toFile());
-            processBuilder.environment().put("TF_VAR_cluster_name", clusterName);
+            processBuilder.environment().put("TF_VAR_cluster_id", clusterId.toString());
             Process process = processBuilder.redirectErrorStream(true).start();
             this.runningProcesses.add(process);
             this.terraformProcessesStarted.increment();

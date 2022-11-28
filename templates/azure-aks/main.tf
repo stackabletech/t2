@@ -37,12 +37,13 @@ variable "az_service_principal_password" {
     sensitive   = true
 }
 
-variable "cluster_name" {
-  description = "Name of the cluster, used as a prefix on the names of the resources created here"
+variable "cluster_id" {
+  description = "UUID of the cluster"
   type        = string
 }
 
 locals {
+  cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
   labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
 }
 
@@ -58,15 +59,15 @@ provider "azurerm" {
 
 
 resource "azurerm_resource_group" "resource-group" {
-  name     = "${var.cluster_name}-resource-group"
+  name     = "${local.cluster_name}-resource-group"
   location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : "West Europe"
 }
 
 resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
-  name                = "${var.cluster_name}-kubernetes-cluster"
+  name                = "${local.cluster_name}-kubernetes-cluster"
   location            = azurerm_resource_group.resource-group.location
   resource_group_name = azurerm_resource_group.resource-group.name
-  dns_prefix          = "${var.cluster_name}"
+  dns_prefix          = "${local.cluster_name}"
   kubernetes_version  = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : null
 
   default_node_pool {
@@ -106,6 +107,8 @@ resource "local_file" "ansible-inventory" {
     {
       location = azurerm_kubernetes_cluster.kubernetes_cluster.location
       node_size = azurerm_kubernetes_cluster.kubernetes_cluster.default_node_pool[0].vm_size
+      cluster_name = local.cluster_name
+      cluster_id = var.cluster_id
     }
   )
   file_permission = "0440"

@@ -11,8 +11,8 @@ terraform {
   }
 }
 
-variable "cluster_name" {
-  description = "Name of the cluster, used as a prefix on the names of the resources created here"
+variable "cluster_id" {
+  description = "UUID of the cluster"
   type        = string
 }
 
@@ -22,6 +22,7 @@ variable "google_cloud_project_id" {
 }
 
 locals {
+  cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
   region = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "europe-central2"
   labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
 }
@@ -41,13 +42,13 @@ locals {
 
 # VPC
 resource "google_compute_network" "vpc" {
-  name                    = "${var.cluster_name}"
+  name                    = "${local.cluster_name}"
   auto_create_subnetworks = "false"
 }
 
 # Subnet
 resource "google_compute_subnetwork" "subnet" {
-  name          = "${var.cluster_name}"
+  name          = "${local.cluster_name}"
   region        = local.region
   network       = google_compute_network.vpc.name
   ip_cidr_range = "10.10.0.0/24"
@@ -55,7 +56,7 @@ resource "google_compute_subnetwork" "subnet" {
 
 # GKE cluster
 resource "google_container_cluster" "cluster" {
-  name     = "${var.cluster_name}"
+  name     = "${local.cluster_name}"
   location = local.zone
   initial_node_count = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["count"] : 3
   min_master_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : null
@@ -101,6 +102,8 @@ resource "local_file" "ansible-inventory" {
     {
       location = google_container_cluster.cluster.location
       node_size = google_container_cluster.cluster.node_config[0].machine_type
+      cluster_name = local.cluster_name
+      cluster_id = var.cluster_id
     }
   )
   file_permission = "0440"
@@ -108,8 +111,8 @@ resource "local_file" "ansible-inventory" {
 
 # Create cluster admin account for this cluster
 resource "google_service_account" "cluster_admin" {
-  account_id   = "${var.cluster_name}-cluster-admin"
-  display_name = "Cluster Admin for ${var.cluster_name}"
+  account_id   = "${local.cluster_name}-cluster-admin"
+  display_name = "Cluster Admin for ${local.cluster_name}"
   provisioner "local-exec" {
     command = "gcloud --project ${var.google_cloud_project_id} iam service-accounts keys create gcloud_credentials.json --iam-account=${google_service_account.cluster_admin.email}"
   }
@@ -136,6 +139,6 @@ resource "local_file" "gke_coordinates" {
   content = yamlencode({ 
     project: var.google_cloud_project_id
     zone: local.zone
-    cluster_name: var.cluster_name
+    cluster_name: local.cluster_name
   })
 }

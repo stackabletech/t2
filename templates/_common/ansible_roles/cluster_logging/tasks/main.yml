@@ -18,7 +18,7 @@
   shell: |
     kubectl --kubeconfig kubeconfig create configmap cluster-metadata \
         --namespace cluster-logging \
-        --from-literal=T2_CLUSTER_ID=$(uuid) || true
+        --from-literal=T2_CLUSTER_ID={{ cluster_id }} || true
 
 - name: Create the secret which contains the information about the t2-cluster-logging endpoint
   shell: |
