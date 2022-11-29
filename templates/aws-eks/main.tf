@@ -39,7 +39,9 @@ variable "cluster_id" {
 locals {
   cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
   region = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "eu-central-1"
-  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+  tags = {
+    t2-cluster-id = var.cluster_id
+  }
   instance_type = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["instanceType"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["instanceType"] : "t2.small"
 }
 
@@ -140,7 +142,7 @@ module "eks" {
     }
   ]
 
-  tags = local.labels
+  tags = local.tags
 }
 
 data "aws_eks_cluster" "cluster" {

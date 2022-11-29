@@ -31,8 +31,7 @@ variable "cluster_id" {
 locals {
   cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
   region = yamldecode(file("cluster.yaml"))["spec"]["region"]
-  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
-  labels_string = join(", ", [ for key, value in local.labels : "${key}:${value}" ])
+  description = "t2-cluster-id: ${var.cluster_id}"
 }
 
 provider "ionoscloud" {
@@ -49,7 +48,7 @@ resource "ionoscloud_k8s_cluster" "cluster" {
 resource "ionoscloud_datacenter" "datacenter" {
   name                = "${local.cluster_name}-k8s-nodes"
   location            = local.region
-  description         = local.labels_string
+  description         = local.description
 }
 
 

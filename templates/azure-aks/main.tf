@@ -44,7 +44,9 @@ variable "cluster_id" {
 
 locals {
   cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
-  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+  tags = {
+    t2-cluster-id = var.cluster_id
+  }
 }
 
 # Configure the Microsoft Azure Provider
@@ -80,7 +82,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
     type = "SystemAssigned"
   }
 
-  tags = local.labels
+  tags = local.tags
 }
 
 # write kubeconfig to file

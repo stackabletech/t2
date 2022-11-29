@@ -24,7 +24,9 @@ variable "google_cloud_project_id" {
 locals {
   cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
   region = can(yamldecode(file("cluster.yaml"))["spec"]["region"]) ? yamldecode(file("cluster.yaml"))["spec"]["region"] : "europe-central2"
-  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+  labels = {
+    t2-cluster-id = var.cluster_id
+  }
 }
 
 provider "google" {

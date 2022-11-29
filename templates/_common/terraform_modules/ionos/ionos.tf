@@ -52,8 +52,7 @@ locals {
   ]): node.name => node }
 
   datacenter_location = yamldecode(file("cluster.yaml"))["spec"]["region"]
-  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
-  labels_string = join(", ", [ for key, value in local.labels : "${key}:${value}" ])
+  description = "t2-cluster-id: ${var.cluster_id}"
   domain = can(yamldecode(file("cluster.yaml"))["spec"]["domain"]) ? yamldecode(file("cluster.yaml"))["spec"]["domain"] : "stackable.test"
 }
 
@@ -66,7 +65,7 @@ module "ionos_network" {
   source                        = "../ionos_network"
   datacenter_name               = var.datacenter_name
   datacenter_location           = local.datacenter_location
-  datacenter_description        = local.labels_string
+  datacenter_description        = local.description
 }
 
 module "ionos_edge_node" {
