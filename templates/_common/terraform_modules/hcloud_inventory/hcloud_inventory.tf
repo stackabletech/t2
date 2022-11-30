@@ -62,7 +62,7 @@ resource "local_file" "ansible-inventory" {
       stackable_user = var.stackable_user
       stackable_user_home = var.stackable_user_home
       domain = var.domain
-      k8s_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : ""
+      k8s_requested_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : ""
       nodes = var.nodes
       cluster_ip = var.cluster_ip
       edge_node_internal_ip = var.edge_node_internal_ip
