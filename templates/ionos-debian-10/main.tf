@@ -48,4 +48,7 @@ module "ionos" {
   datacenter_name               = local.cluster_name
   os_name                       = "Debian"
   os_version                    = "10-genericcloud-amd64-20220911-1135"
+  metadata_cloud_vendor         = "IONOS Cloud"
+  metadata_k8s                  = "K3s"
+  metadata_node_os              = "Debian 10"
 }

@@ -39,4 +39,7 @@ module "hcloud" {
   cluster_id                 = var.cluster_id
   cluster_name               = local.cluster_name
   os_image                   = "centos-stream-9"
+  metadata_cloud_vendor      = "Hetzner Cloud"
+  metadata_k8s               = "K3s"
+  metadata_node_os           = "CentOS Stream 9"
 }

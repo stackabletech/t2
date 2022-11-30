@@ -26,6 +26,21 @@ variable "os_image" {
   type        = string
 }
 
+variable "metadata_cloud_vendor" {
+  type = string
+  description = "name of the cloud vendor this cluster runs on (for cluster metadata)"
+}
+
+variable "metadata_k8s" {
+  type = string
+  description = "Kubernetes flavor used in this cluster (for cluster metadata)"
+}
+
+variable "metadata_node_os" {
+  type = string
+  description = "operating system the Kubernetes nodes run on (for cluster metadata)"
+}
+
 # collect configuration information from cluster.yaml
 locals {
 
@@ -136,5 +151,14 @@ module "ssh_config" {
 
 module "stackable_service_definitions" {
   source = "../stackable_service_definitions"
+}
+
+# convert the metadata/annotations from the cluster definition to Ansible variables
+# and add specific values for the template
+module "metadata_annotations" {
+  source = "../metadata_annotations"
+  cloud_vendor = var.metadata_cloud_vendor
+  k8s = var.metadata_k8s
+  node_os = var.metadata_node_os
 }
 

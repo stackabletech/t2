@@ -48,4 +48,7 @@ module "ionos" {
   datacenter_name               = local.cluster_name
   os_name                       = "rocky"
   os_version                    = "8.6-GenericCloud-20220702"
+  metadata_cloud_vendor         = "IONOS Cloud"
+  metadata_k8s                  = "K3s"
+  metadata_node_os              = "Rocky Linux 8"
 }

@@ -17,13 +17,20 @@
 - name: Set a configmap which contains the cluster metadata
   shell: |
     kubectl --kubeconfig kubeconfig create configmap cluster-metadata \
-        --namespace cluster-logging \
-        --from-literal=T2_CLUSTER_ID={{ cluster_id }} || true
+        --namespace t2-cluster-logging \
+        --from-literal=t2-cluster-id="{{ cluster_id }}" \
+        --from-literal=k8s-version="{{ k8s_installed_version }}" \
+        --from-literal=jenkins-user-id="{{ metadata['annotations']['t2.stackable.tech/jenkins-user-id'] | default("unknown", true) }}" \
+        --from-literal=jenkins-user-email="{{ metadata['annotations']['t2.stackable.tech/jenkins-user-email'] | default("unknown", true) }}" \
+        --from-literal=jenkins-user="{{ metadata['annotations']['t2.stackable.tech/jenkins-user'] | default("unknown", true) }}" \
+        --from-literal=cloud-vendor="{{ metadata['annotations']['t2.stackable.tech/cloud-vendor'] | default("unknown", true) }}" \
+        --from-literal=k8s="{{ metadata['annotations']['t2.stackable.tech/k8s'] | default("unknown", true) }}" \
+        --from-literal=node-os="{{ metadata['annotations']['t2.stackable.tech/node-os'] | default("unknown", true) }}" || true
 
 - name: Create the secret which contains the information about the t2-cluster-logging endpoint
   shell: |
     kubectl --kubeconfig kubeconfig create secret generic cluster-logging-target \
-        --namespace cluster-logging \
+        --namespace t2-cluster-logging \
         --from-literal=endpoint='{{ lookup('env', 'CLUSTER_LOGGING_ENDPOINT') }}' \
         --from-literal=user='{{ lookup('env', 'CLUSTER_LOGGING_USER') }}' \
         --from-literal=password='{{ lookup('env', 'CLUSTER_LOGGING_PASSWORD') }}' || true
@@ -36,7 +43,7 @@
   shell: |
     helm --kubeconfig kubeconfig install vector vector/vector \
         --version 0.17.0 \
-        --namespace cluster-logging \
+        --namespace t2-cluster-logging \
         --values {{role_path}}/files/vector-values.yaml \
         --wait
 

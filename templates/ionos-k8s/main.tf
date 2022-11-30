@@ -92,6 +92,15 @@ module "stackable_service_definitions" {
   source = "./terraform_modules/stackable_service_definitions"
 }
 
+# convert the metadata/annotations from the cluster definition to Ansible variables
+# and add specific values for the template
+module "metadata_annotations" {
+  source = "../metadata_annotations"
+  cloud_vendor = "IONOS Cloud"
+  k8s = "managed Kubernetes"
+  node_os = "unknown"
+}
+
 # inventory file for Ansible
 resource "local_file" "ansible-inventory" {
   filename = "inventory/inventory"

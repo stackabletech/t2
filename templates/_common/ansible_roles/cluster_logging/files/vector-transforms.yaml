@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: vector-transforms
-  namespace: cluster-logging
+  namespace: t2-cluster-logging
 data:
   raw.vrl: |
     # Create shortcuts for frequently used fields
