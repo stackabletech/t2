@@ -105,7 +105,7 @@ module "stackable_service_definitions" {
 # convert the metadata/annotations from the cluster definition to Ansible variables
 # and add specific values for the template
 module "metadata_annotations" {
-  source = "../metadata_annotations"
+  source = "./terraform_modules/metadata_annotations"
   cloud_vendor = "Microsoft Azure"
   k8s = "AKS"
   node_os = "unknown"
