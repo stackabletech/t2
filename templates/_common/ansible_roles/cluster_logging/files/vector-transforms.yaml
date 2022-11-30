@@ -11,6 +11,13 @@ data:
     .container = .kubernetes.container_name
     .pod = .kubernetes.pod_name
     .t2_cluster = get_env_var!("T2_CLUSTER_ID")
+    .k8s_version = get_env_var!("K8S_VERSION")
+    .jenkins_user_id = get_env_var!("JENKINS_USER_ID")
+    .jenkins_user_email = get_env_var!("JENKINS_USER_EMAIL")
+    .jenkins_user = get_env_var!("JENKINS_USER")
+    .cloud_vendor = get_env_var!("CLOUD_VENDOR")
+    .k8s_distribution = get_env_var!("K8S")
+    .node_os = get_env_var!("NODE_OS")
     # This caused an error in the sink because we have the node="n" label for our tests
     del(.kubernetes.node_labels.node)
   operators.vrl: |

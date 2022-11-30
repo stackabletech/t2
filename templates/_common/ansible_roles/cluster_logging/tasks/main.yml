@@ -18,14 +18,14 @@
   shell: |
     kubectl --kubeconfig kubeconfig create configmap cluster-metadata \
         --namespace t2-cluster-logging \
-        --from-literal=t2-cluster-id="{{ cluster_id }}" \
-        --from-literal=k8s-version="{{ k8s_installed_version }}" \
-        --from-literal=jenkins-user-id="{{ metadata['annotations']['t2.stackable.tech/jenkins-user-id'] | default("unknown", true) }}" \
-        --from-literal=jenkins-user-email="{{ metadata['annotations']['t2.stackable.tech/jenkins-user-email'] | default("unknown", true) }}" \
-        --from-literal=jenkins-user="{{ metadata['annotations']['t2.stackable.tech/jenkins-user'] | default("unknown", true) }}" \
-        --from-literal=cloud-vendor="{{ metadata['annotations']['t2.stackable.tech/cloud-vendor'] | default("unknown", true) }}" \
-        --from-literal=k8s="{{ metadata['annotations']['t2.stackable.tech/k8s'] | default("unknown", true) }}" \
-        --from-literal=node-os="{{ metadata['annotations']['t2.stackable.tech/node-os'] | default("unknown", true) }}" || true
+        --from-literal=T2_CLUSTER_ID="{{ cluster_id }}" \
+        --from-literal=K8S_VERSION="{{ k8s_installed_version }}" \
+        --from-literal=JENKINS_USER_ID="{{ metadata['annotations']['t2.stackable.tech/jenkins-user-id'] | default("unknown", true) }}" \
+        --from-literal=JENKINS_USER_EMAIL="{{ metadata['annotations']['t2.stackable.tech/jenkins-user-email'] | default("unknown", true) }}" \
+        --from-literal=JENKINS_USER="{{ metadata['annotations']['t2.stackable.tech/jenkins-user'] | default("unknown", true) }}" \
+        --from-literal=CLOUD_VENDOR="{{ metadata['annotations']['t2.stackable.tech/cloud-vendor'] | default("unknown", true) }}" \
+        --from-literal=K8S="{{ metadata['annotations']['t2.stackable.tech/k8s'] | default("unknown", true) }}" \
+        --from-literal=NODE_OS="{{ metadata['annotations']['t2.stackable.tech/node-os'] | default("unknown", true) }}" || true
 
 - name: Create the secret which contains the information about the t2-cluster-logging endpoint
   shell: |
