@@ -20,6 +20,25 @@ data:
     .node_os = get_env_var!("NODE_OS")
     # This caused an error in the sink because we have the node="n" label for our tests
     del(.kubernetes.node_labels.node)
+    # Kubernetes version analysis
+    .k8s_version_full = .k8s_version
+    .temp_k8s_version, err = parse_regex(to_string(.k8s_version) ?? "", r'(v)?(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.(?P<fix>[0-9]*))?.*')
+    if err == null {
+      .k8s_major_version = .temp_k8s_version.major
+      .k8s_minor_version = .temp_k8s_version.minor
+      .k8s_fix_version = .temp_k8s_version.fix
+      if .k8s_fix_version != null {
+          .k8s_version = .k8s_major_version + "." + .k8s_minor_version + "." + .k8s_fix_version
+      } else {
+          .k8s_version = .k8s_major_version + "." + .k8s_minor_version
+      }
+    } else {
+      .k8s_major_version = null
+      .k8s_minor_version = null
+      .k8s_fix_version = null
+      .k8s_version = null
+    }
+    del(.temp_k8s_version)
   operators.vrl: |
     # Remove the colors from the log entry
     .message = strip_ansi_escape_codes!(.message)
