@@ -47,6 +47,13 @@
         --values {{role_path}}/files/vector-values.yaml \
         --wait
 
+# In order to ship K8s events through our logging pipeline, we deploy a so called "eventrouter". 
+# This project (https://github.com/vmware-archive/eventrouter) is discontinued by VMWare 
+# but works fine for now.
+#
+# (RedHat/OpenShift seemed to have adopted the project, but in order to use their image, 
+# you have to have a RedHat "pull secret" which I avoided for now because the fork currently 
+# does not provide any added value)
 - name: deploy eventrouter (prints K8s events to stdout to be collected by Vector)
   shell: |
     kubectl --kubeconfig kubeconfig apply -f {{role_path}}/files/eventrouter.yaml
