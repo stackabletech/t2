@@ -2,7 +2,7 @@
 ---
 - name: Download K3s binary
   get_url:
-    url: https://repo.stackable.tech/repository/misc/k3s/{{ k8s_version | default("stable", true) }}/k3s
+    url: https://repo.stackable.tech/repository/misc/k3s/{{ k8s_requested_version | default("stable", true) }}/k3s
     dest: /usr/local/bin/k3s
     mode: 0755
 

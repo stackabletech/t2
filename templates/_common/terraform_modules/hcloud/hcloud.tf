@@ -11,6 +11,11 @@ terraform {
   }
 }
 
+variable "cluster_id" {
+  description = "ID of the cluster"
+  type        = string
+}
+
 variable "cluster_name" {
   description = "Name of the cluster"
   type        = string
@@ -19,6 +24,21 @@ variable "cluster_name" {
 variable "os_image" {
   description = "Image of the OS for the node, e.g. centos-stream-9"
   type        = string
+}
+
+variable "metadata_cloud_vendor" {
+  type = string
+  description = "name of the cloud vendor this cluster runs on (for cluster metadata)"
+}
+
+variable "metadata_k8s" {
+  type = string
+  description = "Kubernetes flavor used in this cluster (for cluster metadata)"
+}
+
+variable "metadata_node_os" {
+  type = string
+  description = "operating system the Kubernetes nodes run on (for cluster metadata)"
 }
 
 # collect configuration information from cluster.yaml
@@ -33,7 +53,9 @@ locals {
     ]
   ]): node.name => node }
 
-  labels = can(yamldecode(file("cluster.yaml"))["metadata"]["labels"]) ? yamldecode(file("cluster.yaml"))["metadata"]["labels"] : {}
+  labels = {
+    t2-cluster-id = var.cluster_id
+  }
   location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : null
   domain = can(yamldecode(file("cluster.yaml"))["spec"]["domain"]) ? yamldecode(file("cluster.yaml"))["spec"]["domain"] : "stackable.test"
 }
@@ -95,6 +117,8 @@ module "hcloud_protected_nodes" {
 # Creates the Ansible inventory file(s) for this cluster
 module "hcloud_inventory" {
   source                        = "../hcloud_inventory"
+  cluster_id                    = var.cluster_id
+  cluster_name                  = var.cluster_name
   orchestrator                  = module.hcloud_protected_nodes.orchestrator
   nodes                         = module.hcloud_protected_nodes.nodes
   cluster_private_key_filename  = "cluster_key"
@@ -127,5 +151,14 @@ module "ssh_config" {
 
 module "stackable_service_definitions" {
   source = "../stackable_service_definitions"
+}
+
+# convert the metadata/annotations from the cluster definition to Ansible variables
+# and add specific values for the template
+module "metadata_annotations" {
+  source = "../metadata_annotations"
+  cloud_vendor = var.metadata_cloud_vendor
+  k8s = var.metadata_k8s
+  node_os = var.metadata_node_os
 }
 

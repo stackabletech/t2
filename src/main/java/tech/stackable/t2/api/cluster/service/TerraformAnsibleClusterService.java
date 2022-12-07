@@ -99,7 +99,7 @@ public class TerraformAnsibleClusterService {
             // This thread must be started if the cluster launch fails after terraform apply has started as there may be created resources
             // which have to be torn down...
             Thread tearDownOnFailure = new Thread(() -> {
-                this.terraformService.destroy(workingDirectory, clusterName(cluster));
+                this.terraformService.destroy(workingDirectory, cluster.getId());
                 this.templateService.cleanUpWorkingDirectory(workspaceDirectory.resolve(cluster.getId().toString()));
             });
             
@@ -108,21 +108,21 @@ public class TerraformAnsibleClusterService {
                 TerraformResult terraformResult = null;
 
                 cluster.setStatus(Status.TERRAFORM_INIT);
-                terraformResult = this.terraformService.init(workingDirectory, clusterName(cluster));
+                terraformResult = this.terraformService.init(workingDirectory, cluster.getId());
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_INIT_FAILED);
                     return;
                 }
 
                 cluster.setStatus(Status.TERRAFORM_PLAN);
-                terraformResult = this.terraformService.plan(workingDirectory, clusterName(cluster));
+                terraformResult = this.terraformService.plan(workingDirectory, cluster.getId());
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_PLAN_FAILED);
                     return;
                 }
 
                 cluster.setStatus(Status.TERRAFORM_APPLY);
-                terraformResult = this.terraformService.apply(workingDirectory, clusterName(cluster));
+                terraformResult = this.terraformService.apply(workingDirectory, cluster.getId());
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_APPLY_FAILED);
                     tearDownOnFailure.start();
@@ -160,7 +160,7 @@ public class TerraformAnsibleClusterService {
                 Path terraformFolder = workspaceDirectory.resolve(cluster.getId().toString());
 
                 cluster.setStatus(Status.TERRAFORM_DESTROY);
-                TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, clusterName(cluster));
+                TerraformResult terraformResult = this.terraformService.destroy(terraformFolder, cluster.getId());
                 if (terraformResult == TerraformResult.ERROR) {
                     cluster.setStatus(Status.TERRAFORM_DESTROY_FAILED);
                     return;
@@ -316,18 +316,6 @@ public class TerraformAnsibleClusterService {
     private static boolean readyForCleanup(Cluster cluster) {
         return !(cluster.getStatus() == Status.RUNNING)
                 && Duration.between(cluster.getLastChangedAt(), LocalDateTime.now()).compareTo(CLEANUP_INACTIVITY_THRESHOLD) > 0;
-    }
-
-    /**
-     * Name of the given cluster in the cloud provider.
-     * 
-     * This name is used as 'datacenter name', 'vpc id' or the like.
-     * 
-     * @param clusterId Cluster ID
-     * @return cluster name for the given cluster
-     */
-    private String clusterName(Cluster cluster) {
-        return String.format("t2-%s", cluster.getShortId());
     }
 
 }

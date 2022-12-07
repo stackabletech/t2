@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-transforms
+  namespace: t2-cluster-logging
+data:
+  raw.vrl: |
+    # Create shortcuts for frequently used fields
+    # Short header names in OpenSearch Dashboards are also beneficial.
+    .component = .kubernetes.pod_labels."app.kubernetes.io/name"
+    .container = .kubernetes.container_name
+    .pod = .kubernetes.pod_name
+    .t2_cluster = get_env_var!("T2_CLUSTER_ID")
+    .k8s_version = get_env_var!("K8S_VERSION")
+    .jenkins_user_id = get_env_var!("JENKINS_USER_ID")
+    .jenkins_user_email = get_env_var!("JENKINS_USER_EMAIL")
+    .jenkins_user = get_env_var!("JENKINS_USER")
+    .cloud_vendor = get_env_var!("CLOUD_VENDOR")
+    .k8s_distribution = get_env_var!("K8S")
+    .node_os = get_env_var!("NODE_OS")
+    # This caused an error in the sink because we have the node="n" label for our tests
+    del(.kubernetes.node_labels.node)
+    # Kubernetes version analysis
+    .k8s_version_full = .k8s_version
+    .temp_k8s_version, err = parse_regex(.k8s_version, r'(v)?(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.(?P<fix>[0-9]*))?.*')
+    if err == null {
+      .k8s_major_version = .temp_k8s_version.major
+      .k8s_minor_version = .temp_k8s_version.minor
+      .k8s_fix_version = .temp_k8s_version.fix
+      if .k8s_fix_version != null {
+          .k8s_version = .k8s_major_version + "." + .k8s_minor_version + "." + .k8s_fix_version
+      } else {
+          .k8s_version = .k8s_major_version + "." + .k8s_minor_version
+      }
+    } else {
+      .k8s_major_version = null
+      .k8s_minor_version = null
+      .k8s_fix_version = null
+      .k8s_version = null
+    }
+    del(.temp_k8s_version)
+  operators.vrl: |
+    # Remove the colors from the log entry
+    .message = strip_ansi_escape_codes!(.message)
+    # Parse the log entry which consists of timestamp, level, and
+    # message separated by whitespaces.
+    . |= parse_regex!(.message,
+      r'^(?P<timestamp>\S+)\s+(?P<level>\S+)\s+(?P<message>.*)')
+    # Parse the timestamp in ISO 8601 / RFC 3339 date & time format
+    .timestamp = parse_timestamp!(.timestamp, "%+")
+  kubernetes_events.vrl: |
+    # Parse the timestamp in ISO 8601 / RFC 3339 date & time format
+    .timestamp = parse_timestamp!(.timestamp, "%+")
+    # Many fields in this event would be misleading, because they are filled with data
+    # from the eventrouter itself. But the eventrouter is not the "observed system" here, but
+    # just a medium which happens to provide the events.
+    del(.component)
+    del(.container)
+    del(.file)
+    del(.pod)
+    del(.source_type)
+    del(.stream)
+    del(.kubernetes)
+    # The message itself is a JSON string. We parse it and read the fields out of the JSON object tree
+    .json_temp = parse_json!(string!(.message))
+    del(.message)
+    .message = .json_temp.event.message
+    .verb = .json_temp.verb
+    .type = .json_temp.event.type
+    .count = .json_temp.event.count
+    .event_time = .json_temp.event.eventTime
+    .uid = .json_temp.event.metadata.uid
+    .reason = .json_temp.event.reason
+    .source_node = .json_temp.event.source.host
+    .first_timestamp = .json_temp.event.firstTimestamp
+    .last_timestamp = .json_temp.event.lastTimestamp
+    .creation_timestamp = .json_temp.event.metadata.creationTimestamp
+    .name = .json_temp.event.metadata.name
+    .namespace = .json_temp.event.metadata.namespace
+    .resource_version = .json_temp.event.metadata.resourceVersion
+    .object_kind = .json_temp.event.involvedObject.kind
+    .object_name = .json_temp.event.involvedObject.name
+    .object_namespace = .json_temp.event.involvedObject.namespace
+    .object_uid = .json_temp.event.involvedObject.uid
+    .object_resource_version = .json_temp.event.involvedObject.resourceVersion
+    .object = join!([downcase!(.object_kind), "/", .object_name])
+    del(.json_temp)
