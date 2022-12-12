@@ -17,9 +17,13 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
-variable "cluster_name" {
-  description = "Name of the cluster, used as a prefix on the names of the resources created here"
+variable "cluster_id" {
+  description = "UUID of the cluster"
   type        = string
+}
+
+locals {
+  cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
 }
 
 provider "hcloud" {
@@ -32,6 +36,10 @@ module "stackable_component_versions" {
 
 module "hcloud" {
   source                     = "./terraform_modules/hcloud"
-  cluster_name               = var.cluster_name
+  cluster_id                 = var.cluster_id
+  cluster_name               = local.cluster_name
   os_image                   = "debian-11"
+  metadata_cloud_vendor      = "Hetzner Cloud"
+  metadata_k8s               = "K3s"
+  metadata_node_os           = "Debian 11"
 }

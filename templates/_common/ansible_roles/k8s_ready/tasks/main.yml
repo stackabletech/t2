@@ -5,3 +5,12 @@
   register: nodes_ready
 
 - debug: var=nodes_ready.stdout_lines
+
+- name: Retrieve installed K8s version
+  shell: kubectl --kubeconfig kubeconfig version --output=json 2>/dev/null | jq -r '.serverVersion.gitVersion'
+  register: temp_kubectl_version_output
+
+- name: Set installed K8s version as fact
+  set_fact: k8s_installed_version={{temp_kubectl_version_output.stdout_lines[0]}}
+
+
