@@ -58,10 +58,6 @@ ENV PATH "/root/.cargo/bin:$PATH"
 RUN mkdir -p /root/.kube/
 RUN mkdir -p /root/.ssh/
 
-# install logs to retrieve operator logs
-COPY operator-logs.sh /
-RUN chmod a+x /operator-logs.sh
-
 # install kubectl-kuttl
 RUN wget -O /tmp/kubectl-kuttl https://github.com/kudobuilder/kuttl/releases/download/v0.11.1/kubectl-kuttl_0.11.1_linux_x86_64
 RUN install -o root -g root -m 0755 /tmp/kubectl-kuttl /usr/local/bin/kubectl-kuttl
