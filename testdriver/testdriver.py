@@ -31,9 +31,6 @@ delete_cluster_id = None
 thread_stop_signal = False
 k8s_ping_terminated = False
 
-# system processes running in the background (!= Python threads!)
-background_processes = []
-
 # cluster
 cluster_id = None
 
@@ -52,17 +49,7 @@ CLUSTER_ACCESS_SCRIPT = "/access.sh"
 TESTDRIVER_LOGFILE = f"{TARGET_FOLDER}testdriver.log"
 TEST_OUTPUT_LOGFILE = f"{TARGET_FOLDER}test-output.log"
 STACKABLE_VERSIONS_FILE = f"{TARGET_FOLDER}stackable-versions.txt"
-K8S_MONITORING_LOGFILE = f"{TARGET_FOLDER}k8s-ping.log"
-K8S_MONITORING_SUMMARY_FILE = f"{TARGET_FOLDER}k8s-summary.txt"
-K8S_POD_CHANGE_LOGFILE = f"{TARGET_FOLDER}k8s-pod-change.log"
-K8S_POD_CHANGE_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-pod-change-short.log"
-K8S_EVENT_WATCH_LOGFILE = f"{TARGET_FOLDER}k8s-event-watch.log"
-K8S_EVENT_WATCH_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-event-watch-short.log"
-K8S_EVENT_LIST_LOGFILE = f"{TARGET_FOLDER}k8s-event-list.log"
-K8S_EVENT_LIST_LOGFILE_SHORT = f"{TARGET_FOLDER}k8s-event-list-short.log"
-OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, K8S_MONITORING_LOGFILE, 
-                    K8S_MONITORING_SUMMARY_FILE, K8S_POD_CHANGE_LOGFILE, K8S_POD_CHANGE_LOGFILE_SHORT,
-                    K8S_EVENT_WATCH_LOGFILE, K8S_EVENT_WATCH_LOGFILE_SHORT, K8S_EVENT_LIST_LOGFILE, K8S_EVENT_LIST_LOGFILE_SHORT, STACKABLE_VERSIONS_FILE]
+OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, STACKABLE_VERSIONS_FILE]
 
 # misc constants
 CLUSTER_LAUNCH_TIMEOUT = 3600
@@ -154,69 +141,6 @@ def append_string(file, content):
 
 def timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-
-def ping_k8s():
-    global k8s_ping_terminated
-    summary = { 0: 0, -1: 0}
-    while not thread_stop_signal:
-        proc = Popen(['/bin/bash', '-c', 'kubectl get pods --no-headers --all-namespaces --field-selector status.phase=Running'], stdout=PIPE, stderr=PIPE)
-        try:
-            out, error = proc.communicate(timeout=10)
-        except TimeoutExpired:
-            proc.kill()
-            out, error = proc.communicate()
-        if proc.returncode == 0:
-            append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} OK ({len(out)} bytes).\n")
-            summary[proc.returncode] = summary[proc.returncode] + 1
-        elif proc.returncode < 0:
-            append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} Timeout after 10 seconds.\n")
-            summary[-1] = summary[-1] + 1
-        else:
-            append_string(K8S_MONITORING_LOGFILE, f"{timestamp()} Error. exit code={proc.returncode}.\n")
-            append_bytes(K8S_MONITORING_LOGFILE, error)
-            if proc.returncode in summary:
-                summary[proc.returncode] = summary[proc.returncode] + 1
-            else:
-                summary[proc.returncode] = 1
-        time.sleep(5)
-
-    summary_text = f"""Ping statistics (kubectl get pods)
-
-total # of pings:       {str(sum(summary.values())).rjust(8)}
-# of successful pings:  {str(summary[0]).rjust(8)}
-# of timed out pings:   {str(summary[-1]).rjust(8)}
-# of errors:            {str(sum(summary.values()) - (summary[0] + summary[-1])).rjust(8)}
-"""
-
-    with open (K8S_MONITORING_SUMMARY_FILE, "w") as f:
-        f.write(summary_text)
-        f.close()
-
-    k8s_ping_terminated = True
-
-
-def start_k8s_monitoring():
-    threading.Thread(target=ping_k8s, args=()).start()
-    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get pods --all-namespaces -o yaml --watch > {K8S_POD_CHANGE_LOGFILE}"]))
-    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get pods --all-namespaces --watch > {K8S_POD_CHANGE_LOGFILE_SHORT}"]))
-    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o yaml --watch > {K8S_EVENT_WATCH_LOGFILE}"]))
-    background_processes.append(Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces --watch -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > {K8S_EVENT_WATCH_LOGFILE_SHORT}"]))
-
-
-def stop_all_background_tasks():
-    """ Sets the stop signal to all background tasks and waits for them to be terminated.
-        Must only be called from the MAIN thread.
-        Furthermore, this method stops the system processes running in the background.
-    """
-    global thread_stop_signal
-    
-    for p in background_processes:
-        p.terminate()
-
-    thread_stop_signal = True
-    while(not (k8s_ping_terminated)):
-        time.sleep(1)
 
 
 def init_output_files():
@@ -488,24 +412,6 @@ def configure_ssh():
     log('SSH not configurable in this cluster.')
 
 
-def write_retrospective_logs():
-
-    try:
-        process_dump_events_1 = Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o yaml > {K8S_EVENT_LIST_LOGFILE}"])
-        process_dump_events_1.wait(timeout=120)
-    except TimeoutExpired:
-        pass
-
-    try:
-        process_dump_events_2 = Popen(['/bin/bash', '-c', f"kubectl get events --all-namespaces -o=custom-columns='NAMESPACE:metadata.namespace,EVENT_TIME:eventTime,FIRST_TIMESTAMP:firstTimestamp,LAST_TIMESTAMP:lastTimestamp,TYPE:type,REASON:reason,OBJECT_KIND:involvedObject.kind,OBJECT_NAME:involvedObject.name,MESSAGE:message' > {K8S_EVENT_LIST_LOGFILE_SHORT}"])
-        process_dump_events_2.wait(timeout=120)
-    except TimeoutExpired:
-        pass
-
-    if(os.path.exists("/usr/bin/stackable")):
-        os.system(r"""cat /root/.ssh/config | grep 'Host main' | cut -d ' ' -f 2 | awk -F'/' '{print "stackable "$1" '\''journalctl -u k3s-agent'\'' > /target/"$1"-k3s-agent.log"}' | sh""")
-
-
 if __name__ == "__main__":
 
     exit_code = 0
@@ -540,12 +446,6 @@ if __name__ == "__main__":
     elif cluster_mode == Cluster.DELETE:
         cluster_id = delete_cluster_id
 
-    # Start K8s cluster monitoring if we have a successfully created managed or existing cluster
-    if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED] and cluster_connection_successful):
-        log("Start Kubernetes cluster monitoring...")
-        start_k8s_monitoring()
-        log("Started Kubernetes cluster monitoring.")
-
     # Execute the test or go into interactive mode (mutually exclusive)
     if (cluster_mode == Cluster.NONE) or (cluster_connection_successful and (cluster_mode in [Cluster.EXISTING, Cluster.MANAGED])):
 
@@ -557,17 +457,6 @@ if __name__ == "__main__":
             log("Starting test script...")
             exit_code = run_test_script()
             log(f"Test script terminated with exit code {exit_code}")
-
-    # Stop K8s cluster monitoring if we have a successfully created managed or existing cluster
-    if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED] and cluster_connection_successful):
-
-        if(cluster_mode in [Cluster.EXISTING, Cluster.MANAGED]):
-            log("Stopping all background tasks...")        
-            stop_all_background_tasks()
-            log("All background tasks are stopped.")        
-
-            log("Log stuff after_execution")
-            write_retrospective_logs()
 
     # Stop K8s cluster
     if(cluster_mode in [Cluster.MANAGED, Cluster.DELETE]):

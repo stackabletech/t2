@@ -1,4 +1,4 @@
-# This namespace contains all the elements related to T2
+---
 apiVersion: v1
 kind: Namespace
 metadata:
