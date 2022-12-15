@@ -104,7 +104,7 @@ extraVolumeMounts:
 extraVolumes:
   - name: transforms
     configMap:
-      name: vector-transforms
+      name: vector-agent-transforms
 envFrom:
   - configMapRef:
       name: cluster-metadata 
