@@ -9,7 +9,7 @@ import threading
 from datetime import datetime, timedelta
 from subprocess import PIPE, TimeoutExpired, Popen
 from enum import Enum
-from string import Template 
+from jinja2 import Template 
 class Cluster(Enum):
     NONE = "NONE"
     EXISTING = "EXISTING"
@@ -52,11 +52,6 @@ OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, STACKABLE_VERSIONS_FIL
 # misc constants
 CLUSTER_LAUNCH_TIMEOUT = 3600
 EXIT_CODE_CLUSTER_FAILED = 255
-
-# constants for link templates
-LINK_TO_K8S_EVENT_LOGS = Template("https://logs.t2.stackable.tech/app/discover#/view/k8s-events?_a=(columns:!(verb,reason,namespace,object,message,t2_cluster),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:t2-k8s-events,key:t2_cluster,negate:!f,params:(query:'$cluster_id'),type:phrase),query:(match_phrase:(t2_cluster:'$cluster_id')))),index:t2-k8s-events,interval:auto,query:(language:kuery,query:''),sort:!())&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'$date_from',to:'$date_to'))")
-LINK_TO_OPERATOR_LOGS = Template("https://logs.t2.stackable.tech/app/discover#/view/stackable-operators?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'$date_from',to:'$date_to'))&_a=(columns:!(level,component,container,message,t2_cluster),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:t2-operators,key:t2_cluster,negate:!f,params:(query:$cluster_id),type:phrase),query:(match_phrase:(t2_cluster:$cluster_id)))),index:t2-operators,interval:auto,query:(language:kuery,query:''),sort:!())")
-LINK_TO_PRODUCT_LOGS = Template("https://logs.t2.stackable.tech/app/discover#/view/stackable-products?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'$date_from',to:'$date_to'))&_a=(columns:!(level,namespace,cluster,pod,container,message,t2_cluster),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:t2-product,key:t2_cluster,negate:!f,params:(query:$cluster_id),type:phrase),query:(match_phrase:(t2_cluster:$cluster_id)))),index:t2-product,interval:auto,query:(language:kuery,query:''),sort:!())")
 
 # timestamps for start/end of job
 job_start_timestamp_utc = None
@@ -423,6 +418,19 @@ def configure_ssh():
     log('SSH not configurable in this cluster.')
 
 
+def write_logs_html(cluster_id, timestamp_start, timestamp_stop):
+
+    date_from = (timestamp_start - timedelta(hours=0, minutes=5)).isoformat(timespec='milliseconds')+"Z"
+    date_to = (timestamp_stop + timedelta(hours=0, minutes=5)).isoformat(timespec='milliseconds')+"Z"
+
+    with open ("logs.html.j2", "r") as f:
+        logs_html = Template(f.read())
+
+    with open ("target/logs.html", 'w') as f:
+        f.write(logs_html.render( { 'cluster_id': cluster_id, 'date_from': date_from, 'date_to': date_to } ))
+        f.close()
+
+
 if __name__ == "__main__":
 
     job_start_timestamp_utc = datetime.utcnow()
@@ -475,18 +483,14 @@ if __name__ == "__main__":
     if(cluster_mode in [Cluster.MANAGED, Cluster.DELETE]):
         terminate_cluster(cluster_id)
 
+    # Write file which links to the logs
+    job_finished_timestamp_utc = datetime.utcnow()
+    write_logs_html()
+
     # Set output file ownership recursively 
     # This is important as the test script might have added files which are not controlled
     # by this Python script and therefore most probably are owned by root
     set_target_folder_owner()
-
-    # Print out the links to the logs in OpenSearch Dashboards
-    job_finished_timestamp_utc = datetime.utcnow()
-    date_from = (job_start_timestamp_utc - timedelta(hours=0, minutes=5)).isoformat(timespec='milliseconds')+"Z"
-    date_to = (job_finished_timestamp_utc + timedelta(hours=0, minutes=5)).isoformat(timespec='milliseconds')+"Z"
-    log("search the K8s event logs: " + LINK_TO_K8S_EVENT_LOGS.safe_substitute(cluster_id=cluster_id, date_from=date_from, date_to=date_to))
-    log("search the Stackable operator logs: " + LINK_TO_OPERATOR_LOGS.safe_substitute(cluster_id=cluster_id, date_from=date_from, date_to=date_to))
-    log("search the Stackable product logs: " + LINK_TO_PRODUCT_LOGS.safe_substitute(cluster_id=cluster_id, date_from=date_from, date_to=date_to))
 
     log("T2 test driver finished.")
     exit(exit_code)
