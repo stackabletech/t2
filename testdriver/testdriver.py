@@ -485,7 +485,7 @@ if __name__ == "__main__":
 
     # Write file which links to the logs
     job_finished_timestamp_utc = datetime.utcnow()
-    write_logs_html()
+    write_logs_html(cluster_id, job_start_timestamp_utc, job_finished_timestamp_utc)
 
     # Set output file ownership recursively 
     # This is important as the test script might have added files which are not controlled
