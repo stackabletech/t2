@@ -1,17 +1,15 @@
 import os
 import os.path
-import datetime
 import time
 import sys
-from turtle import back
 import yaml
 import requests
 import re
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from subprocess import PIPE, TimeoutExpired, Popen
 from enum import Enum
-
+from jinja2 import Template 
 class Cluster(Enum):
     NONE = "NONE"
     EXISTING = "EXISTING"
@@ -23,6 +21,7 @@ class Cluster(Enum):
 cluster_mode = None
 interactive_mode = False
 uid_gid_output = '0:0'
+opensearch_dashboards_url = 'https://logs.t2.stackable.tech'
 t2_url = None
 t2_token = None
 delete_cluster_id = None
@@ -55,6 +54,10 @@ OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, STACKABLE_VERSIONS_FIL
 CLUSTER_LAUNCH_TIMEOUT = 3600
 EXIT_CODE_CLUSTER_FAILED = 255
 
+# timestamps for start/end of job
+job_start_timestamp_utc = None
+job_finished_timestamp_utc = None
+
 def process_input():
     """ 'input' means environment variables and volumes, because this script is the entrypoint of
         a Docker container.
@@ -67,6 +70,7 @@ def process_input():
     global t2_url
     global t2_token
     global delete_cluster_id
+    global opensearch_dashboards_url
 
     if not ('CLUSTER' in os.environ and os.environ['CLUSTER'] in Cluster._member_map_):
         print('Error: Please supply CLUSTER (values: NONE, EXISTING, MANAGED) as an environment variable.')
@@ -78,6 +82,9 @@ def process_input():
 
     if 'UID_GID' in os.environ:
         uid_gid_output = os.environ['UID_GID']
+
+    if 'OPENSEARCH_DASHBOARDS_URL' in os.environ:
+        opensearch_dashboards_url = os.environ['OPENSEARCH_DASHBOARDS_URL']
 
     if cluster_mode == Cluster.MANAGED or cluster_mode == Cluster.CREATE or cluster_mode == Cluster.DELETE:
         if not ('T2_URL' in os.environ and 'T2_TOKEN' in os.environ):
@@ -141,6 +148,10 @@ def append_string(file, content):
 
 def timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def timestamp_iso_utc():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%Sbla")
 
 
 def init_output_files():
@@ -412,7 +423,22 @@ def configure_ssh():
     log('SSH not configurable in this cluster.')
 
 
+def write_logs_html(cluster_id, timestamp_start, timestamp_stop, opensearch_dashboards_url):
+
+    date_from = (timestamp_start - timedelta(hours=0, minutes=5)).isoformat(timespec='milliseconds')+"Z"
+    date_to = (timestamp_stop + timedelta(hours=0, minutes=5)).isoformat(timespec='milliseconds')+"Z"
+
+    with open ("logs.html.j2", "r") as f:
+        logs_html = Template(f.read())
+
+    with open ("target/logs.html", 'w') as f:
+        f.write(logs_html.render( { 'cluster_id': cluster_id, 'date_from': date_from, 'date_to': date_to, 'opensearch_dashboards_url': opensearch_dashboards_url } ))
+        f.close()
+
+
 if __name__ == "__main__":
+
+    job_start_timestamp_utc = datetime.utcnow()
 
     exit_code = 0
     cluster_connection_successful = False
@@ -461,6 +487,10 @@ if __name__ == "__main__":
     # Stop K8s cluster
     if(cluster_mode in [Cluster.MANAGED, Cluster.DELETE]):
         terminate_cluster(cluster_id)
+
+    # Write file which links to the logs
+    job_finished_timestamp_utc = datetime.utcnow()
+    write_logs_html(cluster_id, job_start_timestamp_utc, job_finished_timestamp_utc, opensearch_dashboards_url)
 
     # Set output file ownership recursively 
     # This is important as the test script might have added files which are not controlled

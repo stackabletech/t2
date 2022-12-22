@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <title>Logs</title>
+  </head>
+  <body>
+    <p>
+        These links lead to the log search, filtered by the T2 cluster ID and time-boxed to the time the test ran.
+    </p>
+    <p>
+        Unfortunately, Jenkins sandboxes HTML files which are served as build job artifacts, so the links cannot open new tabs. Please use the ways your web browser provides you to open new tabs.
+    </p>
+  	<ul>
+      <li>
+        <a href="{{ opensearch_dashboards_url }}/app/discover#/view/k8s-events?_a=(columns:!(verb,reason,namespace,object,message,t2_cluster),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:t2-k8s-events,key:t2_cluster,negate:!f,params:(query:'{{ cluster_id }}'),type:phrase),query:(match_phrase:(t2_cluster:'{{ cluster_id }}')))),index:t2-k8s-events,interval:auto,query:(language:kuery,query:''),sort:!())&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'{{ date_from }}',to:'{{ date_to }}'))">K8s Event logs</a>
+      </li>
+      <li>
+        <a href="{{ opensearch_dashboards_url }}/app/discover#/view/stackable-operators?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'{{ date_from }}',to:'{{ date_to }}'))&_a=(columns:!(level,component,container,message,t2_cluster),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:t2-operators,key:t2_cluster,negate:!f,params:(query:'{{ cluster_id }}'),type:phrase),query:(match_phrase:(t2_cluster:'{{ cluster_id }}')))),index:t2-operators,interval:auto,query:(language:kuery,query:''),sort:!())">Stackable Operator logs</a>
+      </li>
+      <li>
+        <a href="{{ opensearch_dashboards_url }}/app/discover#/view/stackable-products?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'{{ date_from }}',to:'{{ date_to }}'))&_a=(columns:!(level,namespace,cluster,pod,container,message,t2_cluster),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:t2-product,key:t2_cluster,negate:!f,params:(query:'{{ cluster_id }}'),type:phrase),query:(match_phrase:(t2_cluster:'{{ cluster_id }}')))),index:t2-product,interval:auto,query:(language:kuery,query:''),sort:!())">product logs</a>
+      </li>  
+    </ul>
+  </body>
+</html>
