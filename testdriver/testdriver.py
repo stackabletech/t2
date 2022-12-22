@@ -21,6 +21,7 @@ class Cluster(Enum):
 cluster_mode = None
 interactive_mode = False
 uid_gid_output = '0:0'
+opensearch_dashboards_url = 'https://logs.t2.stackable.tech'
 t2_url = None
 t2_token = None
 delete_cluster_id = None
@@ -69,6 +70,7 @@ def process_input():
     global t2_url
     global t2_token
     global delete_cluster_id
+    global opensearch_dashboards_url
 
     if not ('CLUSTER' in os.environ and os.environ['CLUSTER'] in Cluster._member_map_):
         print('Error: Please supply CLUSTER (values: NONE, EXISTING, MANAGED) as an environment variable.')
@@ -80,6 +82,9 @@ def process_input():
 
     if 'UID_GID' in os.environ:
         uid_gid_output = os.environ['UID_GID']
+
+    if 'OPENSEARCH_DASHBOARDS_URL' in os.environ:
+        opensearch_dashboards_url = os.environ['OPENSEARCH_DASHBOARDS_URL']
 
     if cluster_mode == Cluster.MANAGED or cluster_mode == Cluster.CREATE or cluster_mode == Cluster.DELETE:
         if not ('T2_URL' in os.environ and 'T2_TOKEN' in os.environ):
@@ -418,7 +423,7 @@ def configure_ssh():
     log('SSH not configurable in this cluster.')
 
 
-def write_logs_html(cluster_id, timestamp_start, timestamp_stop):
+def write_logs_html(cluster_id, timestamp_start, timestamp_stop, opensearch_dashboards_url):
 
     date_from = (timestamp_start - timedelta(hours=0, minutes=5)).isoformat(timespec='milliseconds')+"Z"
     date_to = (timestamp_stop + timedelta(hours=0, minutes=5)).isoformat(timespec='milliseconds')+"Z"
@@ -427,7 +432,7 @@ def write_logs_html(cluster_id, timestamp_start, timestamp_stop):
         logs_html = Template(f.read())
 
     with open ("target/logs.html", 'w') as f:
-        f.write(logs_html.render( { 'cluster_id': cluster_id, 'date_from': date_from, 'date_to': date_to } ))
+        f.write(logs_html.render( { 'cluster_id': cluster_id, 'date_from': date_from, 'date_to': date_to, 'opensearch_dashboards_url': opensearch_dashboards_url } ))
         f.close()
 
 
@@ -485,7 +490,7 @@ if __name__ == "__main__":
 
     # Write file which links to the logs
     job_finished_timestamp_utc = datetime.utcnow()
-    write_logs_html(cluster_id, job_start_timestamp_utc, job_finished_timestamp_utc)
+    write_logs_html(cluster_id, job_start_timestamp_utc, job_finished_timestamp_utc, opensearch_dashboards_url)
 
     # Set output file ownership recursively 
     # This is important as the test script might have added files which are not controlled
