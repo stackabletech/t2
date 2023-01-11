@@ -4,6 +4,7 @@
   - wait30
   - k8s_ready
   - k8s_labelled
+  - aws_csi_driver
   - stackable_operators
   - cluster_info_sheet
   - stackable_services
