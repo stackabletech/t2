@@ -7,4 +7,6 @@
 
 - name: Apply service definitions 
   shell: kubectl --kubeconfig kubeconfig apply -f services/ || true
+  args:
+    warn: no
   when: services_folder.stat.isdir is defined and services_folder.stat.isdir

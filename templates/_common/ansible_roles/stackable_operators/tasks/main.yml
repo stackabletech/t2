@@ -5,6 +5,8 @@
     helm repo add stackable-dev https://repo.stackable.tech/repository/helm-dev/
     helm repo add stackable-stable https://repo.stackable.tech/repository/helm-stable/
     helm repo add stackable-test https://repo.stackable.tech/repository/helm-test/
+  args:
+    warn: no
 
 - name: Update Helm repositories
   shell: |

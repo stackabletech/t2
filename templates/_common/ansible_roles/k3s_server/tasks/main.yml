@@ -22,6 +22,7 @@
       --node-taint CriticalAddonsOnly=true:NoExecute \
       --kube-apiserver-arg event-ttl=12h
   args:
+    warn: no
     creates: /etc/rancher/k3s/k3s.yaml
   notify: restart k3s
 
