@@ -33,6 +33,10 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" > /tmp/awscl
 RUN unzip /tmp/awscli/awscliv2.zip -d /tmp/awscli/
 RUN /tmp/awscli/aws/install
 
+# install eksctl (from AWS)
+RUN curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+RUN install -o root -g root -m 0755 /tmp/eksctl /usr/local/bin/eksctl
+
 # install yq (YAML Parser)
 RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
