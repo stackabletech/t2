@@ -1,4 +1,4 @@
-FROM debian:11
+FROM debian:10
 
 # create T2 workspace directory
 RUN mkdir -p /var/t2/workspace/
