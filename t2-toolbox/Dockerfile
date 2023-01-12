@@ -1,8 +1,8 @@
-FROM debian:10
+FROM debian:11
 
 # install helpful tools
 RUN apt-get update
-RUN apt-get install curl python3 unzip wget vim git gcc libssl-dev pkg-config -y
+RUN apt-get install curl python3 unzip wget vim git gcc libssl-dev pkg-config jq -y
 
 # install Terraform
 RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
@@ -33,6 +33,10 @@ RUN mkdir /tmp/awscli
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" > /tmp/awscli/awscliv2.zip
 RUN unzip /tmp/awscli/awscliv2.zip -d /tmp/awscli/
 RUN /tmp/awscli/aws/install
+
+# install eksctl (from AWS)
+RUN curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+RUN install -o root -g root -m 0755 /tmp/eksctl /usr/local/bin/eksctl
 
 # install GCloud CLI
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-cli google-cloud-sdk-gke-gcloud-auth-plugin -y

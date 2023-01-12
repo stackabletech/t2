@@ -62,6 +62,8 @@ data "template_file" "cluster_admin_user_policy" {
   }
 }
 
+# The IAM policy is an "inline policy" in terms of AWS.
+# This means it has no ARN, it is not a standalone resource
 resource "aws_iam_user_policy" "cluster_admin_policy" {
   name = "${local.cluster_name}-cluster-admin-policy"
   user = aws_iam_user.cluster_admin.name
