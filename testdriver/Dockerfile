@@ -77,7 +77,8 @@ ENV USE_GKE_GCLOUD_AUTH_PLUGIN "True"
 COPY stop-session.sh /tmp/stop-session.sh
 RUN install -o root -g root -m 0755 /tmp/stop-session.sh /usr/bin/stop-session
 
-# Testdriver script
+# Testdriver script and required files
 COPY testdriver.py /
+COPY logs.html.j2 /
 
 CMD [ "python", "/testdriver.py" ]

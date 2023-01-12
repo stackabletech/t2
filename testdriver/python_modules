@@ -1,3 +1,4 @@
 pyyaml
 requests
 schedule
+jinja2
