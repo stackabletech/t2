@@ -93,23 +93,6 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_default_rule_ingress_
   security_group_id = openstack_networking_secgroup_v2.secgroup_default.id
 }
 
-# Security group for the node offering wireguard service
-resource "openstack_networking_secgroup_v2" "secgroup_wireguard" {
-  name                    = "${var.cluster_name}-secgroup-wireguard"
-  delete_default_rules    = true
-}
-
-# UDP open on wireguard-port
-resource "openstack_networking_secgroup_rule_v2" "secgroup_wireguard_rule_ingress_for_ssh" {
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  remote_ip_prefix  = "0.0.0.0/0"
-  protocol          = "udp"
-  port_range_min    = "52888"
-  port_range_max    = "52888"
-  security_group_id = openstack_networking_secgroup_v2.secgroup_wireguard.id
-}
-
 output "cluster_ip" {
   value = openstack_compute_floatingip_v2.cluster_ip.address
   description = "Public IP of the cluster"
@@ -122,10 +105,6 @@ output "network_name" {
 
 output "secgroup_default" {
   value = openstack_networking_secgroup_v2.secgroup_default
-}
-
-output "secgroup_wireguard" {
-  value = openstack_networking_secgroup_v2.secgroup_wireguard
 }
 
 # This resource can be used to express the dependency on network_readiness

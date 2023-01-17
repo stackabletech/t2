@@ -64,9 +64,3 @@ To ssh into a host, just provide the hostname as the single parameter, e.g.
 If you want to execute a command on the host, you can add a command as a second param, e.g.
 
 ./stackable.sh orchestrator "kubectl get nodes"
-
-VPN
-
-In the folder resources/wireguard-client-config/ you find a bunch of prepared Wireguard configs to access
-the cluster via a VPN. Please refer to the Wireguard docs for your OS to learn how to apply the config.
-You only need one of the files, we provide several of them if you are using the cluster with multiple users.

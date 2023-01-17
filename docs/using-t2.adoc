@@ -231,7 +231,7 @@ The content of this section differs depending on the cloud provider and template
 |=======
 |key | type | rules | description
 |template | `string` | *mandatory*, one of `ionos-rocky-8`, `ionos-debian-10`, `ionos-debian-11` |
-| domain | `string` | *optional*, defaults to `stackable.test` | Network domain for cluster-internal use or when accessing through Wireguard VPN (which is currently disabled)
+| domain | `string` | *optional*, defaults to `stackable.test` | Network domain for cluster-internal use
 | publicKeys | `list(string)` | *optional* | List of SSH public keys to allow access to cluster nodes.
 | region | `string` | *mandatory* | datacenter region which the IONOS offers (e.g. `de/fra`)
 | cpuFamily | `string` | *optional* | CPU-Family for all servers. The allowed values depend on the datacenter location you set up your cluster in. Please refer to your IONOS account for information about available CPUs and default values.
@@ -288,7 +288,7 @@ spec:
 |=======
 |key | type | rules | description
 |template | `string` | *mandatory*, one of `hcloud-centos-8`, `hcloud-centos-9`, `hcloud-debian-10`, `hcloud-debian-11` | 
-| domain | `string` | *optional*, defaults to `stackable.test` | Network domain for cluster-internal use or when accessing through Wireguard VPN (which is currently disabled)
+| domain | `string` | *optional*, defaults to `stackable.test` | Network domain for cluster-internal use
 | publicKeys | `list(string)` | *optional* | List of SSH public keys to allow access to cluster nodes.
 | location | `string` | *optional* | HCloud datacenter location, e.g. `fsn1`, `nbg1`, `hel1`. If omitted (recommended and default), one location in central Europe is selected.
 | orchestrator | `map` | *optional* | The orchestrator node is the Stackable node which hosts the Kubernetes control plane. It is required, you cannot opt out of having one. It has reasonable defaults, but you can overwrite them with the config properties in this section. Be cautious not to configure an orchestrator which has too little power. See following entries for details.
