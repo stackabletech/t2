@@ -1,4 +1,4 @@
-package tech.stackable.t2.api.cluster.domain;
+package tech.stackable.t2.domain;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,9 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Stackable cluster metadata.
- */
 @Schema(description = "Cluster")
 public class Cluster {
 

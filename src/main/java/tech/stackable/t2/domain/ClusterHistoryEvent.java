@@ -1,4 +1,4 @@
-package tech.stackable.t2.api.cluster.domain;
+package tech.stackable.t2.domain;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

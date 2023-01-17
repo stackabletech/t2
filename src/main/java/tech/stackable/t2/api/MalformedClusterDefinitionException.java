@@ -1,4 +1,4 @@
-package tech.stackable.t2.api.cluster.controller;
+package tech.stackable.t2.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

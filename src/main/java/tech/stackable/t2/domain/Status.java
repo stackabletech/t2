@@ -1,12 +1,9 @@
-package tech.stackable.t2.api.cluster.domain;
+package tech.stackable.t2.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Status of a cluster
- */
 @Schema(description = "Status of a Cluster")
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum Status {
