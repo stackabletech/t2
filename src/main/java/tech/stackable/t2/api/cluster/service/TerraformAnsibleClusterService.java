@@ -174,20 +174,6 @@ public class TerraformAnsibleClusterService {
         }
     }
 
-    public String getWireguardClientConfig(UUID id, int index) {
-        Cluster cluster = this.clusters.get(id);
-        if (cluster == null) {
-            return null;
-        }
-        Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
-        try {
-            return FileUtils.readFileToString(clusterBaseFolder.resolve(MessageFormat.format("resources/wireguard-client-config/{0}/wg.conf", index)).toFile(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            LOGGER.warn("Wireguard client config could not be read", e);
-            return null;
-        }
-    }
-
     public String getClientScript(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
@@ -253,7 +239,7 @@ public class TerraformAnsibleClusterService {
         try {
             return FileUtils.readFileToString(clusterBaseFolder.resolve("cluster.log").toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            LOGGER.warn("Wireguard client config could not be read", e);
+            LOGGER.warn("logs could not be read", e);
             return "";
         }
     }

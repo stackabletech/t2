@@ -76,7 +76,6 @@ resource "local_file" "ansible-inventory" {
       edge_node_internal_ip = var.edge_node_internal_ip
       orchestrator = var.orchestrator
       ssh_key_private_path = var.cluster_private_key_filename
-      wireguard = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? yamldecode(file("cluster.yaml"))["spec"]["wireguard"] : false
       nat_gateway_ip = var.nat_gateway_ip
       location = replace(var.location, "/", "_")
     }

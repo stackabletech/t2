@@ -1,13 +1,10 @@
 package tech.stackable.t2.templates;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,15 +18,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import tech.stackable.t2.api.cluster.controller.MalformedClusterDefinitionException;
-import tech.stackable.t2.wireguard.WireguardService;
 
 @Service
 public class TemplateService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TemplateService.class);
-
-    @Autowired
-    private WireguardService wireguardService;
 
     @Autowired
     @Qualifier("templateDirectory")
@@ -84,8 +77,6 @@ public class TemplateService {
             
             FileUtils.copyDirectory(templatePath.toFile(), workingDirectory.toFile());
 
-            this.createWireguardKeysFile(workingDirectory.resolve("wireguard.yaml").toFile());
-            
         } catch (IOException e) {
             LOGGER.error("Working directory {} could not be created.", workingDirectory, e);
             throw new RuntimeException(String.format("Working directory %s could not be created.", workingDirectory));
@@ -113,12 +104,4 @@ public class TemplateService {
             LOGGER.warn("Working directory {} could not be cleaned up.", workingDirectory, e);
         }
     }
-
-    private void createWireguardKeysFile(File file) throws IOException {
-    	Map<String, Object> wireguardKeys = new HashMap<>();
-    	wireguardKeys.put("server", wireguardService.keypair());
-    	wireguardKeys.put("clients", wireguardService.keypairs(16).collect(Collectors.toList()));
-    	new ObjectMapper(new YAMLFactory()).writeValue(file, wireguardKeys);
-    }
-    
 }

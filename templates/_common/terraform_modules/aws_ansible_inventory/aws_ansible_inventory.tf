@@ -48,7 +48,6 @@ resource "local_file" "ansible-inventory" {
       cluster_ip = var.cluster_ip
       orchestrator = var.orchestrator
       ssh_key_private_path = var.cluster_private_key_filename
-      wireguard = can(yamldecode(file("cluster.yaml"))["spec"]["wireguard"]) ? yamldecode(file("cluster.yaml"))["spec"]["wireguard"] : false
     }
   )
   file_permission = "0440"
