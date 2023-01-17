@@ -89,42 +89,6 @@ public class ClusterController {
         return cluster;
     }
 
-    @GetMapping("{id}/stackable-client-script")
-    @ResponseBody
-    @Operation(summary = "read Stackable client script", description = "Reads the client script to work with the cluster")
-    public String getClientScript(
-            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
-            @RequestHeader(name = "t2-token", required = false) String token) {
-        checkToken(token);
-        Cluster cluster = clusterService.getCluster(id);
-        if (cluster == null) {
-            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
-        }
-        String clientScript = this.clusterService.getClientScript(id);
-        if (clientScript == null) {
-            throw new ClusterNotFoundException(String.format("No Stackable client script found for cluster with id '%s'.", id));
-        }
-        return clientScript;
-    }
-
-    @GetMapping("{id}/ssh-config")
-    @ResponseBody
-    @Operation(summary = "read SSH config", description = "Reads the SSH config to work with the cluster")
-    public String getSshConfig(
-            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
-            @RequestHeader(name = "t2-token", required = false) String token) {
-        checkToken(token);
-        Cluster cluster = clusterService.getCluster(id);
-        if (cluster == null) {
-            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
-        }
-        String clientScript = this.clusterService.getSshConfig(id);
-        if (clientScript == null) {
-            throw new ClusterNotFoundException(String.format("No SSH config found for cluster with id '%s'.", id));
-        }
-        return clientScript;
-    }
-
     @GetMapping("{id}/stackable-versions")
     @ResponseBody
     @Operation(summary = "read Stackable version information document", description = "Reads a text document which contains version information on installed Stackable components")
