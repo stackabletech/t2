@@ -47,8 +47,8 @@ CLUSTER_ACCESS_SCRIPT = "/access.sh"
 # constants for file handles (logfiles and the like)
 TESTDRIVER_LOGFILE = f"{TARGET_FOLDER}testdriver.log"
 TEST_OUTPUT_LOGFILE = f"{TARGET_FOLDER}test-output.log"
-STACKABLE_VERSIONS_FILE = f"{TARGET_FOLDER}stackable-versions.txt"
-OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, STACKABLE_VERSIONS_FILE]
+CLUSTER_INFO_FILE = f"{TARGET_FOLDER}cluster-info.txt"
+OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, CLUSTER_INFO_FILE]
 
 # misc constants
 CLUSTER_LAUNCH_TIMEOUT = 3600
@@ -390,7 +390,7 @@ def download_cluster_file(t2_url, t2_token, id, resource_name, destination_path)
 def download_cluster_files(t2_url, t2_token, id):
     """Downloads the various files belonging to the cluster using T2 REST API"""
     log("Downloading Stackable version information sheet for cluster from T2...")
-    download_cluster_file(t2_url, t2_token, id, "stackable-versions", STACKABLE_VERSIONS_FILE)
+    download_cluster_file(t2_url, t2_token, id, "stackable-versions", CLUSTER_INFO_FILE)
     log("Downloading cluster access file for cluster from T2...")
     download_cluster_file(t2_url, t2_token, id, "access", CLUSTER_ACCESS_FILE)
 

@@ -173,14 +173,14 @@ public class TerraformAnsibleClusterService {
         }
     }
 
-    public String getVersionInformation(UUID id) {
+    public String getClusterInformation(UUID id) {
         Cluster cluster = this.clusters.get(id);
         if (cluster == null) {
             return null;
         }
         Path clusterBaseFolder = workspaceDirectory.resolve(cluster.getId().toString());
         try {
-            return FileUtils.readFileToString(clusterBaseFolder.resolve("resources/stackable-versions.txt").toFile(), StandardCharsets.UTF_8);
+            return FileUtils.readFileToString(clusterBaseFolder.resolve("resources/cluster-info.txt").toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             LOGGER.warn("Stackable version information document could not be read", e);
             return null;

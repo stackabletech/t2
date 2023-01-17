@@ -614,13 +614,7 @@ The following files are created in the directory mounted into `/target/`:
 |=======
 |File |Description
 |`testdriver.log` | Log file of the testdriver container itself
-|`k8s-event.log` | Event stream of the Kubernetes cluster (one YAML per event)
-|`k8s-event-short.log` | Event stream of the Kubernetes cluster (one line per event)
-|`k8s-pod-change.log` | Pod changes stream of the Kubernetes cluster (one YAML per change)
-|`k8s-pod-change-short.log` | Pod changes stream of the Kubernetes cluster (one line per change)
-|`k8s-ping.log` | The testdriver "pings" (`kubectl get pods ...`) the (existing or managed) cluster every 5 seconds to document/test its connectivity. This file contains the results of these pings
-|`k8s-summary.log` | The summary of the K8s "pings" mentioned above (counts grouped by result type)
-|`stackable-versions.txt` | Text file containing the versions of the installed Stackable components in the cluster (if managed)
+|`cluster-info.txt` | Text file containing the versions of the installed Stackable components in the cluster (if managed)
 |`test-output.log` | Output of the test script
 |=======
 

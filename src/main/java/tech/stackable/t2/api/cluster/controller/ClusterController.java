@@ -91,7 +91,7 @@ public class ClusterController {
 
     @GetMapping("{id}/stackable-versions")
     @ResponseBody
-    @Operation(summary = "read Stackable version information document", description = "Reads a text document which contains version information on installed Stackable components")
+    @Operation(summary = "read Stackable cluster information document", description = "Reads a text document which contains information about the cluster")
     public String getStackableVersions(
             @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
             @RequestHeader(name = "t2-token", required = false) String token) {
@@ -100,9 +100,9 @@ public class ClusterController {
         if (cluster == null) {
             throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
         }
-        String stackableVersions = this.clusterService.getVersionInformation(id);
+        String stackableVersions = this.clusterService.getClusterInformation(id);
         if (stackableVersions == null) {
-            throw new ClusterNotFoundException(String.format("No Stackable version information document found for cluster with id '%s'.", id));
+            throw new ClusterNotFoundException(String.format("No Stackable cluster information document found for cluster with id '%s'.", id));
         }
         return stackableVersions;
     }
