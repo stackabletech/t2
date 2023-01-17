@@ -71,8 +71,4 @@ resource "local_file" "ansible-inventory" {
     }
   )
   file_permission = "0440"
-} 
-
-module "ansible_variables_public_ssh_keys" {
-  source                        = "../common_ansible_variables_public_ssh_keys"
 }

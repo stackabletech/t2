@@ -2,7 +2,6 @@
 - hosts: all
   roles:
   - hostname
-  - ssh_keys_distributed
   - facts_network
   - selinux_disabled
   - ipv6_disabled
