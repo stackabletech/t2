@@ -35,8 +35,6 @@ cluster_id = None
 
 # constants for file handles
 CLUSTER_FOLDER = ".cluster/"
-PRIVATE_KEY_FILE = f"{CLUSTER_FOLDER}key"
-PUBLIC_KEY_FILE = f"{CLUSTER_FOLDER}key.pub"
 TARGET_FOLDER = "/target/"
 CLUSTER_DEFINITION_FILE = "/cluster.yaml"
 TEST_SCRIPT_FILE = "/test.sh"
@@ -251,30 +249,15 @@ def launch_cluster():
     
     This function creates a folder .cluster/ where everything related to the cluster is stored.
 
-    In the cluster definition, the 'publicKeys' section is extended with a generated public key. The according
-    private key is used to access the cluster later.
-
     If the cluster launch fails, this script exits. T2 takes care of the termination of partly created clusters.
 
     Returns cluster ID (in UUID format)
     """
 
-    # Generate SSH key
-    os.system(f"ssh-keygen -f {PRIVATE_KEY_FILE} -q -N '' -C ''")
-    with open (PUBLIC_KEY_FILE, "r") as f:
-        public_key = f.read().strip()
-
-    # Put SSH key in cluster definition file
-    with open (f"{TARGET_FOLDER}cluster.yaml", "r") as f:
+    # read cluster definition
+    with open (f"{CLUSTER_FOLDER}cluster.yaml", "r") as f:
         cluster_definition_string = f.read()
     cluster_definition_yaml = yaml.load(cluster_definition_string, Loader=yaml.FullLoader)
-
-    if(not "publicKeys" in cluster_definition_yaml["spec"] or not isinstance(cluster_definition_yaml["spec"]["publicKeys"], list)):
-        cluster_definition_yaml["spec"]["publicKeys"] = []
-    cluster_definition_yaml["spec"]["publicKeys"].append(public_key)        
-    with open (f"{CLUSTER_FOLDER}/cluster.yaml", "w") as f:
-        f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
-        f.close()
 
     # Dump cluster definiton 
     log(f"\n\ncluster.yaml:\n\n{yaml.dump(cluster_definition_yaml, default_flow_style=False)}\n\n")

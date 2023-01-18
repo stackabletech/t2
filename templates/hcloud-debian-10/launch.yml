@@ -2,7 +2,6 @@
 - hosts: all
   roles:
   - hostname
-  - ssh_keys_distributed
   - facts_network
   - ipv6_disabled
 - hosts: edge
