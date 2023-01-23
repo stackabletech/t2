@@ -3,8 +3,6 @@ package tech.stackable.t2.terraform;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -12,8 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import tech.stackable.t2.files.FileService;
 import tech.stackable.t2.util.ProgressLogger;
 
@@ -27,20 +23,6 @@ public class TerraformService {
 
     @Autowired
     private FileService fileService;
-
-    /**
-     * In-memory storage of all running Terraform processes.
-     */
-    private final Set<Process> runningProcesses = new HashSet<Process>();
-
-    private final Counter terraformProcessesStarted;
-    private final Counter terraformProcessesCompleted;
-
-    public TerraformService(MeterRegistry meterRegistry) {
-        meterRegistry.gauge("TERRAFORM_PROCESSES_RUNNING", this.runningProcesses, Set::size);
-        this.terraformProcessesStarted = meterRegistry.counter("TERRAFORM_PROCESSES_STARTED");
-        this.terraformProcessesCompleted = meterRegistry.counter("TERRAFORM_PROCESSES_COMPLETED");
-    }
 
     /**
      * Run <code>terraform init</code> in the given directory.
@@ -99,7 +81,7 @@ public class TerraformService {
 
             // Set up Terraform process to be run in the working dir of the cluster
             ProcessBuilder processBuilder = new ProcessBuilder()
-                    .command("sh", "-c", command.toString())
+                    .command("sh", "-c", command.getCommandWithParams())
                     .directory(workingDirectory.toFile());
 
             // Provide cluster ID as Terraform variable
@@ -107,20 +89,15 @@ public class TerraformService {
 
             // Start Terraform process (stderr redirected to stdout)
             Process process = processBuilder.redirectErrorStream(true).start();
-            this.runningProcesses.add(process);
-            this.terraformProcessesStarted.increment();
 
             // Set up process logging
             ProgressLogger logger = ProgressLogger.start(
                     process.getInputStream(),
                     workingDirectory.resolve("cluster.log"),
-                    MessageFormat.format("terraform-{0}", command));
+                    MessageFormat.format("terraform-{0}", command.getCommandName()));
 
             // Wait for termination of Terraform process
             int exitCode = process.waitFor();
-
-            this.runningProcesses.remove(process);
-            this.terraformProcessesCompleted.increment();
 
             // Stop process logging
             logger.stop();
@@ -139,19 +116,24 @@ public class TerraformService {
  */
 enum TerraformCommand {
 
-    INIT("terraform init -input=false -no-color"),
-    PLAN("terraform plan -detailed-exitcode -input=false -no-color"),
-    APPLY("terraform apply -auto-approve -input=false -no-color"),
-    DESTROY("terraform destroy -auto-approve -no-color");
+    INIT("init", "terraform init -input=false -no-color"),
+    PLAN("plan", "terraform plan -detailed-exitcode -input=false -no-color"),
+    APPLY("apply", "terraform apply -auto-approve -input=false -no-color"),
+    DESTROY("destroy", "terraform destroy -auto-approve -no-color");
 
-    private String command;
+    private String commandName;
+    private String commandWithParams;
 
-    private TerraformCommand(String command) {
-        this.command = command;
+    private TerraformCommand(String commandName, String commandWithParams) {
+        this.commandName = commandName;
+        this.commandWithParams = commandWithParams;
     }
 
-    @Override
-    public String toString() {
-        return command;
+    public String getCommandName() {
+        return commandName;
+    }
+
+    public String getCommandWithParams() {
+        return commandWithParams;
     }
 }

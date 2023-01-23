@@ -3,6 +3,7 @@ package tech.stackable.t2.api;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,6 +30,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import tech.stackable.t2.cluster.ClusterService;
 import tech.stackable.t2.domain.Cluster;
+import tech.stackable.t2.domain.Status;
 import tech.stackable.t2.security.SecurityToken;
 import tech.stackable.t2.security.TokenIncorrectException;
 import tech.stackable.t2.security.TokenRequiredException;
@@ -48,10 +52,10 @@ public class ClusterController {
 
     @GetMapping()
     @ResponseBody
-    @Operation(summary = "Get all clusters", description = "Get list of all active clusters")
-    public Collection<Cluster> getClusters(@RequestHeader(name = "t2-token", required = false) String token) {
+    @Operation(summary = "Get clusters", description = "Get list of clusters")
+    public Collection<Cluster> getClusters(@RequestHeader(name = "t2-token", required = false) String token, @RequestParam(name = "status", required = false) Set<Status> statusFilter) {
         checkToken(token);
-        return clusterService.getClusters();
+        return clusterService.getClusters(statusFilter);
     }
 
     @GetMapping("{id}")
@@ -83,6 +87,17 @@ public class ClusterController {
             @RequestHeader(name = "t2-token", required = false) String token) {
         checkToken(token);
         return clusterService.startClusterDeletion(id).orElseThrow(() -> new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id)));
+    }
+
+    @PutMapping("{id}")
+    @ResponseBody
+    @Operation(summary = "Set cluster status", description = "Sets the status on the specified cluster")
+    public Cluster setClusterStatus(
+            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
+            @Parameter(name = "status", description = "new status of the cluster") @RequestParam(name = "status", required = true) Status status,
+            @RequestHeader(name = "t2-token", required = false) String token) {
+        checkToken(token);
+        return clusterService.setClusterStatus(id, status);
     }
 
     @GetMapping("{id}/stackable-versions")
