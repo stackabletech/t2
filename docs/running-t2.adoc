@@ -11,26 +11,59 @@
 // Need some preamble to get TOC:
 {empty}
 
-== Running T2
+== T2 Docker image
 
 To run T2, you can use the Docker image `docker.stackable.tech/t2:latest` (or another version you find https://repo.stackable.tech/#browse/search/docker=attributes.docker.imageName%3Dt2[here, window="_blank"])
 
-T2 is a dockerized Spring Boot application and can be packaged/built via Maven:
-
-[source,bash]
-----
-mvn clean package
-----
-
-You can start a container based on the resulting Docker image and configure it with port mappings and volume mounts as described below:
-
-=== Config options
+== Config options
 
 [options="header"]
 |=======
 |option |description | usage
-| port mapping| make T2 reachable on your machine | map a host port to container port `8080`
-| credential file | file containing credentials in property format, e.g. `ionos_username = me`, `ionos_password = youguess` | map your file to `/var/t2/credentials.properties`
-| security token file | file containing (only!) the token that must be used to access T2 | map your file to `/var/t2/security-token`
+| port mapping| make T2 reachable on your machine/cloud infrasctructure | map a host port to container port `8080`
+| T2 config file | T2 config file in YAML format, see next section for details | map your file to `/var/t2/t2-config.yaml`
 | workspace directory | directory where T2 stores the working dirs of the clusters | Map your folder to `/var/t2/workspace`. If you omit the mapping, the workspace is inside the container and therefore ephemeral.
 |=======
+
+== The T2 config file
+
+The central configuration file must be present in the container at `/var/t2/t2-config.yaml`. Here's a dummy T2 config and a short description of the sections:
+
+    ---
+    security-token: foo
+    hcloud:
+        token: foo
+    ionos:
+        username: foo
+        password: foo
+    aws:
+        access-key: foo
+        secret-access-key: foo
+        region: foo
+    azure:
+        subscription-id: foo
+        subscription-tenant-id: foo
+        service-principal-app-id: foo
+        service-principal-password: foo
+    gcloud:
+        cred-file: |
+            {  
+                "type": "service_account",
+                "project_id": "foo",
+                "private_key_id": "foo",
+                "private_key": "-----BEGIN PRIVATE KEY-----\nfoo==\n-----END PRIVATE KEY-----\n",
+                "client_email": "foo",
+                "client_id": "foo",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_x509_cert_url": "foo"
+            }
+        project-id: foo
+
+* The `security-token` is the secret token you have to provide to use T2's REST API.
+* The `hcloud.token` is used to access the HCloud API of Hetzner.
+* The `ionos` set of credentials is used to access the IONOS Cloud API.
+* The `aws` set of keys is used to log in to AWS and access their cloud services.
+* The `azure` set of IDs/credentials is used to access the Azure services.
+* The `gcloud` credential file is used to log in to GCloud and access their cloud services.

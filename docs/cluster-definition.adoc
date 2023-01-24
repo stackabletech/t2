@@ -1,6 +1,6 @@
 // Header of this document:
 
-= Using T2
+= The Stackable cluster definition YAML
 :toc:
 :toc-placement: preamble
 :toclevels: 3
@@ -11,157 +11,9 @@
 // Need some preamble to get TOC:
 {empty}
 
-At Stackable, we have a https://t2.stackable.tech/swagger-ui/[running instance of T2, window="_blank"] to provision our own clusters. As described in the link:../README.adoc[README], we use it for integration testing and troubleshooting and do not provide access publicly.
+You have to provide a definition of the Stackable cluster you want to create. You do this in a YAML file. This document describes the cluster definition.
 
-== Create a cluster
-
-=== Create a cluster using the REST API.
-
-To create a cluster with T2, you can use the REST API which is fully documented https://t2.stackable.tech/swagger-ui/index.html#/[here, window="_blank"]. This section here gives you a small example of the most common steps you take when working with a cluster managed by T2. The example requests are written in the format of the https://github.com/Huachao/vscode-restclient[REST client plugin, window="_blank"] for Visual Studio Code. If you work with Postman, Insomnia or the like, you'll find it easy to adapt these requests.
-
-==== Step 1: Launch the cluster
-
-With this request, you start the creation of a cluster:
-[source,yaml]
-----
-POST https://t2.stackable.tech/api/clusters
-t2-token: (put secret token here)
-Content-Type: application/yaml
-
----
-apiVersion: t2.stackable.tech/v2
-kind: StackableT2Cluster
-metadata:
-  labels:
-    author: backstreetkiwi
-    purpose: testing-t2
-spec:
-  template: gke
-  region: europe-central2
-  k8sVersion: 1.24
-  nodes:
-    count: 3
-    machineType: e2-standard-4
-  stackableVersions:
-    _-operator: NIGHTLY
-----
-
-Please refer to the <<cluster_definition>> section to see which options you have to specify the cluster.
-
-As a response, you get the metadata of the cluster, which contains the current state and a history of its states since creation:
-[source,json]
-----
-{
-  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
-  "status": {
-    "failed": false,
-    "state": "TERRAFORM_APPLY"
-  },
-  "dateTimeCreated": "2022-10-05T06:11:27.234051",
-  "history": [
-    {
-      "status": {
-        "failed": false,
-        "state": "NEW"
-      },
-      "timestamp": "2022-10-05T06:11:27.23406",
-      "timeSinceClusterLaunch": "PT0.000009S",
-      "description": null
-    }
-  ]
-  ...
-}
-----
-
-You can see that the cluster is not yet ready for use, but currently applies a Terraform definition.
-
-==== Step 2: Check the cluster state
-
-From the response in step 1, you have to copy the cluster's ID, which lets you access the cluster as a resource using the T2 API. To query the current state of the cluster, use a request like this:
-[source,yaml]
-----
-GET https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a
-t2-token: (put secret token here)
-----
-
-Eventually, you will get the response which confirms that your cluster is `RUNNING` and therefore ready for use:
-[source,json]
-----
-{
-  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
-  "status": {
-    "failed": false,
-    "state": "RUNNING"
-  },
-  "dateTimeCreated": "2022-10-05T06:11:27.234051",
-  "history": [
-    {
-      "status": {
-        "failed": false,
-        "state": "NEW"
-      },
-      "timestamp": "2022-10-05T06:11:27.23406",
-      "timeSinceClusterLaunch": "PT0.000009S",
-      "description": null
-    }
-  ]
-  ...
-}
-----
-
-[[cluster_access_file]]
-==== Step 3: Get the cluster access file
-
-T2 offers clusters from 5 different cloud vendors. As the way to access a cluster differs from vendor to vendor, you have to get the so called "cluster access file" which contains everything you need to access the cluster, including instructions how to use it:
-[source,yaml]
-----
-GET https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a/access
-t2-token: (put secret token here)
-----
-
-The access file should be self-explanatory. There are basically two ways to access a cluster:
-
-* Some clusters offer a static `kubeconfig` file which is contained in the access file. This can be used to access the cluster.
-* Some vendors (currently Google/GKE and AWS/EKS) require a login with a user/principal of the cloud platform. In these cases, the access file contains the credentials of a temporary user along with the instructions how to log in and create the `kubeconfig`.
-
-==== Step 4: Delete the cluster
-
-Once you are done with whatever you were up to with the cluster, please remember to shut the cluster down (or "delete the resource" in REST terms):
-[source,yaml]
-----
-DELETE https://t2.stackable.tech/api/clusters/2b1e053c-ffe1-45ac-91b2-67f73d766c2a
-t2-token: (put secret token here)
-----
-
-The deletion starts and you can check the cluster's state using the request from step #2 until the cluster is `TERMINATED`:
-[source,json]
-----
-{
-  "id": "2b1e053c-ffe1-45ac-91b2-67f73d766c2a",
-  "status": {
-    "failed": false,
-    "state": "TERMINATED"
-  },
-  "dateTimeCreated": "2022-10-05T06:11:27.234051",
-  "history": [
-    {
-      "status": {
-        "failed": false,
-        "state": "NEW"
-      },
-      "timestamp": "2022-10-05T06:11:27.23406",
-      "timeSinceClusterLaunch": "PT0.000009S",
-      "description": null
-    }
-  ]
-  ...
-}
-----
-
-[[cluster_definition]]
-== The Stackable cluster definition YAML
-
-You have to provide a definition of the Stackable cluster you want to create. You do this in a YAML file. This section describes the cluster definition.
+== Overall structure
 
 The T2 cluster definition is similar to a Kubernetes resource definition and consists of the header with the `apiVersion`, the `kind` of resource and the `metadata`. Following the header, you have to define the cluster's details in a `spec` section.
 
@@ -180,9 +32,7 @@ spec:
   ...
 ----
 
-The following sections describe the fields of the cluster definition in more detail.
-
-=== Header
+== Header (`apiVersion`, `kind` and `metadata`)
 
 [options="header", cols="1,1,2,3"]
 |=======
@@ -194,7 +44,7 @@ The following sections describe the fields of the cluster definition in more det
 |=======
 
 
-=== Templates
+== Templates (selected in `spec.template` field)
 
 The most important choice you have to make in a cluster definition is the `template` in the `spec` section. There are two kinds of templates: 
 
@@ -221,11 +71,11 @@ The following table lists the currently available templates:
 |gke | Google Kubernetes Engine |
 |=======
 
-=== Specification of the cluster ('spec' section)
+== Specification of the cluster (`spec` section)
 
-The content of this section differs depending on the cloud provider and template, so there are multiple sections.
+The content of the `spec` section differs depending on the cloud provider and template, so they are described separately in this document.
 
-==== K3s on IONOS Cloud
+=== K3s on IONOS Cloud
 
 [options="header", cols="3,1,2,5"]
 |=======
@@ -252,7 +102,7 @@ The content of this section differs depending on the cloud provider and template
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
 
-===== Example
+==== Example
 
 [source,yaml]
 ----
@@ -282,7 +132,7 @@ spec:
     _-operator: NIGHTLY
 ----
 
-==== K3s on Hetzner HCloud
+=== K3s on Hetzner HCloud
 
 [options="header", cols="3,1,2,5"]
 |=======
@@ -302,7 +152,7 @@ spec:
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
 
-===== Example
+==== Example
 
 [source,yaml]
 ----
@@ -330,7 +180,7 @@ spec:
     secret-operator: RELEASE
 ----
 
-==== Microsoft Azure AKS (managed)
+=== Microsoft Azure AKS (managed)
 
 [options="header", cols="2,1,2,5"]
 |=======
@@ -344,7 +194,7 @@ spec:
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
 
-===== Example
+==== Example
 
 [source,yaml]
 ----
@@ -366,7 +216,7 @@ spec:
     zookeeper-operator: 0.12.0-pr184
 ----
 
-==== Amazon AWS EKS (managed)
+=== Amazon AWS EKS (managed)
 
 [options="header", cols="2,1,2,5"]
 |=======
@@ -380,7 +230,7 @@ spec:
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
 
-===== Example
+==== Example
 
 [source,yaml]
 ----
@@ -402,7 +252,7 @@ spec:
     zookeeper-operator: 0.12.0
 ----
 
-==== IONOS Kubernetes (managed)
+=== IONOS Kubernetes (managed)
 
 [options="header", cols="2,1,2,5"]
 |=======
@@ -419,7 +269,7 @@ spec:
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
 
-===== Example
+==== Example
 
 [source,yaml]
 ----
@@ -444,7 +294,7 @@ spec:
     hive-operator: NONE
 ----
 
-==== Google Kubernetes Engine - GKE (managed)
+=== Google Kubernetes Engine - GKE (managed)
 
 [options="header", cols="2,1,2,5"]
 |=======
@@ -458,7 +308,7 @@ spec:
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
 
-===== Example
+==== Example
 
 [source,yaml]
 ----
@@ -479,7 +329,7 @@ spec:
     _-operator: NIGHTLY
 ----
 
-=== Links to informations of the Cloud Vendors
+== Links to informations of the Cloud Vendors
 
 * https://aws.amazon.com/de/ec2/instance-types/[AWS EC2 instance types]
 * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html[AWS EC2 volume types]
@@ -487,7 +337,7 @@ spec:
 * https://cloud.google.com/compute/docs/machine-types[Google Cloud machine types]
 
 
-=== Stackable operators
+== Stackable operators (section `spec.stackableVersions`)
 
 These are operators that Stackable currently provides. You can specify their versions with the `spec.stackableVersions` section in the cluster definition (see above).
 
@@ -511,7 +361,7 @@ These are operators that Stackable currently provides. You can specify their ver
 |=======
 
 
-==== Version literals
+=== Version literals
 
 As shown in various examples in this document, you can specify the versions of the Stackable components in the `spec.stackableVersions` section. The following table shows the different ways to do so by example:
 
@@ -527,100 +377,14 @@ As shown in various examples in this document, you can specify the versions of t
 |`0.6.1` | realeased version 0.6.1
 |=======
 
-==== Default version for all Stackable Operators
+=== Default version for all Stackable Operators
 
 To specify a version for *all* Stackable operators which are not explicitly mentioned in the Versions section, you can use the key `_-operator`. Using this operator most probably does not make sense with actual version numbers, but merely the keywords `RELEASE`, `NIGHTLY` or `NONE`.
 
 If you'd like a cluster without any operators, you can set the version of `_-operator` to `NONE` as the only entry in the `versions` section.
 
 
-=== Service definitions
+== Service definitions
 
 The service definitions depend on the used services. Please refer to the documentation of the operator for the product. You find the links to the components in the table above.
-
-== T2 Testdriver (T2 client Docker image)
-
-We provide the Docker image `docker.stackable.tech/t2-testdriver` to make the usage of T2 in CI pipelines and for developers easier.
-
-The T2 testdriver offers 5 "cluster modes" which are selected by setting the `CLUSTER` environment variable to either `NONE`, `EXISTING`, `MANAGED`, `CREATE` or `DELETE`. 
-
-The following sections describe the meaning of the modes and some major options, followed by a table describing all options.
-
-=== Cluster mode NONE
-
-The testdriver is not operating on a Kubernetes cluster at all. This mode is mostely useful for test and development purposes of the client itself or the CI processes.
-
-=== Cluster mode EXISTING
-
-The testdriver operates on a cluster which exists independently from the testdriver. The testdriver neither creates nor terminates any cluster.
-
-=== Cluster mode MANAGED
-
-The testdriver creates a cluster as defined in the cluster definition file and tears it down once the testdriver is about to be shut down.
-
-=== Cluster mode CREATE
-
-The testdriver just creates a cluster and quits afterwards. The user is responsible for later cleaning up the cluster using the `DELETE` mode.
-
-=== Cluster mode DELETE
-
-The testdriver just tears down an existing cluster and quits afterwards.
-
-=== Interactive or not interactive?
-
-The "normal" use case of the testdriver is the following: The testdriver executes the given test script against the (existing or managed) cluster, records the results and some other logfiles and then shuts down the cluster (if managed) and terminates.
-
-If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed) or the connectivity check (if existing). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
-
-  docker exec -it <container_name> bash
-
-Once you're done with the work, you should terminate the container running the `stop-session` command either from a terminal session like created above or directly by executing the command on the container.
-
-  docker exec -it <container_name> stop-session
-
-This way of terminating is preferred to just terminating the container because the grace period of `docker stop` usually is too short to allow for an unproblematic cluster shutdown.
-
-The interactive session is only available in the modes `NONE`, `EXISTING` and `MANAGED`.
-
-=== Options
-
-The following table describes all the options that can/must be set when using the testdriver.
-
-[options="header"]
-|=======
-|Feature |How to use |Description
-|Cluster mode | environment variable `CLUSTER` (`NONE`, `EXISTING`, `MANAGED`, `CREATE` or `DELETE`) | **mandatory** See sections above...
-|Interactive mode | environment variable `INTERACTIVE_MODE` | **optional**, defaults to `false`, see section above...
-|User/Group for target directory | environment variable `UID_GID` (format `<UID>:<GID>`), defaults to `0:0` (root) | **optional** All stuff which is written into the target dir is owned by this user/group combination.
-|T2 URL | environment variable `T2_URL` | *(mandatory for managed clusters, creation and deletion)* The URL of T2 to use
-|T2 Token | environment variable `T2_TOKEN` | *(mandatory for managed clusters, creation and deletion)* The token to access T2
-|OpenSearch Dashboards URL | environment variable `OPENSEARCH_DASHBOARDS_URL`, defaults to `https://logs.t2.stackable.tech` | **optional** One build artifact of the test job is an HTML file containing links to conveniently access the log index. This variable lets you set the base URL of the OpenSearch Dashboards.
-|Cluster definition | map as file to `/cluster.yaml` | *(mandatory for managed clusters and creation)* The cluster definition as described above
-|Cluster ID | environment variable `CLUSTER_ID` | *(mandatory for cluster deletion)* The cluster ID (a UUID assigned by T2) of the cluster to be deleted.
-|Target directory | map as volume to `/target/` | **mandatory** The target directory for the output
-|Kubernetes config file | map as file to `/root/.kube/config` | *(mandatory if using existing clusters AND NOT specifying a T2 cluster access file)* The K8s config file to access the existing cluster
-|T2 cluster access file | map as file to `/access.yaml` | *(mandatory if using existing clusters AND NOT specifying a Kubernetes config file)* The T2 cluster access file to access the existing cluster (see <<cluster_access_file>>) If an "ordinary" kubeconfig is supplied (see above), this file is ignored.
-|Test script | map as file to `/test.sh` | *(mandatory if not running in interactive mode)*. The script containing the test to be run once the cluster is up and running
-|=======
-
-
-/access.yaml
-
-=== Output files
-
-The following files are created in the directory mounted into `/target/`:
-
-[options="header"]
-|=======
-|File |Description
-|`testdriver.log` | Log file of the testdriver container itself
-|`cluster-info.txt` | Text file containing the versions of the installed Stackable components in the cluster (if managed)
-|`test-output.log` | Output of the test script
-|=======
-
-=== Return code
-
-* If the T2 testdriver is not able to create or tear down the cluster, it returns `255`.
-* Otherwise, the return code of the Docker container process is the return code of the test script which was injected into it.
-
 

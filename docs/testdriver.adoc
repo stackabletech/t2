@@ -1,0 +1,97 @@
+// Header of this document:
+
+= The T2 testdriver
+:toc:
+:toc-placement: preamble
+:toclevels: 3
+:showtitle:
+:base-repo: https://github.com/stackabletech/t2
+:imagesdir: diagrams
+
+// Need some preamble to get TOC:
+{empty}
+
+We provide the Docker image `docker.stackable.tech/t2-testdriver` to make the usage of T2 in CI pipelines and for developers easier.
+
+The T2 testdriver offers 5 "cluster modes" which are selected by setting the `CLUSTER` environment variable to either `NONE`, `EXISTING`, `MANAGED`, `CREATE` or `DELETE`. 
+
+The following sections describe the meaning of the modes and some major options, followed by a table describing all options.
+
+== Cluster mode NONE
+
+The testdriver is not operating on a Kubernetes cluster at all. This mode is mostely useful for test and development purposes of the client itself or the CI processes.
+
+== Cluster mode EXISTING
+
+The testdriver operates on a cluster which exists independently from the testdriver. The testdriver neither creates nor terminates any cluster.
+
+== Cluster mode MANAGED
+
+The testdriver creates a cluster as defined in the cluster definition file and tears it down once the testdriver is about to be shut down.
+
+== Cluster mode CREATE
+
+The testdriver just creates a cluster and quits afterwards. The user is responsible for later cleaning up the cluster using the `DELETE` mode.
+
+== Cluster mode DELETE
+
+The testdriver just tears down an existing cluster and quits afterwards.
+
+== Interactive or not interactive?
+
+The "normal" use case of the testdriver is the following: The testdriver executes the given test script against the (existing or managed) cluster, records the results as artifacts and then shuts down the cluster (if managed) and terminates.
+
+If, on the other hand, started with `INTERACTIVE_MODE=true`, the testdriver does not execute a test script but waits after the creation of the cluster (if managed) or the connectivity check (if existing). You can then execute commands in the cluster as you wish. It might be useful to open a terminal session on the running container like this:
+
+  docker exec -it <container_name> bash
+
+Once you're done with the work, you should terminate the container running the `stop-session` command either from a terminal session like created above or directly by executing the command on the container.
+
+  docker exec -it <container_name> stop-session
+
+This way of terminating is preferred to just terminating the container because the grace period of `docker stop` usually is too short to allow for an unproblematic cluster shutdown.
+
+The interactive session is only available in the cluster modes `NONE`, `EXISTING` and `MANAGED`.
+
+== Options
+
+The following table describes all the options that can/must be set when using the testdriver.
+
+[options="header"]
+|=======
+|Feature |How to use |Description
+|Cluster mode | environment variable `CLUSTER` (`NONE`, `EXISTING`, `MANAGED`, `CREATE` or `DELETE`) | **(mandatory)** See sections above...
+|Interactive mode | environment variable `INTERACTIVE_MODE` | **(optional)**, defaults to `false`, see section above...
+|User/Group for target directory | environment variable `UID_GID` (format `<UID>:<GID>`), defaults to `0:0` (root) | **(optional)** All stuff which is written into the `target` dir is owned by this user/group combination. This is useful because otherwise you may end up with resources which you cannot easily delete because they are owned by a superuser.
+|T2 URL | environment variable `T2_URL` | *(mandatory for managed clusters, creation and deletion)* The URL of the T2 backend to use
+|T2 Token | environment variable `T2_TOKEN` | *(mandatory for managed clusters, creation and deletion)* The access token to access the T2 backend
+|OpenSearch Dashboards URL | environment variable `OPENSEARCH_DASHBOARDS_URL`, defaults to `https://logs.t2.stackable.tech` | **(optional)** One build artifact of the test job is an HTML file containing links to conveniently access the log index. This variable lets you set the base URL of the OpenSearch Dashboards.
+|Cluster definition | map as file to `/cluster.yaml` | *(mandatory for managed clusters and creation)* The cluster definition as described above
+|Cluster ID | environment variable `CLUSTER_ID` | *(mandatory for cluster deletion)* The cluster ID (a UUID assigned by T2) of the cluster to be deleted.
+|Target directory | map as volume to `/target/` | **(mandatory)** The target directory for the output
+|Kubernetes config file | map as file to `/root/.kube/config` | *(mandatory if using existing clusters AND NOT specifying a T2 cluster access file)* The K8s config file to access the existing cluster
+|T2 cluster access file | map as file to `/access.yaml` | *(mandatory if using existing clusters AND NOT specifying a Kubernetes config file)* The T2 cluster access file to access the existing cluster. If an "ordinary" kubeconfig is supplied (see above), this file is ignored.
+|Test script | map as file to `/test.sh` | *(mandatory if not running in interactive mode)*. The script containing the test to be run once the cluster is up and running
+|=======
+
+
+/access.yaml
+
+== Output files
+
+The following files are created in the directory mounted into `/target/`:
+
+[options="header"]
+|=======
+|File |Description
+|`testdriver.log` | Log file of the testdriver container itself
+|`cluster-info.txt` | Text file containing the versions of the installed Stackable components in the cluster (if managed)
+|`test-output.log` | Output of the test script
+|=======
+
+== Return code
+
+* If the T2 testdriver is not able to create the cluster, it returns `255`.
+* Otherwise, the return code of the Docker container process is the return code of the test script which was injected into it.
+
+
