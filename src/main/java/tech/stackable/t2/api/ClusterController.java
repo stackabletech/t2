@@ -53,7 +53,9 @@ public class ClusterController {
     @GetMapping()
     @ResponseBody
     @Operation(summary = "Get clusters", description = "Get list of clusters")
-    public Collection<Cluster> getClusters(@RequestHeader(name = "t2-token", required = false) String token, @RequestParam(name = "status", required = false) Set<Status> statusFilter) {
+    public Collection<Cluster> getClusters(
+            @RequestHeader(name = "t2-token", required = false) String token,
+            @Parameter(name = "status", description = "status values for filtering") @RequestParam(name = "status", required = false) Set<Status> statusFilter) {
         checkToken(token);
         return clusterService.getClusters(statusFilter);
     }
