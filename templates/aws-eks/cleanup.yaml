@@ -1,5 +1,4 @@
 ---
 - hosts: localhost
-  tasks:
-    - debug:
-        msg: "There are no cleanup tasks for this template"
+  roles:
+  - aws_csi_driver_cleaned_up
