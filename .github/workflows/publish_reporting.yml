@@ -1,0 +1,25 @@
+name: Publish T2 Reporting in Docker
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  t2-testdriver:
+
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - uses: docker/login-action@v1
+        with:
+          registry: docker.stackable.tech
+          username: github
+          password: ${{ secrets.NEXUS_PASSWORD }}
+
+      - uses: docker/build-push-action@v2.4.0
+        with:
+          context: reporting/
+          tags: docker.stackable.tech/t2-reporting:latest
+          push: true
