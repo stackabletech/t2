@@ -40,11 +40,6 @@ RUN install -o root -g root -m 0755 /tmp/eksctl /usr/local/bin/eksctl
 # install yq (YAML Parser)
 RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
-# install wireguard
-RUN sh -c "echo 'deb http://deb.debian.org/debian buster-backports main contrib non-free' > /etc/apt/sources.list.d/buster-backports.list"
-RUN apt update
-RUN apt install wireguard -y
-
 # install Ansible
 RUN pip3 install ansible
 

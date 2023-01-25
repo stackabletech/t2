@@ -7,14 +7,25 @@
 
 - name: Collect cluster info into file
   shell: |
-    kubectl --kubeconfig kubeconfig get nodes > resources/stackable-versions.txt
-    echo '' >> resources/stackable-versions.txt
-    kubectl --kubeconfig kubeconfig get nodes -o custom-columns=NAME:metadata.name,TAINTS:spec.taints,LOCATION:metadata.labels.location,NODE_LABEL:metadata.labels.node,NODE_SIZE:metadata.labels.node_size --sort-by=metadata.name >> resources/stackable-versions.txt
-    echo '' >> resources/stackable-versions.txt
-    echo '' >> resources/stackable-versions.txt
-  ignore_errors: True
-
-- name: Collect operator versions info into file
-  shell: |
-    helm --kubeconfig kubeconfig --namespace default list >> resources/stackable-versions.txt
+    echo 'Stackable test cluster configuration:' > resources/cluster-info.txt
+    echo '=====================================' >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    echo 'Cloud vendor:               {{ metadata['annotations']['t2.stackable.tech/cloud-vendor'] | default("unknown", true) }}' >> resources/cluster-info.txt
+    echo 'Kubernetes distro:          {{ metadata['annotations']['t2.stackable.tech/k8s'] | default("unknown", true) }}' >> resources/cluster-info.txt
+    echo 'OS on Kubernetes nodes:     {{ metadata['annotations']['t2.stackable.tech/node-os'] | default("unknown", true) }}' >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    echo 'Kubernetes nodes:' >> resources/cluster-info.txt
+    echo '-----------------' >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    kubectl --kubeconfig kubeconfig get nodes >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    kubectl --kubeconfig kubeconfig get nodes -o custom-columns=NAME:metadata.name,TAINTS:spec.taints,LOCATION:metadata.labels.location,NODE_SIZE:metadata.labels.node_size --sort-by=metadata.name >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    echo 'Stackable operators:' >> resources/cluster-info.txt
+    echo '--------------------' >> resources/cluster-info.txt
+    echo '' >> resources/cluster-info.txt
+    helm --kubeconfig kubeconfig --namespace default list >> resources/cluster-info.txt
   ignore_errors: True

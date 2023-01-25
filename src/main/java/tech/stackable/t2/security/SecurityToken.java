@@ -4,6 +4,11 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * T2 security token.
+ *
+ * To use T2, you have to provide a valid token.
+ */
 public class SecurityToken {
 
     private String token;

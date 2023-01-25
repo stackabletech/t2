@@ -12,7 +12,6 @@ edge ansible_host=${cluster_ip}
 [edge:vars]
 ansible_user=${stackable_user}
 ansible_ssh_private_key_file=${ssh_key_private_path}
-wireguard=${wireguard}
 ansible_become=yes
 internal_ip=${edge_node_internal_ip}
 

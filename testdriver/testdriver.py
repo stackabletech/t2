@@ -35,8 +35,6 @@ cluster_id = None
 
 # constants for file handles
 CLUSTER_FOLDER = ".cluster/"
-PRIVATE_KEY_FILE = f"{CLUSTER_FOLDER}key"
-PUBLIC_KEY_FILE = f"{CLUSTER_FOLDER}key.pub"
 TARGET_FOLDER = "/target/"
 CLUSTER_DEFINITION_FILE = "/cluster.yaml"
 TEST_SCRIPT_FILE = "/test.sh"
@@ -47,8 +45,8 @@ CLUSTER_ACCESS_SCRIPT = "/access.sh"
 # constants for file handles (logfiles and the like)
 TESTDRIVER_LOGFILE = f"{TARGET_FOLDER}testdriver.log"
 TEST_OUTPUT_LOGFILE = f"{TARGET_FOLDER}test-output.log"
-STACKABLE_VERSIONS_FILE = f"{TARGET_FOLDER}stackable-versions.txt"
-OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, STACKABLE_VERSIONS_FILE]
+CLUSTER_INFO_FILE = f"{TARGET_FOLDER}cluster-info.txt"
+OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, CLUSTER_INFO_FILE]
 
 # misc constants
 CLUSTER_LAUNCH_TIMEOUT = 3600
@@ -251,30 +249,15 @@ def launch_cluster():
     
     This function creates a folder .cluster/ where everything related to the cluster is stored.
 
-    In the cluster definition, the 'publicKeys' section is extended with a generated public key. The according
-    private key is used to access the cluster later.
-
     If the cluster launch fails, this script exits. T2 takes care of the termination of partly created clusters.
 
     Returns cluster ID (in UUID format)
     """
 
-    # Generate SSH key
-    os.system(f"ssh-keygen -f {PRIVATE_KEY_FILE} -q -N '' -C ''")
-    with open (PUBLIC_KEY_FILE, "r") as f:
-        public_key = f.read().strip()
-
-    # Put SSH key in cluster definition file
-    with open (f"{TARGET_FOLDER}cluster.yaml", "r") as f:
+    # read cluster definition
+    with open (f"{CLUSTER_FOLDER}cluster.yaml", "r") as f:
         cluster_definition_string = f.read()
     cluster_definition_yaml = yaml.load(cluster_definition_string, Loader=yaml.FullLoader)
-
-    if(not "publicKeys" in cluster_definition_yaml["spec"] or not isinstance(cluster_definition_yaml["spec"]["publicKeys"], list)):
-        cluster_definition_yaml["spec"]["publicKeys"] = []
-    cluster_definition_yaml["spec"]["publicKeys"].append(public_key)        
-    with open (f"{CLUSTER_FOLDER}/cluster.yaml", "w") as f:
-        f.write(yaml.dump(cluster_definition_yaml, default_flow_style=False))
-        f.close()
 
     # Dump cluster definiton 
     log(f"\n\ncluster.yaml:\n\n{yaml.dump(cluster_definition_yaml, default_flow_style=False)}\n\n")
@@ -289,12 +272,12 @@ def launch_cluster():
 
     # Wait for cluster to be up and running
     cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-    while(CLUSTER_LAUNCH_TIMEOUT > (time.time()-start_time) and cluster['status']['state'] != 'RUNNING' and  not cluster['status']['failed']):
+    while(CLUSTER_LAUNCH_TIMEOUT > (time.time()-start_time) and cluster['status'] == 'LAUNCHING'):
         time.sleep(5)
         cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
 
     # Cluster launch failed
-    if(cluster['status']['failed']):
+    if(cluster['status'] == 'LAUNCH_FAILED'):
         log("Cluster launch failed.")
         exit(EXIT_CODE_CLUSTER_FAILED)
 
@@ -310,31 +293,11 @@ def launch_cluster():
 
 
 def terminate_cluster(cluster_id):
-    """Terminates the cluster identified by the data in the .cluster/ folder.
+    """Triggers the termination of the cluster identified by the data in the .cluster/ folder.
     """
-    log(f"Terminating the test cluster...")
-
-    start_time = time.time()        
-    cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)    
-    if(not cluster):
-        log("Failed to terminate cluster via API.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-
-    log(f"Started termination of cluster '{cluster['id']}'. Waiting for cluster to be terminated...")
-    cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-    while(CLUSTER_LAUNCH_TIMEOUT > (time.time()-start_time) and cluster['status']['state'] != 'TERMINATED' and  not cluster['status']['failed']):
-        time.sleep(5)
-        cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-
-    if(cluster['status']['failed']):
-        log("Cluster termination failed.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-
-    if(CLUSTER_LAUNCH_TIMEOUT <= (time.time()-start_time)):
-        log("Timeout while launching cluster.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-
-    log(f"Cluster '{cluster['id']}' is terminated.")
+    log(f"Triggering termination of the test cluster...")
+    delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)
+    log(f"Triggered termination of cluster '{cluster_id}'.")
 
 
 def create_cluster(t2_url, t2_token, cluster_definition):
@@ -389,38 +352,10 @@ def download_cluster_file(t2_url, t2_token, id, resource_name, destination_path)
 
 def download_cluster_files(t2_url, t2_token, id):
     """Downloads the various files belonging to the cluster using T2 REST API"""
-    log("Downloading Stackable client script for cluster from T2...")
-    download_cluster_file(t2_url, t2_token, id, "stackable-client-script", "/tmp/stackable.sh")
-    log("Downloading SSH config from T2...")
-    download_cluster_file(t2_url, t2_token, id, "ssh-config", "/tmp/ssh-config")
     log("Downloading Stackable version information sheet for cluster from T2...")
-    download_cluster_file(t2_url, t2_token, id, "stackable-versions", STACKABLE_VERSIONS_FILE)
+    download_cluster_file(t2_url, t2_token, id, "stackable-versions", CLUSTER_INFO_FILE)
     log("Downloading cluster access file for cluster from T2...")
     download_cluster_file(t2_url, t2_token, id, "access", CLUSTER_ACCESS_FILE)
-
-
-def install_stackable_client_script():
-    if(os.path.exists("/tmp/stackable.sh")):
-        os.system('install /tmp/stackable.sh /usr/bin/stackable')
-        log("Stackable client script installed as command 'stackable'")
-        return
-
-    log('Stackable client script not available on this cluster.')
-
-
-def configure_ssh():
-    if(os.path.exists("/tmp/ssh-config")):
-        os.system('mkdir -p /root/.ssh/')
-        os.system('cp /tmp/ssh-config /root/.ssh/config')
-        os.chmod("/root/.ssh/config", 0o600)
-        os.system(f"cp {PRIVATE_KEY_FILE} /root/.ssh/id_rsa")
-        os.system(f"cp {PUBLIC_KEY_FILE} /root/.ssh/id_rsa.pub")
-        os.system(f"chmod 600 /root/.ssh/id_rsa")
-        os.system(f"chmod 644 /root/.ssh/id_rsa.pub")
-        log("SSH configured to work directly with all cluster nodes")
-        return
-
-    log('SSH not configurable in this cluster.')
 
 
 def write_logs_html(cluster_id, timestamp_start, timestamp_stop, opensearch_dashboards_url):
@@ -459,8 +394,6 @@ if __name__ == "__main__":
         prepare_managed_cluster()
         cluster_id = launch_cluster()
         download_cluster_files(t2_url, t2_token, cluster_id)
-        install_stackable_client_script()
-        configure_ssh()
         cluster_connection_successful = connect_with_cluster_access_file()
     elif cluster_mode == Cluster.CREATE:
         log("Testdriver launches new cluster (create only, non-managed)...")
