@@ -83,6 +83,8 @@ if __name__ == "__main__":
 
     # Get all clusters
     clusters = get_clusters(t2_url, t2_token)
+    if not clusters or len(clusters)==0:
+        exit(0)
 
     # Get the relevant subsets of clusters
     failed_clusters = [c for c in filter(is_failed, clusters)]
@@ -96,3 +98,10 @@ if __name__ == "__main__":
     print_summary(long_running_clusters, "These clusters are running for more than a day:")
     print_summary(long_starting_clusters, "These clusters are starting for more than a day:")
     print_summary(long_terminating_clusters, "These clusters are terminating for more than a day:")
+
+    reported_cluster_count = len(failed_clusters) + len(long_running_clusters) + len(long_starting_clusters) + len(long_terminating_clusters)
+
+    if reported_cluster_count==0:
+        exit(0)
+    else:
+        exit(255)
