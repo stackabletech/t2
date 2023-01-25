@@ -11,8 +11,6 @@
 // Need some preamble to get TOC:
 {empty}
 
-image:https://github.com/stackabletech/t2/workflows/Build%20and%20Test/badge.svg[link="https://github.com/stackabletech/t2/actions"]
-
 == Motivation
 
 There are two situations in which we need to launch fully-fledged Stackable clusters:
@@ -31,19 +29,19 @@ image::t2-provider.png[]
 From a technical point of view this means creating custom resources in the Kubernetes that backs the Stackable platform.
 4. At this point the user can interact with the cluster via the kube-apiserver to add / remove / manage the needed tools.
 
-== The two ways to create clusters with T2
+== T2 REST API
 
-A running T2 instance provides a restful API which provides you with two ways to create a cluster:
+T2 does not (yet?) have a graphical UI but is providing a REST API.
 
-* The cluster can be launched by T2 inside a cloud infrastructure.
-* You can download a package with all the required Terraform and Ansible files to launch the cluster using your own tools and cloud provider account.
+We host an instance of T2 at our company which is only accessible for ourselves.
 
-While the former method is not publicly available to everyone and requires authentication, we are happy to provide the latter method free of charge and publicly accessible. Please understand that the scripts we provide come without any warranty.
+The product T2 is tailor-made for us, but if you like to use it in your organization, feel free to do so. T2 and the templates it is shipped with come without any warranty. Be aware of the costs which cloud computing might generate!
 
-== Using T2
+== Dokumentation
 
-See link:docs/using-t2.adoc[this document] to learn how you can use T2 to create Stackable clusters.
+The following documents provide further information about T2 and its usage:
 
-== Running T2
-
-See link:docs/running-t2.adoc[this document] to learn how you can run T2 on premise.
+* link:docs/running-t2.adoc[Running T2] describes how to run T2 on your (cloud) infrastructure.
+* link:docs/cluster-lifecycle.adoc[cluster lifecycle] explains the REST API and the lifecycle of T2 clusters.
+* link:docs/cluster-definition.adoc[cluster definition YAML] is a reference documentation of the document which describes the desired state of a T2 cluster.
+* link:docs/testdriver.adoc[T2 testdriver] describes how to use the "T2 testdriver", a Docker image to be used as a T2 client for test automation and other useful tasks.

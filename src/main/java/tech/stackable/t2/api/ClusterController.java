@@ -1,7 +1,9 @@
-package tech.stackable.t2.api.cluster.controller;
+package tech.stackable.t2.api;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,9 +14,11 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,8 +28,9 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import tech.stackable.t2.api.cluster.domain.Cluster;
-import tech.stackable.t2.api.cluster.service.TerraformAnsibleClusterService;
+import tech.stackable.t2.cluster.ClusterService;
+import tech.stackable.t2.domain.Cluster;
+import tech.stackable.t2.domain.Status;
 import tech.stackable.t2.security.SecurityToken;
 import tech.stackable.t2.security.TokenIncorrectException;
 import tech.stackable.t2.security.TokenRequiredException;
@@ -34,20 +39,25 @@ import tech.stackable.t2.security.TokenRequiredException;
 @RequestMapping("api/clusters")
 public class ClusterController {
 
+    private static final String API_VERSION = "t2.stackable.tech/v2";
+    private static final String K8S_RESOURCE_NAME = "StackableT2Cluster";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterController.class);
 
     @Autowired
-    private TerraformAnsibleClusterService clusterService;
+    private ClusterService clusterService;
 
     @Autowired
-    private SecurityToken requiredToken;
+    private SecurityToken token;
 
     @GetMapping()
     @ResponseBody
-    @Operation(summary = "Get all clusters", description = "Get list of all active clusters")
-    public Collection<Cluster> getClusters(@RequestHeader(name = "t2-token", required = false) String token) {
+    @Operation(summary = "Get clusters", description = "Get list of clusters")
+    public Collection<Cluster> getClusters(
+            @RequestHeader(name = "t2-token", required = false) String token,
+            @Parameter(name = "status", description = "status values for filtering") @RequestParam(name = "status", required = false) Set<Status> statusFilter) {
         checkToken(token);
-        return clusterService.getAllClusters();
+        return clusterService.getClusters(statusFilter);
     }
 
     @GetMapping("{id}")
@@ -57,11 +67,7 @@ public class ClusterController {
             @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
             @RequestHeader(name = "t2-token", required = false) String token) {
         checkToken(token);
-        Cluster cluster = clusterService.getCluster(id);
-        if (cluster == null) {
-            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
-        }
-        return cluster;
+        return clusterService.getCluster(id).orElseThrow(() -> new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id)));
     }
 
     @PostMapping(consumes = { "application/json", "application/yaml" })
@@ -72,7 +78,7 @@ public class ClusterController {
             @RequestBody(required = true) String clusterDefinition) {
 
         checkToken(token);
-        return clusterService.createCluster(clusterDefinition(clusterDefinition));
+        return clusterService.startClusterCreation(clusterDefinition(clusterDefinition));
     }
 
     @DeleteMapping("{id}")
@@ -82,11 +88,18 @@ public class ClusterController {
             @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
             @RequestHeader(name = "t2-token", required = false) String token) {
         checkToken(token);
-        Cluster cluster = clusterService.deleteCluster(id);
-        if (cluster == null) {
-            throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
-        }
-        return cluster;
+        return clusterService.startClusterDeletion(id).orElseThrow(() -> new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id)));
+    }
+
+    @PutMapping("{id}")
+    @ResponseBody
+    @Operation(summary = "Set cluster status", description = "Sets the status on the specified cluster")
+    public Cluster setClusterStatus(
+            @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
+            @Parameter(name = "status", description = "new status of the cluster") @RequestParam(name = "status", required = true) Status status,
+            @RequestHeader(name = "t2-token", required = false) String token) {
+        checkToken(token);
+        return clusterService.setClusterStatus(id, status);
     }
 
     @GetMapping("{id}/stackable-versions")
@@ -96,15 +109,11 @@ public class ClusterController {
             @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
             @RequestHeader(name = "t2-token", required = false) String token) {
         checkToken(token);
-        Cluster cluster = clusterService.getCluster(id);
-        if (cluster == null) {
+        if (clusterService.getCluster(id).isEmpty()) {
             throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
         }
-        String stackableVersions = this.clusterService.getClusterInformation(id);
-        if (stackableVersions == null) {
-            throw new ClusterNotFoundException(String.format("No Stackable cluster information document found for cluster with id '%s'.", id));
-        }
-        return stackableVersions;
+        return this.clusterService.getClusterInformation(id)
+                .orElseThrow(() -> new ClusterNotFoundException(String.format("No Stackable cluster information document found for cluster with id '%s'.", id)));
     }
 
     @GetMapping("{id}/access")
@@ -114,29 +123,24 @@ public class ClusterController {
             @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
             @RequestHeader(name = "t2-token", required = false) String token) {
         checkToken(token);
-        Cluster cluster = clusterService.getCluster(id);
-        if (cluster == null) {
+        if (clusterService.getCluster(id).isEmpty()) {
             throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
         }
-        String accessFile = this.clusterService.getAccessFile(id);
-        if (accessFile == null) {
-            throw new ClusterNotFoundException(String.format("No access file found for cluster with id '%s'.", id));
-        }
-        return accessFile;
+        return this.clusterService.getAccessFile(id)
+                .orElseThrow(() -> new ClusterNotFoundException(String.format("No client access file found for cluster with id '%s'.", id)));
     }
 
     @GetMapping("{id}/log")
     @ResponseBody
     @Operation(summary = "read logs", description = "Reads the logs for the given cluster")
-    public String getLog (
+    public String getLog(
             @Parameter(name = "id", description = "ID (UUID) of the cluster") @PathVariable(name = "id", required = true) UUID id,
             @RequestHeader(name = "t2-token", required = false) String token) {
         checkToken(token);
-        Cluster cluster = clusterService.getCluster(id);
-        if (cluster == null) {
+        if (clusterService.getCluster(id).isEmpty()) {
             throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
         }
-        return this.clusterService.getLogs(id);
+        return this.clusterService.getAccessFile(id).orElse("");
     }
 
     /**
@@ -148,20 +152,17 @@ public class ClusterController {
         if (token == null) {
             throw new TokenRequiredException();
         }
-        if (!this.requiredToken.isOk(token)) {
+        if (!this.token.isOk(token)) {
             throw new TokenIncorrectException();
         }
     }
 
     /**
-     * Parses the given cluster definition and returns a map representing the
-     * content.
+     * Parses the given cluster definition and returns a map representing the content.
      * 
      * @param clusterDefinition raw cluster definiton as provided by the request
-     * @return cluster definition as map for further processing, <code>null</code>
-     *         if no definition provided
-     * @throws MalformedClusterDefinitionException if the cluster definition file is
-     *                                             not valid
+     * @return cluster definition as map for further processing, <code>null</code> if no definition provided
+     * @throws MalformedClusterDefinitionException if the cluster definition file is not valid
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> clusterDefinition(String clusterDefinition) {
@@ -169,25 +170,23 @@ public class ClusterController {
             return null;
         }
 
-        Map<String, Object> clusterDefinitionMap = null;
-        if (clusterDefinition != null) {
-            try {
-                clusterDefinitionMap = new ObjectMapper(new YAMLFactory()).readValue(clusterDefinition, Map.class);
-            } catch (JsonProcessingException e) {
-                LOGGER.warn("The cluster definition does not contain valid YAML/JSON.", e);
-                throw new MalformedClusterDefinitionException("The cluster definition does not contain valid YAML/JSON.", e);
-            }
-        }
-        
-        if (!"t2.stackable.tech/v2".equals(clusterDefinitionMap.get("apiVersion"))) {
-            throw new MalformedClusterDefinitionException("The apiVersion is either missing or not valid.");
+        Map<String, Object> result = null;
+        try {
+            result = new ObjectMapper(new YAMLFactory()).readValue(clusterDefinition, Map.class);
+        } catch (JsonProcessingException e) {
+            LOGGER.warn("The cluster definition does not contain valid YAML/JSON.", e);
+            throw new MalformedClusterDefinitionException("The cluster definition does not contain valid YAML/JSON.", e);
         }
 
-        if (!"StackableT2Cluster".equals(clusterDefinitionMap.get("kind"))) {
-            throw new MalformedClusterDefinitionException("The kind of requested resource is either missing or not valid.");
+        if (!API_VERSION.equals(result.get("apiVersion"))) {
+            throw new MalformedClusterDefinitionException(MessageFormat.format("The apiVersion must be '{0}'.", API_VERSION));
         }
 
-        return clusterDefinitionMap;
+        if (!K8S_RESOURCE_NAME.equals(result.get("kind"))) {
+            throw new MalformedClusterDefinitionException(MessageFormat.format("The kind of requested resource must be '{0}'.", K8S_RESOURCE_NAME));
+        }
+
+        return result;
     }
 
 }

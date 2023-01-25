@@ -1,0 +1,19 @@
+# Cleans up the role created for the AWS ESB CSI driver for AWS clusters
+#
+---
+- name: Detach the EBS CSI Driver Policy from the role
+  shell: |
+    aws iam detach-role-policy \
+      --role-name AmazonEKS_EBS_CSI_DriverRole-{{ cluster_name }} \
+      --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy || true
+  register: aws_csi_detach_policy
+
+- debug: var=aws_csi_detach_policy.stdout_lines
+
+- name: Remove the role
+  shell: |
+    aws iam delete-role \
+      --role-name AmazonEKS_EBS_CSI_DriverRole-{{ cluster_name }} || true
+  register: aws_csi_delete_role
+
+- debug: var=aws_csi_delete_role.stdout_lines

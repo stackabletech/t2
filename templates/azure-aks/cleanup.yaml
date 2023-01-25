@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  tasks:
+    - debug:
+        msg: "There are no cleanup tasks for this template"

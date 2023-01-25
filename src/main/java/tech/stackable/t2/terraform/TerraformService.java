@@ -1,103 +1,139 @@
 package tech.stackable.t2.terraform;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import tech.stackable.t2.process.ProcessLogger;
+import tech.stackable.t2.files.FileService;
+import tech.stackable.t2.util.ProgressLogger;
 
+/**
+ * This service wraps Hashicorp Terraform commands.
+ */
 @Service
 public class TerraformService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TerraformService.class);
 
     @Autowired
-    @Qualifier("workspaceDirectory")
-    private Path workspaceDirectory;
+    private FileService fileService;
 
-    private final Set<Process> runningProcesses = new HashSet<Process>();
-    
-    private final Counter terraformProcessesStarted;
-    
-    private final Counter terraformProcessesCompleted;
-
-    public TerraformService(MeterRegistry meterRegistry) {
-    	meterRegistry.gauge("TERRAFORM_PROCESSES_RUNNING", this.runningProcesses, Set::size);
-    	this.terraformProcessesStarted = meterRegistry.counter("TERRAFORM_PROCESSES_STARTED");
-    	this.terraformProcessesCompleted = meterRegistry.counter("TERRAFORM_PROCESSES_COMPLETED");
-	}
-
-    public TerraformResult init(Path workingDirectory, UUID clusterId) {
-        LOGGER.info("Running Terraform init on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, clusterId, "init", "-input=false");
-        return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
+    /**
+     * Run <code>terraform init</code> in the given directory.
+     * 
+     * @param clusterId Cluster for which the Terraform command should be executed.
+     * @return result of the Terraform command.
+     */
+    public TerraformResult init(UUID clusterId) {
+        return TerraformResult.byExitCode(this.callTerraform(clusterId, TerraformCommand.INIT));
     }
 
-    public TerraformResult plan(Path workingDirectory, UUID clusterId) {
-        LOGGER.info("Running Terraform plan on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, clusterId, "plan", "-detailed-exitcode -input=false");
-        switch (result) {
-        case 0:
-            return TerraformResult.SUCCESS;
-        case 2:
-            return TerraformResult.CHANGES_PRESENT;
-        default:
-            return TerraformResult.ERROR;
-        }
+    /**
+     * Run <code>terraform plan</code> in the given directory.
+     * 
+     * @param clusterId Cluster for which the Terraform command should be executed.
+     * @return result of the Terraform command.
+     */
+    public TerraformResult plan(UUID clusterId) {
+        return TerraformResult.byExitCode(this.callTerraform(clusterId, TerraformCommand.PLAN));
     }
 
-    public TerraformResult apply(Path workingDirectory, UUID clusterId) {
-        LOGGER.info("Running Terraform apply on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, clusterId, "apply", "-auto-approve -input=false");
-        return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
+    /**
+     * Run <code>terraform apply</code> in the given directory.
+     * 
+     * @param clusterId Cluster for which the Terraform command should be executed.
+     * @return result of the Terraform command.
+     */
+    public TerraformResult apply(UUID clusterId) {
+        return TerraformResult.byExitCode(this.callTerraform(clusterId, TerraformCommand.APPLY));
     }
 
-    public TerraformResult destroy(Path workingDirectory, UUID clusterId) {
-        LOGGER.info("Running Terraform destroy on {}", workingDirectory);
-        int result = this.callTerraform(workingDirectory, clusterId, "destroy", "-auto-approve");
-        return result == 0 ? TerraformResult.SUCCESS : TerraformResult.ERROR;
+    /**
+     * Run <code>terraform destroy</code> in the given directory.
+     * 
+     * @param clusterId Cluster for which the Terraform command should be executed.
+     * @return result of the Terraform command.
+     */
+    public TerraformResult destroy(UUID clusterId) {
+        return TerraformResult.byExitCode(this.callTerraform(clusterId, TerraformCommand.DESTROY));
     }
 
-    public String getIpV4(Path workingDirectory) {
+    /**
+     * Calls Hashicorp Terraform.
+     * 
+     * @param clusterId Cluster for which the Terraform command should be executed.
+     * @param command   Terraform command to be called.
+     * @param params    optional commands to be appended to the call.
+     * @return exit code of the process
+     */
+    private int callTerraform(UUID clusterId, TerraformCommand command) {
+        LOGGER.info("Running Terraform {} for cluster {} ...", command, clusterId);
+
+        Path workingDirectory = this.fileService.workingDirectory(clusterId);
+
         try {
-            return Files.readString(workingDirectory.resolve("ipv4"));
-        } catch (IOException e) {
-            LOGGER.error("IPv4 Address for Cluster with TF file {} could not be read.", workingDirectory, e);
-            return null;
-        }
-    }
 
-    private int callTerraform(Path workingDirectory, UUID clusterId, String command, String params) {
-        try {
+            // Set up Terraform process to be run in the working dir of the cluster
             ProcessBuilder processBuilder = new ProcessBuilder()
-                    .command("sh", "-c", String.format("terraform %s %s -no-color", command, params))
+                    .command("sh", "-c", command.getCommandWithParams())
                     .directory(workingDirectory.toFile());
+
+            // Provide cluster ID as Terraform variable
             processBuilder.environment().put("TF_VAR_cluster_id", clusterId.toString());
+
+            // Start Terraform process (stderr redirected to stdout)
             Process process = processBuilder.redirectErrorStream(true).start();
-            this.runningProcesses.add(process);
-            this.terraformProcessesStarted.increment();
-            ProcessLogger outLogger = ProcessLogger.start(process.getInputStream(), workingDirectory.resolve("cluster.log"), MessageFormat.format("terraform-{0}", command));
+
+            // Set up process logging
+            ProgressLogger logger = ProgressLogger.start(
+                    process.getInputStream(),
+                    workingDirectory.resolve("cluster.log"),
+                    MessageFormat.format("terraform-{0}", command.getCommandName()));
+
+            // Wait for termination of Terraform process
             int exitCode = process.waitFor();
-            this.runningProcesses.remove(process);
-            this.terraformProcessesCompleted.increment();
-            outLogger.stop();
+
+            // Stop process logging
+            logger.stop();
+
             return exitCode;
+
         } catch (IOException | InterruptedException e) {
             LOGGER.error("Error while calling terraform", e);
             throw new RuntimeException("Error while calling terraform", e);
         }
     }
+}
 
+/**
+ * Terraform command
+ */
+enum TerraformCommand {
+
+    INIT("init", "terraform init -input=false -no-color"),
+    PLAN("plan", "terraform plan -detailed-exitcode -input=false -no-color"),
+    APPLY("apply", "terraform apply -auto-approve -input=false -no-color"),
+    DESTROY("destroy", "terraform destroy -auto-approve -no-color");
+
+    private String commandName;
+    private String commandWithParams;
+
+    private TerraformCommand(String commandName, String commandWithParams) {
+        this.commandName = commandName;
+        this.commandWithParams = commandWithParams;
+    }
+
+    public String getCommandName() {
+        return commandName;
+    }
+
+    public String getCommandWithParams() {
+        return commandWithParams;
+    }
 }

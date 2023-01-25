@@ -1,4 +1,4 @@
-package tech.stackable.t2.api.cluster.domain;
+package tech.stackable.t2.domain;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,9 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Stackable cluster metadata.
- */
 @Schema(description = "Cluster")
 public class Cluster {
 
@@ -25,8 +22,8 @@ public class Cluster {
     @Schema(description = "Timestamp of cluster creation", required = true)
     private LocalDateTime dateTimeCreated;
 
-    @Schema(description = "History of events in the cluster's lifecycle", required = false)
-    private List<ClusterHistoryEvent> history;
+    @Schema(description = "Events in the cluster's lifecycle", required = false)
+    private List<ClusterEvent> events;
 
     public Cluster() {
         this(UUID.randomUUID());
@@ -36,8 +33,8 @@ public class Cluster {
         this.id = id;
         this.status = Status.NEW;
         this.dateTimeCreated = LocalDateTime.now();
-        this.history = new ArrayList<>();
-        this.history.add(new ClusterHistoryEvent(Status.NEW, null, this.dateTimeCreated));
+        this.events = new ArrayList<>();
+        this.events.add(new ClusterEvent("Cluster creation started.", this.dateTimeCreated));
     }
 
     public UUID getId() {
@@ -53,13 +50,12 @@ public class Cluster {
     }
 
     public void setStatus(Status status) {
-        this.setStatus(status, null);
+        this.status = status;
     }
 
-    public void setStatus(Status status, String description) {
-        this.status = status;
-        synchronized (this.history) {
-            this.history.add(new ClusterHistoryEvent(this.status, description, this.dateTimeCreated));
+    public void addEvent(String description) {
+        synchronized (this.events) {
+            this.events.add(new ClusterEvent(description, this.dateTimeCreated));
         }
     }
 
@@ -67,18 +63,18 @@ public class Cluster {
         return dateTimeCreated;
     }
 
-    public List<ClusterHistoryEvent> getHistory() {
-        synchronized (this.history) {
-            return Collections.unmodifiableList(this.history);
+    public List<ClusterEvent> getEvents() {
+        synchronized (this.events) {
+            return Collections.unmodifiableList(this.events);
         }
     }
 
     public LocalDateTime getLastChangedAt() {
-        if (this.history.isEmpty()) {
+        if (this.events.isEmpty()) {
             return null;
         }
-        synchronized (this.history) {
-            return this.history.get(this.history.size() - 1).getTimestamp();
+        synchronized (this.events) {
+            return this.events.get(this.events.size() - 1).getTimestamp();
         }
     }
 
@@ -109,6 +105,6 @@ public class Cluster {
 
     @Override
     public String toString() {
-        return "Cluster [id=" + id + ", status=" + status + ", dateTimeCreated=" + dateTimeCreated + ", history=" + history + "]";
+        return "Cluster [id=" + id + ", status=" + status + ", dateTimeCreated=" + dateTimeCreated + ", events=" + events + "]";
     }
 }

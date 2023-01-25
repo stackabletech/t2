@@ -272,12 +272,12 @@ def launch_cluster():
 
     # Wait for cluster to be up and running
     cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-    while(CLUSTER_LAUNCH_TIMEOUT > (time.time()-start_time) and cluster['status']['state'] != 'RUNNING' and  not cluster['status']['failed']):
+    while(CLUSTER_LAUNCH_TIMEOUT > (time.time()-start_time) and cluster['status'] == 'LAUNCHING'):
         time.sleep(5)
         cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
 
     # Cluster launch failed
-    if(cluster['status']['failed']):
+    if(cluster['status'] == 'LAUNCH_FAILED'):
         log("Cluster launch failed.")
         exit(EXIT_CODE_CLUSTER_FAILED)
 
@@ -293,31 +293,11 @@ def launch_cluster():
 
 
 def terminate_cluster(cluster_id):
-    """Terminates the cluster identified by the data in the .cluster/ folder.
+    """Triggers the termination of the cluster identified by the data in the .cluster/ folder.
     """
-    log(f"Terminating the test cluster...")
-
-    start_time = time.time()        
-    cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)    
-    if(not cluster):
-        log("Failed to terminate cluster via API.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-
-    log(f"Started termination of cluster '{cluster['id']}'. Waiting for cluster to be terminated...")
-    cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-    while(CLUSTER_LAUNCH_TIMEOUT > (time.time()-start_time) and cluster['status']['state'] != 'TERMINATED' and  not cluster['status']['failed']):
-        time.sleep(5)
-        cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster['id'])
-
-    if(cluster['status']['failed']):
-        log("Cluster termination failed.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-
-    if(CLUSTER_LAUNCH_TIMEOUT <= (time.time()-start_time)):
-        log("Timeout while launching cluster.")
-        exit(EXIT_CODE_CLUSTER_FAILED)
-
-    log(f"Cluster '{cluster['id']}' is terminated.")
+    log(f"Triggering termination of the test cluster...")
+    delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)
+    log(f"Triggered termination of cluster '{cluster_id}'.")
 
 
 def create_cluster(t2_url, t2_token, cluster_definition):

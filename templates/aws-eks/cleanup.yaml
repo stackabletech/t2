@@ -1,0 +1,4 @@
+---
+- hosts: localhost
+  roles:
+  - aws_csi_driver_cleaned_up
