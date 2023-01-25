@@ -83,6 +83,8 @@ if __name__ == "__main__":
 
     # Get all clusters
     clusters = get_clusters(t2_url, t2_token)
+    if len(clusters)==0:
+        exit(0)
 
     # Get the relevant subsets of clusters
     failed_clusters = [c for c in filter(is_failed, clusters)]
