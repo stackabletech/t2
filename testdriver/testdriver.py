@@ -50,6 +50,7 @@ OUTPUT_FILES = [ TESTDRIVER_LOGFILE, TEST_OUTPUT_LOGFILE, CLUSTER_INFO_FILE]
 
 # misc constants
 CLUSTER_LAUNCH_TIMEOUT = 3600
+CLUSTER_TERMINATION_TIMEOUT = 1800
 EXIT_CODE_CLUSTER_FAILED = 255
 
 # timestamps for start/end of job
@@ -295,9 +296,25 @@ def launch_cluster():
 def terminate_cluster(cluster_id):
     """Triggers the termination of the cluster identified by the data in the .cluster/ folder.
     """
+    start_time = time.time()        
+
     log(f"Triggering termination of the test cluster...")
-    delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)
+    cluster = delete_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)
     log(f"Triggered termination of cluster '{cluster_id}'.")
+
+    while(CLUSTER_TERMINATION_TIMEOUT > (time.time()-start_time) and cluster['status'] == 'TERMINATING'):
+        time.sleep(5)
+        cluster = get_cluster(os.environ["T2_URL"], os.environ["T2_TOKEN"], cluster_id)
+
+    if(cluster['status'] == 'TERMINATION_FAILED'):
+        log("Cluster termination failed.")
+        return
+
+    if(CLUSTER_TERMINATION_TIMEOUT <= (time.time()-start_time)):
+        log("Timeout while terminating cluster.")
+        return
+
+    log(f"Cluster '{cluster['id']}' was successfully terminated.")
 
 
 def create_cluster(t2_url, t2_token, cluster_definition):
