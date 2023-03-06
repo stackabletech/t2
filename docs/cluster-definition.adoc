@@ -129,7 +129,7 @@ spec:
       diskType: SSD
       diskSizeGb: 1000
   stackableVersions:
-    _-operator: NIGHTLY
+    _-operator: DEV
 ----
 
 === K3s on Hetzner HCloud
@@ -212,7 +212,7 @@ spec:
   nodes:
     vmSize: Standard_E2s_v3
   stackableVersions:
-    _-operator: NIGHTLY
+    _-operator: DEV
     zookeeper-operator: 0.12.0-pr184
 ----
 
@@ -326,7 +326,7 @@ spec:
     count: 7
     machineType: e2-highcpu-8
   stackableVersions:
-    _-operator: NIGHTLY
+    _-operator: DEV
 ----
 
 == Links to informations of the Cloud Vendors
@@ -370,16 +370,15 @@ As shown in various examples in this document, you can specify the versions of t
 |example |description
 |`RELEASE` | The newest release version which can be found in the Stackable repository
 | (no version specified) | same as `RELEASE`
-|`NIGHTLY` | The newest nightly version which can be found in the Stackable repository
+|`DEV` | The dev version `0.0.0-dev`
 |`NONE` | The operator is not installed at all.
 |`0.2.0-pr404` | latest build of version 0.2.0 from GitHub Pull Request #404
-|`0.3.0-nightly` | latest nightly build of version 0.3.0
 |`0.6.1` | realeased version 0.6.1
 |=======
 
 === Default version for all Stackable Operators
 
-To specify a version for *all* Stackable operators which are not explicitly mentioned in the Versions section, you can use the key `_-operator`. Using this operator most probably does not make sense with actual version numbers, but merely the keywords `RELEASE`, `NIGHTLY` or `NONE`.
+To specify a version for *all* Stackable operators which are not explicitly mentioned in the Versions section, you can use the key `_-operator`. Using this operator most probably does not make sense with actual version numbers, but merely the keywords `RELEASE`, `DEV` or `NONE`.
 
 If you'd like a cluster without any operators, you can set the version of `_-operator` to `NONE` as the only entry in the `versions` section.
 

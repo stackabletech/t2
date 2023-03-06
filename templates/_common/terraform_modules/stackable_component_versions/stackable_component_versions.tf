@@ -14,14 +14,14 @@ locals {
       processed = false
     }
   ] : []
-  # filters the 'NIGHTLY' keyword
+  # filters the 'DEV' keyword
   stackable_component_versions_step_1 = [
     for p in local.stackable_component_versions_raw: 
       p.processed ? p :
       {
         name = p.name
-        version = p.version == "NIGHTLY" || p.version == "" ? ">0.0.0-0" : p.version
-        processed = p.version == "NIGHTLY" || p.version == ""
+        version = p.version == "DEV" || p.version == "" ? "0.0.0-dev" : p.version
+        processed = p.version == "DEV" || p.version == ""
       }
   ]
   # filters the 'RELEASE' keyword
