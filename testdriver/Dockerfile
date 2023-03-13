@@ -2,7 +2,7 @@ FROM python:3
 
 # install OS tools
 RUN apt-get update
-RUN apt-get install -y gcc libssl-dev pkg-config colorized-logs unzip wget vim git gettext
+RUN apt-get install -y gcc libssl-dev pkg-config colorized-logs unzip wget vim git gettext default-jdk kafkacat
 
 # install kubectl
 RUN wget -O /tmp/kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -72,6 +72,9 @@ RUN /tmp/awscli/aws/install
 # install GCloud CLI
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-cli google-cloud-sdk-gke-gcloud-auth-plugin -y
 ENV USE_GKE_GCLOUD_AUTH_PLUGIN "True"
+
+# Set alias(es)
+RUN echo 'alias kcat="kafkacat"' >> ~/.bashrc
 
 # install command to stop interactive session
 COPY stop-session.sh /tmp/stop-session.sh
