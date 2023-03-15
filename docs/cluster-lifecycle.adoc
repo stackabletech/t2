@@ -97,7 +97,7 @@ spec:
     count: 3
     machineType: e2-standard-4
   stackableVersions:
-    _-operator: NIGHTLY
+    _-operator: DEV
 ----
 
 Please refer to the cluster definition description to see which options you have to specify the cluster.
