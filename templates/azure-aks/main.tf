@@ -45,6 +45,7 @@ variable "cluster_id" {
 locals {
   cluster_name = "t2-${substr(var.cluster_id, 0, 8)}"
   tags = {
+    owner = "T2"
     t2-cluster-id = var.cluster_id
   }
 }
@@ -63,6 +64,7 @@ provider "azurerm" {
 resource "azurerm_resource_group" "resource-group" {
   name     = "${local.cluster_name}-resource-group"
   location = can(yamldecode(file("cluster.yaml"))["spec"]["location"]) ? yamldecode(file("cluster.yaml"))["spec"]["location"] : "West Europe"
+  tags = local.tags
 }
 
 resource "azurerm_kubernetes_cluster" "kubernetes_cluster" {
