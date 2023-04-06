@@ -48,6 +48,18 @@ resource "google_compute_network" "vpc" {
   auto_create_subnetworks = "false"
 }
 
+# Allow all for external access in tests
+resource "google_compute_firewall" "rules" {
+  name                    = "${local.cluster_name}-allow-all"
+  network                 = "${local.cluster_name}"
+  priority                = 0
+  source_ranges           = ["0.0.0.0/0"]
+
+  allow {
+    protocol  = "all"
+  }
+}
+
 # Subnet
 resource "google_compute_subnetwork" "subnet" {
   name          = "${local.cluster_name}"
