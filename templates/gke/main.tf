@@ -50,10 +50,11 @@ resource "google_compute_network" "vpc" {
 
 # Allow all for external access in tests
 resource "google_compute_firewall" "rules" {
-  name                    = "${local.cluster_name}-allow-all"
+  name                    = "${local.cluster_name}"
   network                 = "${local.cluster_name}"
   priority                = 0
   source_ranges           = ["0.0.0.0/0"]
+  depends_on              = [ google_compute_network.vpc ]
 
   allow {
     protocol  = "all"
