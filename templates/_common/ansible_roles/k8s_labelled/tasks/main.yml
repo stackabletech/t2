@@ -7,7 +7,7 @@
 
 # This is for an inventory with a [node] list (K3s clusters)
 - name: Set label(s) on nodes
-  shell: kubectl --kubeconfig kubeconfig label node --overwrite=true {{ item }}.{{ domain }} node={{ hostvars[item]['node_number'] | default(none) }} location={{ hostvars[item]['location'] | default(none) }} node_size={{ hostvars[item]['node_size'] | default(none) }}
+  shell: kubectl --kubeconfig kubeconfig label node --overwrite=true {{ item }}.{{ domain }} location={{ hostvars[item]['location'] | default(none) }} node_size={{ hostvars[item]['node_size'] | default(none) }}
   loop: "{{ groups['nodes'] }}"
   when: "'nodes' in groups"
 
@@ -18,7 +18,6 @@
       | grep -v orchestrator \
       | sort \
       | cut -d ' ' -f 1 \
-      | nl \
-      | awk '{print "kubectl --kubeconfig kubeconfig label node --overwrite=true "$2" node="$1" location={{ location }} node_size={{ node_size }}"}' \
+      | awk '{print "kubectl --kubeconfig kubeconfig label node --overwrite=true "$1" location={{ location }} node_size={{ node_size }}"}' \
       | sh
   when: "'nodes' not in groups"
