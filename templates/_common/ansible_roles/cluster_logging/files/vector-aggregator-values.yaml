@@ -31,8 +31,6 @@ customConfig:
         .cloud_vendor = get_env_var!("CLOUD_VENDOR")
         .k8s_distribution = get_env_var!("K8S")
         .node_os = get_env_var!("NODE_OS")
-        # This caused an error in the sink because we have the node="n" label for our tests
-        del(.kubernetes.node_labels.node)
         # Kubernetes version analysis
         .k8s_version_full = .k8s_version
         .temp_k8s_version, err = parse_regex(.k8s_version, r'(v)?(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.(?P<fix>[0-9]*))?.*')
