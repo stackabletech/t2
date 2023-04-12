@@ -370,7 +370,7 @@ def download_cluster_file(t2_url, t2_token, id, resource_name, destination_path)
 def download_cluster_files(t2_url, t2_token, id):
     """Downloads the various files belonging to the cluster using T2 REST API"""
     log("Downloading Stackable version information sheet for cluster from T2...")
-    download_cluster_file(t2_url, t2_token, id, "stackable-versions", CLUSTER_INFO_FILE)
+    download_cluster_file(t2_url, t2_token, id, "cluster-info", CLUSTER_INFO_FILE)
     log("Downloading cluster access file for cluster from T2...")
     download_cluster_file(t2_url, t2_token, id, "access", CLUSTER_ACCESS_FILE)
 
