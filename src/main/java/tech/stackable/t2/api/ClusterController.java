@@ -102,7 +102,7 @@ public class ClusterController {
         return clusterService.setClusterStatus(id, status);
     }
 
-    @GetMapping("{id}/stackable-versions")
+    @GetMapping("{id}/cluster-info")
     @ResponseBody
     @Operation(summary = "read Stackable cluster information document", description = "Reads a text document which contains information about the cluster")
     public String getStackableVersions(
