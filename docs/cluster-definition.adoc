@@ -358,6 +358,7 @@ These are operators that Stackable currently provides. You can specify their ver
 |https://github.com/stackabletech/superset-operator[Stackable Operator for Apache Superset] |`superset-operator`
 |https://github.com/stackabletech/trino-operator[Stackable Operator for Trino] |`trino-operator`
 |https://github.com/stackabletech/zookeeper-operator[Stackable Operator for Apache ZooKeeper] |`zookeeper-operator`
+|https://github.com/stackabletech/hello-world-operator[Stackable Demo Operator - Hello World!] |`hello-world-operator`
 |=======
 
 

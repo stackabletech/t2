@@ -1,5 +1,6 @@
 ---
 stackable_operators:
+  - hello-world-operator
   - spark-k8s-operator
   - zookeeper-operator
   - hbase-operator
