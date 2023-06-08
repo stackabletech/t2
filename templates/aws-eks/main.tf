@@ -2,17 +2,17 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "4.32.0"
+      version = "4.67.0"
     }
 
     local = {
       source  = "hashicorp/local"
-      version = "2.2.3"
+      version = "2.4.0"
     }
 
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "2.13.1"
+      version = "2.21.1"
     }
   }
 
@@ -79,7 +79,7 @@ data "aws_availability_zones" "available" {}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.16.0"
+  version = "3.19.0"
 
   name                 = "${local.cluster_name}-vpc"
   cidr                 = "10.0.0.0/16"
@@ -118,13 +118,13 @@ resource "aws_security_group" "worker_group" {
       "10.0.0.0/8",
     ]
   }
-}
 
+}
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
   version         = "17.24.0"
   cluster_name    = local.cluster_name
-  cluster_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : "1.21"
+  cluster_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : "1.27"
   subnets         = module.vpc.private_subnets
 
   vpc_id = module.vpc.vpc_id
