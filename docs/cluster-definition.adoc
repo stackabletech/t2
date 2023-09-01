@@ -352,6 +352,7 @@ These are operators that Stackable currently provides. You can specify their ver
 |https://github.com/stackabletech/hdfs-operator[Stackable Operator for Apache HDFS] |`hdfs-operator`
 |https://github.com/stackabletech/hive-operator[Stackable Operator for Apache Hive] |`hive-operator`
 |https://github.com/stackabletech/kafka-operator[Stackable Operator for Apache Kafka] |`kafka-operator`
+|https://github.com/stackabletech/listener-operator[Stackable Listener Operator] |`listener-operator`
 |https://github.com/stackabletech/nifi-operator[Stackable Operator for Apache NiFi] |`nifi-operator`
 |https://github.com/stackabletech/opa-operator[Stackable Operator for OpenPolicyAgent (OPA)] |`opa-operator`
 |https://github.com/stackabletech/spark-k8s-operator[Stackable Operator for Apache Spark] |`spark-k8s-operator`

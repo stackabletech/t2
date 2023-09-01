@@ -7,6 +7,7 @@ stackable_operators:
   - hdfs-operator
   - hive-operator
   - kafka-operator
+  - listener-operator
   - monitoring-operator
   - opa-operator
   - nifi-operator
