@@ -10,7 +10,7 @@ pipeline {
             returnStdout: true
         )
         POM_VERSION = sh(
-            script: "mvn -q -Dexec.executable=echo -Dexec.args='\${project.version}\' --non-recursive exec:exec",
+            script: "cat pom.xml | yq -p xml '.project.version'",
             returnStdout: true
         ).trim()
         BRANCH_NAME_NORMALIZED = sh(
