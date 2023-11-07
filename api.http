@@ -1,0 +1,22 @@
+# This file can be used with VS Code's REST Client Plugin (humao.rest-client)
+
+# Use the "environments" feature to set variables: 
+# https://github.com/Huachao/vscode-restclient#environments
+
+
+### List all clusters
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters
+t2-token: {{t2-token}}
+
+### List all failed clusters
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters?status=LAUNCH_FAILED&status=TERMINATION_FAILED
+t2-token: {{t2-token}}
+
+### Get exactly one cluster
+{{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/a3dc99f5-e60b-4955-9100-0645763e9b28
+t2-token: {{t2-token}}
+
+### Set Cluster to be terminated manually
+PUT {{t2-protocol}}://{{t2-host}}{{t2-port}}/api/clusters/a3dc99f5-e60b-4955-9100-0645763e9b28?status=TERMINATED_MANUALLY
+t2-token: {{t2-token}}
+

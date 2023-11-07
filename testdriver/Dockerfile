@@ -48,6 +48,9 @@ RUN apt-get install -y ansible
 RUN apt-get update
 RUN apt-get install -y jq
 
+# install yq (YAML Parser)
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+
 # set kubeconfig location
 ENV KUBECONFIG /root/.kube/config
 
