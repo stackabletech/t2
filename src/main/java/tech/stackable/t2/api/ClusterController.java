@@ -140,7 +140,7 @@ public class ClusterController {
         if (clusterService.getCluster(id).isEmpty()) {
             throw new ClusterNotFoundException(String.format("No cluster found with id '%s'.", id));
         }
-        return this.clusterService.getAccessFile(id).orElse("");
+        return this.clusterService.getLogs(id).orElse("");
     }
 
     /**
