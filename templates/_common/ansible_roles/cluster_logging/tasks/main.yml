@@ -3,8 +3,6 @@
 - name: Install Vector Helm-repos
   shell: |
     helm repo add vector https://helm.vector.dev/ --force-update
-  args:
-    warn: no
 
 - name: Update Helm repositories
   shell: |
