@@ -15,6 +15,4 @@
       sh -s - \
       --node-ip {{ ansible_host }} \
       --flannel-iface {{ private_network_interface_name }}
-  args:
-    warn: no
   notify: restart k3s-agent
