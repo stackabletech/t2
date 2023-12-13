@@ -1,4 +1,4 @@
-FROM debian:10
+FROM debian:11
 
 # create T2 workspace directory
 RUN mkdir -p /var/t2/workspace/
@@ -8,7 +8,7 @@ RUN apt-get update
 RUN apt-get install curl python3 python3-pip unzip wget vim git gcc pkg-config jq openjdk-11-jdk gnupg uuid -y
 
 # install Terraform
-RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
+RUN wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.6.5/terraform_1.6.5_linux_amd64.zip
 RUN mkdir /tmp/terraform/
 RUN unzip /tmp/terraform.zip -d /tmp/terraform/
 RUN install -o root -g root -m 0755 /tmp/terraform/terraform /usr/local/bin/terraform
@@ -38,7 +38,7 @@ RUN curl --silent --location "https://github.com/weaveworks/eksctl/releases/late
 RUN install -o root -g root -m 0755 /tmp/eksctl /usr/local/bin/eksctl
 
 # install yq (YAML Parser)
-RUN wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+RUN wget https://github.com/mikefarah/yq/releases/download/v4.40.4/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
 # install Ansible
 RUN pip3 install ansible
