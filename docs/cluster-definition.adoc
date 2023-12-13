@@ -261,6 +261,7 @@ spec:
 | region | `string` | *mandatory* | IONOS datacenter location, e.g. `de/fra`
 | k8sVersion | `string` | *optional* | K8s version of IONOS Kubernetes. You can specify only the major/minor version (e.g. `1.24`). To get an overview of the currently supported versions, it is a good idea to log in to your IONOS account and have a look at the cluster creation dialog. The `k8sVersion` defaults to whatever IONOS considers to be the current default version.
 | nodes.count | `integer` | *optional* | number of nodes, defaults to `3`
+| nodes.cpuFamily | `string` | *optional* | CPU family, defaults to `INTEL_SKYLAKE`
 | nodes.numberOfCores | `integer` | *optional* | # of CPU cores of the nodes, defaults to `4`
 | nodes.memoryMb | `integer` | *optional* |  amount of memory of the nodes in MB, defaults to `4096`
 | nodes.diskType | `string` | *optional* | type of disk of the nodes, defaults to `SSD`
