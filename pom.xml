@@ -12,7 +12,7 @@
 
 	<groupId>tech.stackable.t2</groupId>
 	<artifactId>t2-server</artifactId>
-	<version>3.16.0</version>
+	<version>3.17.0</version>
 
 	<name>t2-server</name>
 	<licenses>

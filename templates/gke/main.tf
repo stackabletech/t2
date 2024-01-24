@@ -6,7 +6,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "5.8.0"
+      version = "5.13.0"
     }
   }
 }
@@ -77,6 +77,7 @@ resource "google_container_cluster" "cluster" {
   min_master_version = can(yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"]) ? yamldecode(file("cluster.yaml"))["spec"]["k8sVersion"] : null
   network    = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet.name
+  deletion_protection = "false"
   node_config {
     machine_type = can(yamldecode(file("cluster.yaml"))["spec"]["nodes"]["machineType"]) ? yamldecode(file("cluster.yaml"))["spec"]["nodes"]["machineType"] : "e2-standard-2"
   }
