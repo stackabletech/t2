@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -29,6 +30,7 @@ import tech.stackable.t2.domain.Status;
 import tech.stackable.t2.files.FileService;
 import tech.stackable.t2.terraform.TerraformResult;
 import tech.stackable.t2.terraform.TerraformService;
+import tech.stackable.t2.util.RetryUtil;
 
 /**
  * Creation and Termination of clusters
@@ -142,15 +144,28 @@ public class ClusterService {
                 new Thread(() -> {
 
                     TerraformResult terraformResult = null;
+                    final AtomicBoolean eventualFailureFlag = new AtomicBoolean(false);
 
-                    cluster.addEvent("Terraform init started.");
-                    terraformResult = this.terraformService.init(cluster.getId());
-                    if (terraformResult == TerraformResult.ERROR) {
-                        cluster.addEvent(MessageFormat.format("Terraform init failed with result {0}", terraformResult));
-                        cluster.addEvent("Working directory cleanup started...");
-                        this.fileService.cleanUpWorkingDirectory(workingDirectory);
-                        cluster.addEvent("Working directory cleaned up.");
-                        cluster.setStatus(Status.LAUNCH_FAILED);
+                    terraformResult = RetryUtil.<TerraformResult>retryTask(
+                        3,
+                        () -> {
+                            return this.terraformService.init(cluster.getId());
+                        },
+                        TerraformResult.ERROR,
+                        tryNumber -> {
+                            cluster.addEvent(MessageFormat.format("Terraform init started (try #{0}).", tryNumber));
+                        }, 
+                        (tfResult, tryNumber) -> {
+                            cluster.addEvent(MessageFormat.format("Terraform init failed with result {0} after {1} tries.", tfResult, tryNumber));
+                            cluster.addEvent("Working directory cleanup started...");
+                            this.fileService.cleanUpWorkingDirectory(workingDirectory);
+                            cluster.addEvent("Working directory cleaned up.");
+                            cluster.setStatus(Status.LAUNCH_FAILED);
+                            eventualFailureFlag.set(true);
+                        }
+                    );
+
+                    if(eventualFailureFlag.get()) {
                         return;
                     }
                     cluster.addEvent("Terraform init successful.");
