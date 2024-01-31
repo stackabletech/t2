@@ -143,11 +143,11 @@ public class ClusterService {
                 // Launching cluster in new thread
                 new Thread(() -> {
 
-                    TerraformResult terraformResult = null;
                     final AtomicBoolean eventualFailureFlag = new AtomicBoolean(false);
 
-                    terraformResult = RetryUtil.<TerraformResult>retryTask(
+                    RetryUtil.<TerraformResult>retryTask(
                         3,
+                        30,
                         () -> {
                             return this.terraformService.init(cluster.getId());
                         },
@@ -170,36 +170,77 @@ public class ClusterService {
                     }
                     cluster.addEvent("Terraform init successful.");
 
-                    cluster.addEvent("Terraform plan started.");
-                    terraformResult = this.terraformService.plan(cluster.getId());
-                    if (terraformResult == TerraformResult.ERROR) {
-                        cluster.addEvent(MessageFormat.format("Terraform plan failed with result {0}", terraformResult));
-                        cluster.addEvent("Working directory cleanup started...");
-                        this.fileService.cleanUpWorkingDirectory(workingDirectory);
-                        cluster.addEvent("Working directory cleaned up.");
-                        cluster.setStatus(Status.LAUNCH_FAILED);
+                    RetryUtil.<TerraformResult>retryTask(
+                        3,
+                        30,
+                        () -> {
+                            return this.terraformService.plan(cluster.getId());
+                        },
+                        TerraformResult.ERROR,
+                        tryNumber -> {
+                            cluster.addEvent(MessageFormat.format("Terraform plan started (try #{0}).", tryNumber));
+                        }, 
+                        (tfResult, tryNumber) -> {
+                            cluster.addEvent(MessageFormat.format("Terraform plan failed with result {0} after {1} tries.", tfResult, tryNumber));
+                            cluster.addEvent("Working directory cleanup started...");
+                            this.fileService.cleanUpWorkingDirectory(workingDirectory);
+                            cluster.addEvent("Working directory cleaned up.");
+                            cluster.setStatus(Status.LAUNCH_FAILED);
+                            eventualFailureFlag.set(true);
+                        }
+                    );
+
+                    if(eventualFailureFlag.get()) {
                         return;
                     }
                     cluster.addEvent("Terraform plan successful.");
 
-                    cluster.addEvent("Terraform apply started.");
-                    terraformResult = this.terraformService.apply(cluster.getId());
-                    if (terraformResult == TerraformResult.ERROR) {
-                        cluster.addEvent(MessageFormat.format("Terraform apply failed with result {0}", terraformResult));
-                        cleanupAfterFailedLaunch(cluster);
+                    RetryUtil.<TerraformResult>retryTask(
+                        3,
+                        30,
+                        () -> {
+                            return this.terraformService.apply(cluster.getId());
+                        },
+                        TerraformResult.ERROR,
+                        tryNumber -> {
+                            cluster.addEvent(MessageFormat.format("Terraform apply started (try #{0}).", tryNumber));
+                        }, 
+                        (tfResult, tryNumber) -> {
+                            cluster.addEvent(MessageFormat.format("Terraform apply failed with result {0} after {1} tries.", tfResult, tryNumber));
+                            cluster.addEvent("Working directory cleanup started...");
+                            this.fileService.cleanUpWorkingDirectory(workingDirectory);
+                            cluster.addEvent("Working directory cleaned up.");
+                            cluster.setStatus(Status.LAUNCH_FAILED);
+                            eventualFailureFlag.set(true);
+                        }
+                    );
+
+                    if(eventualFailureFlag.get()) {
                         return;
                     }
                     cluster.addEvent("Terraform apply successful.");
 
-                    cluster.addEvent("Ansible launch started.");
-                    AnsibleResult ansibleResult = this.ansibleService.launch(cluster.getId());
-                    if (ansibleResult == AnsibleResult.ERROR) {
-                        cluster.addEvent("Ansible launch failed.");
-                        cleanupAfterFailedLaunch(cluster);
+                    RetryUtil.<AnsibleResult>retryTask(
+                        3,
+                        30,
+                        () -> {
+                            return this.ansibleService.launch(cluster.getId());
+                        },
+                        AnsibleResult.ERROR,
+                        tryNumber -> {
+                            cluster.addEvent(MessageFormat.format("Ansible launch started (try #{0}).", tryNumber));
+                        }, 
+                        (tfResult, tryNumber) -> {
+                            cluster.addEvent(MessageFormat.format("Ansible launch failed with result {0} after {1} tries.", tfResult, tryNumber));
+                            cleanupAfterFailedLaunch(cluster);
+                            eventualFailureFlag.set(true);
+                        }
+                    );
+                    
+                    if(eventualFailureFlag.get()) {
                         return;
                     }
                     cluster.addEvent("Ansible launch successful.");
-
                     cluster.addEvent("Cluster up and running!");
                     cluster.setStatus(Status.RUNNING);
 
@@ -271,20 +312,42 @@ public class ClusterService {
                     synchronized (cluster) {
                         Path workingDirectory = this.fileService.workingDirectory(cluster.getId());
 
-                        cluster.addEvent("Ansible cleanup started.");
-                        AnsibleResult ansibleResult = this.ansibleService.cleanup(cluster.getId());
-                        if (ansibleResult == AnsibleResult.SUCCESS) {
-                            cluster.addEvent("Ansible cleanup successful.");
-                        } else {
-                            cluster.addEvent("Ansible cleanup failed.");
-                        }
+                        AnsibleResult ansibleResult = RetryUtil.<AnsibleResult>retryTask(
+                            3,
+                            30,
+                            () -> {
+                                return this.ansibleService.cleanup(cluster.getId());
+                            },
+                            AnsibleResult.ERROR,
+                            tryNumber -> {
+                                cluster.addEvent(MessageFormat.format("Ansible cleanup started (try #{0}).", tryNumber));
+                            }, 
+                            (tfResult, tryNumber) -> {
+                                cluster.addEvent(MessageFormat.format("Ansible cleanup failed with result {0} after {1} tries.", tfResult, tryNumber));
+                            }
+                        );
 
-                        cluster.addEvent("Terraform destroy started.");
-                        TerraformResult terraformResult = this.terraformService.destroy(cluster.getId());
-                        if (terraformResult == TerraformResult.SUCCESS) {
+                        if(ansibleResult == AnsibleResult.SUCCESS) {
+                            cluster.addEvent("Ansible cleanup successful.");
+                        }
+    
+                        TerraformResult terraformResult = RetryUtil.<TerraformResult>retryTask(
+                            3,
+                            30,
+                            () -> {
+                                return this.terraformService.destroy(cluster.getId());
+                            },
+                            TerraformResult.ERROR,
+                            tryNumber -> {
+                                cluster.addEvent(MessageFormat.format("Terraform destroy started (try #{0}).", tryNumber));
+                            }, 
+                            (tfResult, tryNumber) -> {
+                                cluster.addEvent(MessageFormat.format("Terraform destroy failed with result {0} after {1} tries.", tfResult, tryNumber));
+                            }
+                        );
+    
+                        if(terraformResult == TerraformResult.SUCCESS) {
                             cluster.addEvent("Terraform destroy successful.");
-                        } else {
-                            cluster.addEvent(MessageFormat.format("Terraform destroy failed with result {0}", terraformResult));
                         }
 
                         cluster.addEvent("Working directory cleanup started...");
