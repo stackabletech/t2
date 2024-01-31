@@ -207,10 +207,7 @@ public class ClusterService {
                         }, 
                         (tfResult, tryNumber) -> {
                             cluster.addEvent(MessageFormat.format("Terraform apply failed with result {0} after {1} tries.", tfResult, tryNumber));
-                            cluster.addEvent("Working directory cleanup started...");
-                            this.fileService.cleanUpWorkingDirectory(workingDirectory);
-                            cluster.addEvent("Working directory cleaned up.");
-                            cluster.setStatus(Status.LAUNCH_FAILED);
+                            cleanupAfterFailedLaunch(cluster);
                             eventualFailureFlag.set(true);
                         }
                     );
