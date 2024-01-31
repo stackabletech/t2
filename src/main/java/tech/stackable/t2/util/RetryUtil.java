@@ -31,7 +31,7 @@ public class RetryUtil {
         // result of task
         R result = null;
 
-        while(i++ <= numberOfTries) {
+        while(i <= numberOfTries) {
 
             // notify about try # i
             onTryStart.accept(i);
@@ -57,6 +57,7 @@ public class RetryUtil {
                 }
 
                 // Next try...
+                i++;
                 continue;
             }
 
