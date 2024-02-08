@@ -146,7 +146,7 @@ public class ClusterService {
                     final AtomicBoolean eventualFailureFlag = new AtomicBoolean(false);
 
                     RetryUtil.<TerraformResult>retryTask(
-                        3,
+                        1,
                         30,
                         () -> {
                             return this.terraformService.init(cluster.getId());
@@ -171,7 +171,7 @@ public class ClusterService {
                     cluster.addEvent("Terraform init successful.");
 
                     RetryUtil.<TerraformResult>retryTask(
-                        3,
+                        1,
                         30,
                         () -> {
                             return this.terraformService.plan(cluster.getId());
@@ -196,7 +196,7 @@ public class ClusterService {
                     cluster.addEvent("Terraform plan successful.");
 
                     RetryUtil.<TerraformResult>retryTask(
-                        3,
+                        1,
                         30,
                         () -> {
                             return this.terraformService.apply(cluster.getId());
@@ -218,7 +218,7 @@ public class ClusterService {
                     cluster.addEvent("Terraform apply successful.");
 
                     RetryUtil.<AnsibleResult>retryTask(
-                        3,
+                        1,
                         30,
                         () -> {
                             return this.ansibleService.launch(cluster.getId());
