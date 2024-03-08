@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -140,6 +141,10 @@ public class ClusterService {
 
                 clusters.put(cluster.getId(), cluster);
 
+                // Spike: Wait a certain amount of time before the Ansible part if cluster is ionos-k8s
+                Random random = new Random();
+                final int waitBeforeRunningAnsibleMinutes = ("ionos-k8s".equals(((Map<String, Object>) clusterDefinition.get("spec")).get("template"))) ? random.nextInt(4) * 5 : 0;
+
                 // Launching cluster in new thread
                 new Thread(() -> {
 
@@ -216,6 +221,17 @@ public class ClusterService {
                         return;
                     }
                     cluster.addEvent("Terraform apply successful.");
+
+                    if(waitBeforeRunningAnsibleMinutes > 0) {
+                        cluster.addEvent(MessageFormat.format("Waiting before Ansible launch for #{0} minutes.", waitBeforeRunningAnsibleMinutes));
+                        try {
+                            Thread.sleep(waitBeforeRunningAnsibleMinutes * 60_000);
+                        } catch (InterruptedException e) {
+                            cluster.addEvent(MessageFormat.format("Waiting before Ansible launch for #{0} minutes was interrupted.", waitBeforeRunningAnsibleMinutes));
+                            cleanupAfterFailedLaunch(cluster);
+                            eventualFailureFlag.set(true);
+                        }
+                    }
 
                     RetryUtil.<AnsibleResult>retryTask(
                         1,
