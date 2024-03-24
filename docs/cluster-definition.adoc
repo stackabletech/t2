@@ -98,6 +98,7 @@ The content of the `spec` section differs depending on the cloud provider and te
 | nodes.<type>.diskType | `string` | *optional* | type of disk of the nodes of the given type, defaults to `SSD`
 | nodes.<type>.diskSizeGb | `integer` | *optional* | size of the disk of the nodes of the given type in GB, defaults to `500`
 | k8sVersion | `string` | *optional* | The K3s release (channel) to be installed. K3s offers a channel for each minor version of K8s, the channels are named `v1.25`, `v1.24` etc. Special channels are `stable`, `latest` and `testing`. `stable` is the default for T2. See https://update.k3s.io/v1-release/channels[here, window="_blank"] to inspect which versions are available.
+| waitAfterTerraform | `integer` | *optional* | Some clusters/vendors are quite sensitive towards using the cluster right after creation. So you can configure a waiting period (minutes) after `terraform apply` is completed.
 | stackableVersions | `map` | *optional* | Map of versions of the Stackable operators to be used in this cluster. See below for a list of Stackable components as well as the version literals you can use.
 | stackableServices | `map(yaml)` | *optional* | Map of service definitions as embedded YAMLs. See below for available services.
 |=======
