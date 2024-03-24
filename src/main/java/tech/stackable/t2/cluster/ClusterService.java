@@ -141,9 +141,12 @@ public class ClusterService {
 
                 clusters.put(cluster.getId(), cluster);
 
-                // Spike: Wait a certain amount of time before the Ansible part if cluster is ionos-k8s
-                Random random = new Random();
-                final int waitBeforeRunningAnsibleMinutes = ("ionos-k8s".equals(((Map<String, Object>) clusterDefinition.get("spec")).get("template"))) ? random.nextInt(4) * 5 : 0;
+                // Wait a certain amount of time after Terraform apply
+                final int waitAfterTerraformApply = 
+                    (
+                        ((Map<String, Object>) clusterDefinition.get("spec")).containsKey("waitAfterTerraform") &&
+                        ((Map<String, Object>) clusterDefinition.get("spec")).get("waitAfterTerraform") instanceof Integer 
+                    ) ? ((Integer)((Map<String, Object>) clusterDefinition.get("spec")).get("waitAfterTerraform")).intValue() : 0;
 
                 // Launching cluster in new thread
                 new Thread(() -> {
@@ -222,12 +225,12 @@ public class ClusterService {
                     }
                     cluster.addEvent("Terraform apply successful.");
 
-                    if(waitBeforeRunningAnsibleMinutes > 0) {
-                        cluster.addEvent(MessageFormat.format("Waiting before Ansible launch for #{0} minutes.", waitBeforeRunningAnsibleMinutes));
+                    if(waitAfterTerraformApply > 0) {
+                        cluster.addEvent(MessageFormat.format("Waiting after Terraform apply for {0} minutes.", waitAfterTerraformApply));
                         try {
-                            Thread.sleep(waitBeforeRunningAnsibleMinutes * 60_000);
+                            Thread.sleep(waitAfterTerraformApply * 60_000);
                         } catch (InterruptedException e) {
-                            cluster.addEvent(MessageFormat.format("Waiting before Ansible launch for #{0} minutes was interrupted.", waitBeforeRunningAnsibleMinutes));
+                            cluster.addEvent(MessageFormat.format("Waiting after Terraform apply for {0} minutes was interrupted.", waitAfterTerraformApply));
                             cleanupAfterFailedLaunch(cluster);
                             eventualFailureFlag.set(true);
                         }
