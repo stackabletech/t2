@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -140,6 +141,13 @@ public class ClusterService {
 
                 clusters.put(cluster.getId(), cluster);
 
+                // Wait a certain amount of time after Terraform apply
+                final int waitAfterTerraformApply = 
+                    (
+                        ((Map<String, Object>) clusterDefinition.get("spec")).containsKey("waitAfterTerraform") &&
+                        ((Map<String, Object>) clusterDefinition.get("spec")).get("waitAfterTerraform") instanceof Integer 
+                    ) ? ((Integer)((Map<String, Object>) clusterDefinition.get("spec")).get("waitAfterTerraform")).intValue() : 0;
+
                 // Launching cluster in new thread
                 new Thread(() -> {
 
@@ -216,6 +224,17 @@ public class ClusterService {
                         return;
                     }
                     cluster.addEvent("Terraform apply successful.");
+
+                    if(waitAfterTerraformApply > 0) {
+                        cluster.addEvent(MessageFormat.format("Waiting after Terraform apply for {0} minutes.", waitAfterTerraformApply));
+                        try {
+                            Thread.sleep(waitAfterTerraformApply * 60_000);
+                        } catch (InterruptedException e) {
+                            cluster.addEvent(MessageFormat.format("Waiting after Terraform apply for {0} minutes was interrupted.", waitAfterTerraformApply));
+                            cleanupAfterFailedLaunch(cluster);
+                            eventualFailureFlag.set(true);
+                        }
+                    }
 
                     RetryUtil.<AnsibleResult>retryTask(
                         1,
