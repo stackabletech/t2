@@ -187,7 +187,7 @@ def run_test_script():
             log(f.read())
         log("\n\n")
 
-    os.system(f"(sh /test.sh 2>&1; echo $? > /test_exit_code) | tee {TEST_OUTPUT_LOGFILE}")
+    os.system(f"(/bin/bash /test.sh 2>&1; echo $? > /test_exit_code) | tee {TEST_OUTPUT_LOGFILE}")
     time.sleep(15)
     with open ("/test_exit_code", "r") as f:
         return int(f.read().strip())
